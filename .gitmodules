@@ -1,0 +1,3 @@
+[submodule "vendor/trimal"]
+	path = vendor/trimal
+	url = https://github.com/inab/trimal
