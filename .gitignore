@@ -3,7 +3,7 @@
 
 ### Cython ###
 pytrimal/*.html
-pytrimal/*.c
+pytrimal/*.cpp
 
 # Created by https://www.gitignore.io/api/python,c
 # Edit at https://www.gitignore.io/?templates=python,c
