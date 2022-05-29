@@ -37,13 +37,15 @@ cdef class SimilarityMatrix:
     def __init__(self):
         raise NotImplementedError("SimilarityMatrix.__init__")
 
-    cpdef float distance(self, str a, str b):
+    cpdef float distance(self, str a, str b) except -1:
         """distance(self, a, b)\n--
 
         Return the distance between two sequence characters.
 
         """
-        cdef float distance
-        # with nogil:
-        distance  = self._smx.getDistance(ord(a), ord(b))
+        cdef float distance = 0.0
+        cdef char  a_code   = ord(a)
+        cdef char  b_code   = ord(b)
+        with nogil:
+            distance  = self._smx.getDistance(a_code, b_code)
         return distance
