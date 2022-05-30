@@ -70,6 +70,7 @@ class build_ext(_build_ext):
     def build_extension(self, ext):
         # show the compiler being used
         _eprint("building", ext.name, "with", self.compiler.compiler_type, "compiler")
+
         # add debug symbols if we are building in debug mode
         if self.debug:
             if self.compiler.compiler_type in {"unix", "cygwin", "mingw32"}:
@@ -80,14 +81,11 @@ class build_ext(_build_ext):
                 ext.define_macros.append(("CYTHON_TRACE_NOGIL", 1))
         else:
             ext.define_macros.append(("CYTHON_WITHOUT_ASSERTIONS", 1))
-        # add C++11 flags
-        if self.compiler.compiler_type in {"unix", "cygwin", "mingw32"}:
-            ext.extra_compile_args.append("-std=c++11")
-        elif self.compiler.compiler_type == "msvc":
-            ext.extra_compile_args.append("/std:c11")
+
         # add Windows flags
         if self.compiler.compiler_type == "msvc":
             ext.define_macros.append(("WIN32", 1))
+
         # update link and include directories
         for name in ext.libraries:
             lib = self._clib_cmd.get_library(name)
@@ -96,6 +94,7 @@ class build_ext(_build_ext):
             )
             ext.depends.append(libfile)
             ext.extra_objects.append(libfile)
+
         # build the rest of the extension as normal
         ext._needs_stub = False
         _build_ext.build_extension(self, ext)
@@ -196,12 +195,6 @@ class build_clib(_build_clib):
             elif self.compiler.compiler_type == "msvc":
                 library.extra_compile_args.append("/Z7")
 
-        # add C++11 flags
-        if self.compiler.compiler_type in {"unix", "cygwin", "mingw32"}:
-            library.extra_compile_args.append("-std=c++11")
-        elif self.compiler.compiler_type == "msvc":
-            library.extra_compile_args.append("/std:c11")
-
         # add Windows flags
         if self.compiler.compiler_type == "msvc":
             library.define_macros.append(("WIN32", 1))
@@ -294,25 +287,39 @@ setuptools.setup(
             language="c++",
             libraries=["m"],
             sources=[
+                # commonFiles
                 os.path.join("vendor", "trimal", "source", "Cleaner.cpp"),
-                os.path.join("vendor", "trimal", "source", "utils.cpp"),
                 os.path.join("vendor", "trimal", "source", "Alignment", "Alignment.cpp"),
                 os.path.join("vendor", "trimal", "source", "Alignment", "sequencesMatrix.cpp"),
-                os.path.join("vendor", "trimal", "source", "reportMessages", "errorMessages.cpp"),
-                os.path.join("vendor", "trimal", "source", "reportMessages", "infoMessages.cpp"),
-                os.path.join("vendor", "trimal", "source", "reportMessages", "warningMessages.cpp"),
                 os.path.join("vendor", "trimal", "source", "Statistics", "similarityMatrix.cpp"),
+                # statisticsFiles
                 os.path.join("vendor", "trimal", "source", "Statistics", "Mold.cpp"),
                 os.path.join("vendor", "trimal", "source", "Statistics", "Gaps.cpp"),
                 os.path.join("vendor", "trimal", "source", "Statistics", "Manager.cpp"),
                 os.path.join("vendor", "trimal", "source", "Statistics", "Similarity.cpp"),
                 os.path.join("vendor", "trimal", "source", "Statistics", "Consistency.cpp"),
+                # reportSystemFiles
+                # os.path.join("vendor", "trimal", "source", "reportsystem"),
+                os.path.join("vendor", "trimal", "source", "reportMessages", "errorMessages.cpp"),
+                os.path.join("vendor", "trimal", "source", "reportMessages", "infoMessages.cpp"),
+                os.path.join("vendor", "trimal", "source", "reportMessages", "warningMessages.cpp"),
+                # formatHandlerFiles
+                *glob.iglob(os.path.join("vendor", "trimal", "source", "FormatHandling", "*_state.cpp")),
+                # formatHandler
+                os.path.join("vendor", "trimal", "source", "FormatHandling", "BaseFormatHandler.cpp"),
+                # utils
+                os.path.join("vendor", "trimal", "source", "utils.cpp"),
+                # Internal Benchmarker
+                os.path.join("vendor", "trimal", "source", "InternalBenchmarker.cpp"),
+                # trimAl manager
+                os.path.join("vendor", "trimal", "source", "trimalManager.cpp"),
+                os.path.join("vendor", "trimal", "source", "VCFHandler.cpp"),
             ],
             depends=[
                 os.path.join(d, file)
                 for d, dirs, files in os.walk(INCLUDE_FOLDER)
                 for file in files
-                if file.endswith(".h")
+                if file.endswith((".h", ".txt"))
             ],
             include_dirs=[
                 os.path.join("pytrimal", "patch"),
