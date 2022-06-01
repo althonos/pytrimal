@@ -81,6 +81,12 @@ class build_ext(_build_ext):
         else:
             ext.define_macros.append(("CYTHON_WITHOUT_ASSERTIONS", 1))
 
+        # add C++11 flags
+        if self.compiler.compiler_type in {"unix", "cygwin", "mingw32"}:
+            ext.extra_compile_args.append("-std=c++11")
+        elif self.compiler.compiler_type == "msvc":
+            ext.extra_compile_args.append("/std:c11")
+
         # add Windows flags
         if self.compiler.compiler_type == "msvc":
             ext.define_macros.append(("WIN32", 1))
@@ -193,6 +199,12 @@ class build_clib(_build_clib):
                 library.extra_compile_args.append("-g")
             elif self.compiler.compiler_type == "msvc":
                 library.extra_compile_args.append("/Z7")
+
+        # add C++11 flags
+        if self.compiler.compiler_type in {"unix", "cygwin", "mingw32"}:
+            library.extra_compile_args.append("-std=c++11")
+        elif self.compiler.compiler_type == "msvc":
+            library.extra_compile_args.append("/std:c11")
 
         # add Windows flags
         if self.compiler.compiler_type == "msvc":
