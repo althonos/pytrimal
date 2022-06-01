@@ -15,15 +15,15 @@ References:
 from cpython.bytes cimport PyBytes_FromStringAndSize
 from cpython.list cimport PyList_New, PyList_SET_ITEM
 from cpython.ref cimport Py_INCREF
-from _unicode cimport (
-    PyUnicode_New,
-    PyUnicode_1BYTE_KIND,
-    PyUnicode_1BYTE_DATA,
-    PyUnicode_READY,
-    Py_UCS1
-)
 
-from libc.math cimport isnan, NAN
+from _unicode cimport (
+    Py_UCS1,
+    PyUnicode_1BYTE_DATA,
+    PyUnicode_1BYTE_KIND,
+    PyUnicode_New,
+    PyUnicode_READY,
+)
+from libc.math cimport NAN, isnan
 from libcpp cimport bool
 from libcpp.string cimport string
 
@@ -38,7 +38,6 @@ cimport trimal.similarity_matrix
 
 import os
 import threading
-
 
 # --- Constants --------------------------------------------------------------
 
@@ -87,6 +86,8 @@ cdef class Alignment:
     def names(self):
         """sequence of `bytes`: The names of the sequences in the alignment.
         """
+        assert self._ali is not NULL
+
         cdef size_t i
         cdef size_t x     = 0
         cdef bytes  name
@@ -105,6 +106,8 @@ cdef class Alignment:
     def sequences(self):
         """sequence of `str`: The sequences in the alignment.
         """
+        assert self._ali is not NULL
+
         cdef size_t i
         cdef size_t j
         cdef size_t x         = 0
@@ -138,11 +141,24 @@ cdef class TrimmedAlignment(Alignment):
 
 
 cdef class BaseTrimmer:
+    """A sequence alignment trimmer.
+
+    All subclasses provide the same
+
+    """
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         pass
 
     cpdef TrimmedAlignment trim(self, Alignment alignment):
+        """trim(self, alignment)\n--
+
+        Trim the provided alignment.
+
+        Returns:
+            `~pytrimal.TrimmedAlignment`: The trimmed alignment.
+
+        """
         # use a local manager object so that this method is re-entrant
         cdef trimal.manager.trimAlManager _mg
 
