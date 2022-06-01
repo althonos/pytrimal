@@ -75,6 +75,19 @@ cdef extern from *:
 @cython.freelist(32)
 cdef class _AlignmentSequences:
       """A read-only view over the sequences of an alignment.
+
+      Objects from this class are created in the `~Alignment.sequences`
+      property of `~pytrimal.Alignment` objects. Use it to access the
+      string data of individual sequences from the alignment::
+
+          >>> msa = Alignment.load("example.001.AA.clw")
+          >>> len(msa.sequences)
+          6
+          >>> msa.sequences[0]
+          '-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII'
+          >>> sum(letter == '-' for seq in msa.sequences for letter in seq)
+          43
+
       """
 
       cdef trimal.alignment.Alignment* _ali
@@ -128,6 +141,20 @@ cdef class Alignment:
 
     @classmethod
     def load(cls, object path not None):
+        """load(path)\n--
+
+        Load a multiple sequence alignment from a file.
+
+        Arguments:
+            path (`str`, `bytes` or `os.PathLike`): The path to the file
+              containing the serialized alignment to load.
+
+        Example:
+            >>> msa = Alignment.load("example.001.AA.clw")
+            >>> msa.names
+            [b'Sp8', b'Sp10', b'Sp26', b'Sp6', b'Sp17', b'Sp33']
+
+        """
         cdef trimal.format_manager.FormatManager manager
         cdef Alignment alignment = cls.__new__(cls)
         cdef string    path_ =  os.fsencode(path)
@@ -237,7 +264,7 @@ cdef class Alignment:
 
     @property
     def sequences(self):
-        """sequence of `str`: The sequences in the alignment.
+        """`_AlignmentSequences`: The sequences in the alignment.
         """
         assert self._ali is not NULL
 
@@ -271,6 +298,13 @@ cdef class BaseTrimmer:
 
     """
 
+    def __init__(self):
+        """__init__(self)\n--
+
+        Create a new base trimmer.
+
+        """
+
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         pass
 
@@ -279,12 +313,17 @@ cdef class BaseTrimmer:
 
         Trim the provided alignment.
 
+        Arguments:
+            alignment (`~pytrimal.Alignment`): A multiple sequence
+                alignment to trim.
+
         Returns:
             `~pytrimal.TrimmedAlignment`: The trimmed alignment.
 
-        Note:
+        Hint:
             This method is re-entrant, and can be called safely accross
-            different threads.
+            different threads. Most of the computations will be done after
+            releasing the GIL.
 
         """
         # use a local manager object so that this method is re-entrant
@@ -324,6 +363,25 @@ cdef class BaseTrimmer:
 
 cdef class AutomaticTrimmer(BaseTrimmer):
     """A sequence alignment trimmer with automatic parameter detection.
+
+    trimAl provides several heuristic methods for automated trimming of
+    multiple sequence algorithms:
+
+    - ``strict``: A statistical method that combines *gaps* and *similarity*
+      statistics to clean the alignment.
+    - ``strictplus``: A statistical method that combines *gaps* and
+      *similarity* statistics, optimized for Neighbour-Joining tree
+      reconstruction.
+    - ``gappyout``: A statistical method that only uses *gaps* statistic
+      to clean the alignment.
+    - ``automated1``: A meta-method that chooses between ``strict`` and
+      ``gappyout``, optimized for Maximum Likelihood phylogenetic tree
+      reconstruction.
+    - ``nogaps``: A naive method that removes every column containing at
+      least one gap.
+    - ``noallgaps``: A naive method that removes every column containing
+      only gaps.
+
     """
 
     cdef readonly str method
@@ -334,7 +392,9 @@ cdef class AutomaticTrimmer(BaseTrimmer):
         Create a new automatic alignment trimmer using the given method.
 
         Arguments:
-            method (`str`): The automatic aligment trimming method.
+            method (`str`): The automatic aligment trimming method. See
+                the documentation for `AutomatedTrimmer` for a list of
+                supported values.
 
         Raises:
             `ValueError`: When ``method`` is not one of the automatic
@@ -366,6 +426,22 @@ cdef class AutomaticTrimmer(BaseTrimmer):
 
 cdef class ManualTrimmer(BaseTrimmer):
     """A sequence alignment trimmer with manually defined thresholds.
+
+    Manual trimming allows the user to specify independent thresholds for
+    four different statistics:
+
+    - *Consistency threshold*: Remove columns with a consistency ratio
+      lower than the provided threshold.
+    - *Gap threshold*: Remove columns where the gap ratio (or the absolute
+      gap count) is higher than the provided threshold.
+    - *Similarity threshold*: Remove columns with a similarity ratio lower
+      than the provided threshold.
+
+    In addition, the trimming can be restricted so that at least a
+    configurable fraction of the original alignment is retained, in order
+    to avoid stripping an alignment of distance sequences by aggressive
+    trimming.
+
     """
 
     cdef float   _gap_threshold
@@ -392,12 +468,12 @@ cdef class ManualTrimmer(BaseTrimmer):
     ):
         """__init__(self, *, gap_threshold=None, gap_absolute_threshold=None, similarity_threshold=None, consistency_threshold=None, conservation_percentage=None)\n--
 
-         Create a new manual alignment trimmer with the given parameters.
+        Create a new manual alignment trimmer with the given parameters.
 
-         Keyword Arguments:
-             gap_threshold (`float`, *optional*): The minimum fraction of
-                 non-gap characters that must be present in a column to
-                 keep the column.
+        Keyword Arguments:
+            gap_threshold (`float`): The minimum fraction of non-gap
+                 characters that must be present in a column to keep
+                 the column.
             gap_absolute_threshold (`int`, *optional*): The absolute number
                 of gaps allowed on a column to keep it in the alignment.
                 Incompatible with ``gap_threshold``.
@@ -418,7 +494,7 @@ cdef class ManualTrimmer(BaseTrimmer):
         if gap_threshold is not None:
             self._gap_threshold = 1 - _check_range(gap_threshold, "gap_threshold", 0, 1)
         if gap_absolute_threshold is not None:
-            if gap_absolute_threshold < 0 or gap_absolute_threshold > 100:
+            if gap_absolute_threshold < 0:
                 raise ValueError(f"Invalid value for `gap_absolute_threshold`: {gap_absolute_threshold!r}")
             self._gap_absolute_threshold = gap_absolute_threshold
         if similarity_threshold is not None:

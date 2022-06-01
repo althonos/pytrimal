@@ -4,10 +4,28 @@ Trimmer
 .. currentmodule:: pytrimal
 
 
-.. autoclass:: pytrimal.AutomaticTrimmer
+Base Trimmer
+------------
+
+.. autoclass:: pytrimal.BaseTrimmer
    :special-members: __init__
+   :inherited-members:
    :members:
 
-.. autoclass:: pytrimal.ManualTrimmer
+
+Automatic Trimmer
+-----------------
+
+.. autoclass:: pytrimal.AutomaticTrimmer(BaseTrimmer)
    :special-members: __init__
+   :inherited-members:
+   :members:
+
+
+Manual Trimmer
+--------------
+
+.. autoclass:: pytrimal.ManualTrimmer(BaseTrimmer)
+   :special-members: __init__
+   :inherited-members:
    :members:
