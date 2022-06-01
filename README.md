@@ -45,12 +45,26 @@ internals, which has the following advantages:
 
 The following features are available or considered for implementation:
 
-- [x] **automatic trimming**
-- [x] **manual trimming**
-- [ ] **overlap trimming**
-- [x] **alignment loading from disk**
-- [ ] **alignment loading from a file-like object**
-- [x] **aligment creation from Python**
+- [x] **automatic trimming**: Support for trimming alignments using one of the
+  automatic heuristics implemented in trimAl.
+- [x] **manual trimming**: Support for trimming alignments using manually
+  defined conservation and gap thresholds for each residue position.
+- [ ] **overlap trimming**: Trimming sequences using residue and sequence
+  overlaps to exclude regions with minimal conservation.
+- [x] **alignment loading from disk**: Load an alignment from disk given
+  a filename.
+- [ ] **alignment loading from a file-like object**: Load an alignment from
+  disk given a [file object](https://docs.python.org/3/glossary.html#term-file-object).
+- [x] **aligment creation from Python**: Create an alignment from a collection
+  of sequences stored in Python strings.
+- [ ] **reverse-translation**: Back-translate a protein alignment to align
+  the sequences in genomic space.
+- [ ] **alternative similarity matrix**: Specify an alternative similarity
+  matrix for the alignment (instead of BLOSUM62).
+- [ ] **similarity matrix creation**: Create a similarity matrix from scratch
+  from Python code.
+- [ ] **windows for manual methods**: Use a sliding window for computing
+  statistics in manual methods.
 
 <!-- ## 🔧 Installing
 
