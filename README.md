@@ -23,9 +23,11 @@ may not be consistent across versions or with the trimAl 1.4 results.***
 
 ## 🗺️ Overview
 
-PytrimAl is a Python module that provides bindings to trimAl using
-[Cython](https://cython.org/). It directly interacts with the trimAl
-internals, which has the following advantages:
+PytrimAl is a Python module that provides bindings to [trimAl](http://trimal.cgenomics.org/)
+using [Cython](https://cython.org/). It implements a user-friendly, Pythonic
+interface to use one of the different trimming methods from trimAl and
+access results directly. It interacts with the trimAl internals, which has
+the following advantages:
 
 - **single dependency**: PytrimAl is distributed as a Python package, so you
   can add it as a dependency to your project, and stop worrying about the
