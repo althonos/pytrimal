@@ -3,15 +3,14 @@ import glob
 import os
 import platform
 import re
+import setuptools
 import subprocess
 import sys
-
-import setuptools
 from distutils import log
-from distutils.errors import CompileError
 from distutils.command.clean import clean as _clean
-from setuptools.command.build_ext import build_ext as _build_ext
+from distutils.errors import CompileError
 from setuptools.command.build_clib import build_clib as _build_clib
+from setuptools.command.build_ext import build_ext as _build_ext
 from setuptools.command.sdist import sdist as _sdist
 from setuptools.extension import Extension, Library
 

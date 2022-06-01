@@ -1,6 +1,7 @@
 from libcpp cimport bool
 from libcpp.map cimport map
 
+
 cdef extern from "reportsystem.h" namespace "reporting" nogil:
 
     cdef enum VerboseLevel:

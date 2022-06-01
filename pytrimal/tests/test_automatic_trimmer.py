@@ -5,7 +5,6 @@ import unittest
 from .. import Alignment, AutomaticTrimmer
 
 
-
 class TestAutomaticTrimmer(unittest.TestCase):
 
     @classmethod

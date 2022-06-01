@@ -25,6 +25,12 @@ cdef extern from "Alignment/Alignment.h" nogil:
         int* saveResidues
         int* saveSequences
 
+        cppclass sequencesMatrix:
+            int resNumber
+            int seqsNumber
+            int **matrix
+            string *seqsName
+
         bool fillMatrices(bool aligned, bool checkInvalidChars = true)
 
         Alignment()

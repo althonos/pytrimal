@@ -1,13 +1,14 @@
-from ._version import __version__
+# noqa: D104
+from ._version import __version__  # isort: skip
 
 from . import _trimal
 from ._trimal import (
     Alignment,
-    TrimmedAlignment,
-    BaseTrimmer,
     AutomaticTrimmer,
+    BaseTrimmer,
     ManualTrimmer,
-    SimilarityMatrix
+    SimilarityMatrix,
+    TrimmedAlignment,
 )
 
 __doc__ = _trimal.__doc__

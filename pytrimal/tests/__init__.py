@@ -1,3 +1,5 @@
+# noqa: D104
+
 from . import (
     test_alignment,
     test_automatic_trimmer,

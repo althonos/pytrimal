@@ -9,12 +9,11 @@
 import configparser
 import datetime
 import os
-import sys
 import re
-import shutil
 import semantic_version
+import shutil
 import sphinx_bootstrap_theme
-
+import sys
 
 # -- Path setup --------------------------------------------------------------
 
