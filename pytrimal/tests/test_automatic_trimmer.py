@@ -13,7 +13,7 @@ class TestAutomaticTrimmer(unittest.TestCase):
 
     def _test_method(self, name):
         ali = Alignment.load(self.data_folder.joinpath("ENOG411BWBU.fasta"))
-        expected = Alignment.load(self.data_folder.joinpath(f"ENOG411BWBU.{name}.fasta"))
+        expected = Alignment.load(self.data_folder.joinpath("ENOG411BWBU.{}.fasta".format(name)))
 
         trimmer = AutomaticTrimmer(name)
         trimmed = trimmer.trim(ali)

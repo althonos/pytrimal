@@ -13,7 +13,7 @@ class TestManualTrimmer(unittest.TestCase):
 
     def _test_parameters(self, gt, cons):
         ali = Alignment.load(self.data_folder.joinpath("ENOG411BWBU.fasta"))
-        expected = Alignment.load(self.data_folder.joinpath(f"ENOG411BWBU.cons{cons:02}.gt{int(gt*100):02}.fasta"))
+        expected = Alignment.load(self.data_folder.joinpath("ENOG411BWBU.cons{:02}.gt{:02}.fasta".format(cons, int(gt*100))))
 
         trimmer = ManualTrimmer(gap_threshold=gt, conservation_percentage=cons)
         trimmed = trimmer.trim(ali)
