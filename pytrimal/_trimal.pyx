@@ -181,7 +181,7 @@ cdef class Alignment:
             alphabet::
 
                 >>> Alignment(
-                ...     names=[b"Sp8", b"Sp10", b"Sp26"],
+                ...     names=[b"Sp8", b"Sp10"],
                 ...     sequences=["GLQIHMMGII", "GLEINMM123"]
                 ... )
                 Traceback (most recent call last):
