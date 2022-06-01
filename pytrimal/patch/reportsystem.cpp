@@ -32,7 +32,7 @@
     This file contains a modified version of the trimAl report manager that
     emits exceptions and warnings with the Python C API. It requires functions
     that can raise exceptions to be declared as such in the Cython `.pxd`
-    files. In addition, these functions cannot be made `nogil`.
+    files.
 
 ***************************************************************************** */
 
@@ -42,6 +42,13 @@
 
 #include "InternalBenchmarker.h"
 #include "reportsystem.h"
+
+static PyObject* error_from_errorcode(ErrorCode code) {
+    switch (code) {
+        case UnknownCharacter: return PyExc_ValueError;
+        default: return PyExc_RuntimeError;
+    }
+}
 
 reporting::reportManager debug = reporting::reportManager();
 
@@ -94,7 +101,7 @@ void reporting::reportManager::report(ErrorCode message, std::string *vars) {
     }
 
     PyGILState_STATE state = PyGILState_Ensure();
-    PyErr_SetString(PyExc_RuntimeError, s.c_str());
+    PyErr_SetString(error_from_errorcode(message), s.c_str());
     PyGILState_Release(state);
 }
 
@@ -115,7 +122,7 @@ void reporting::reportManager::report(ErrorCode message, const char *vars) {
     }
 
     PyGILState_STATE state = PyGILState_Ensure();
-    PyErr_SetString(PyExc_RuntimeError, s.c_str());
+    PyErr_SetString(error_from_errorcode(message), s.c_str());
     PyGILState_Release(state);
 }
 
