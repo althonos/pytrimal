@@ -12,8 +12,10 @@ References:
 
 # --- C imports --------------------------------------------------------------
 
+cimport cython
 from cpython.bytes cimport PyBytes_FromStringAndSize
 from cpython.list cimport PyList_New, PyList_SET_ITEM
+from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from cpython.ref cimport Py_INCREF
 
 from _unicode cimport (
@@ -61,18 +63,68 @@ cdef float _check_range(object value, str name, float min_value, float max_value
 
 # --- Cython classes ---------------------------------------------------------
 
+@cython.freelist(32)
+cdef class _AlignmentSequences:
+      """A read-only view over the sequences of an alignment.
+      """
+
+      cdef trimal.alignment.Alignment* _ali
+      cdef Alignment                   _owner
+      cdef int*                        _sequence_mapping
+
+      def __cinit__(self, Alignment alignment):
+          self._owner = alignment
+          self._ali = alignment._ali
+          self._sequence_mapping = alignment._sequence_mapping
+
+      def __len__(self):
+          assert self._ali is not NULL
+          return self._ali.numberOfSequences
+
+      def __getitem__(self, ssize_t index):
+          assert self._ali is not NULL
+
+          cdef ssize_t index_ = index
+          cdef ssize_t length = self._ali.numberOfSequences
+
+          if index_ < 0:
+              index_ += length
+          if index_ < 0 or index_ > length:
+              raise IndexError(index)
+
+          cdef size_t   i
+          cdef size_t   x         = 0
+          cdef int      old_index = self._sequence_mapping[index_]
+          cdef str      seq       = PyUnicode_New(self._ali.numberOfResidues, 0x7f)
+
+          IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MINOR < 12:
+              PyUnicode_READY(seq)
+
+          cdef Py_UCS1* seqdata = PyUnicode_1BYTE_DATA(seq)
+
+          for i in range(self._ali.originalNumberOfResidues):
+              if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
+                  seqdata[x] = self._ali.sequences[old_index][i]
+                  x += 1
+
+          return seq
+
+          # return _AlignmentSequence.__new__(_AlignmentSequence, self._owner, index_)
+
 
 cdef class Alignment:
+    """A multiple sequence alignment.
+    """
 
     cdef trimal.alignment.Alignment* _ali
+    cdef int*                        _sequence_mapping
 
     def __cinit__(self):
         self._ali = NULL
 
     def __dealloc__(self):
-        if self._ali != NULL:
-            self._ali.saveResidues = NULL
-            # del self._ali
+        if self._sequence_mapping != NULL:
+            PyMem_Free(self._sequence_mapping)
 
     @classmethod
     def load(cls, object path not None):
@@ -108,32 +160,19 @@ cdef class Alignment:
         """
         assert self._ali is not NULL
 
-        cdef size_t i
-        cdef size_t j
-        cdef size_t x         = 0
-        cdef size_t y
-        cdef str      seq
-        cdef Py_UCS1* seqdata
-        cdef object   seqs    = PyList_New(self._ali.numberOfSequences)
+        cdef int i
+        cdef int x = 0
 
-        for i in range(self._ali.originalNumberOfSequences):
-            if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
-                seq = PyUnicode_New(self._ali.numberOfResidues, 0x7f)
-                IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MINOR < 12:
-                    PyUnicode_READY(seq)
-                seqdata = PyUnicode_1BYTE_DATA(seq)
-                y = 0
+        # build a mapping of old index to new index for sequences in the
+        # alignment ()
+        if self._sequence_mapping is NULL:
+            self._sequence_mapping = <int*> PyMem_Malloc(self._ali.numberOfSequences * sizeof(int))
+            for i in range(self._ali.originalNumberOfSequences):
+                if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
+                    self._sequence_mapping[x] = i
+                    x += 1
 
-                for j in range(self._ali.originalNumberOfResidues):
-                    if self._ali.saveResidues is NULL or self._ali.saveResidues[j] != -1:
-                        seqdata[y] = self._ali.sequences[i][j]
-                        y += 1
-
-                PyList_SET_ITEM(seqs, x, seq)
-                Py_INCREF(seq)
-                x += 1
-
-        return seqs
+        return _AlignmentSequences(self)
 
 
 cdef class TrimmedAlignment(Alignment):
@@ -143,7 +182,8 @@ cdef class TrimmedAlignment(Alignment):
 cdef class BaseTrimmer:
     """A sequence alignment trimmer.
 
-    All subclasses provide the same
+    All subclasses provide the same `trim` method, and are configured
+    through their constructor.
 
     """
 
@@ -158,6 +198,10 @@ cdef class BaseTrimmer:
         Returns:
             `~pytrimal.TrimmedAlignment`: The trimmed alignment.
 
+        Note:
+            This method is re-entrant, and can be called safely accross
+            different threads.
+
         """
         # use a local manager object so that this method is re-entrant
         cdef trimal.manager.trimAlManager _mg
@@ -169,24 +213,25 @@ cdef class BaseTrimmer:
         # configure the manager (to be implemented by the different subclasses)
         self._configure_manager(&_mg)
 
-        # set flags
-        # self._mg.origAlig.Cleaning.setTrimTerminalGapsFlag(self.terminal_only)
-        # self._mg.origAlig.setKeepSequencesFlag(self.keep_sequences)
-        _mg.set_window_size()
-        if _mg.blockSize != -1:
-            _mg.origAlig.setBlockSize(self._mg.blockSize)
+        with nogil:
+            # set flags
+            # self._mg.origAlig.Cleaning.setTrimTerminalGapsFlag(self.terminal_only)
+            # self._mg.origAlig.setKeepSequencesFlag(self.keep_sequences)
+            _mg.set_window_size()
+            if _mg.blockSize != -1:
+                _mg.origAlig.setBlockSize(_mg.blockSize)
 
-        _mg.create_or_use_similarity_matrix()
-        # self._mg.print_statistics()
-        _mg.clean_alignment()
+            _mg.create_or_use_similarity_matrix()
+            # self._mg.print_statistics()
+            _mg.clean_alignment()
 
-        if _mg.singleAlig == NULL:
-            _mg.singleAlig = _mg.origAlig
-            _mg.origAlig = NULL
+            if _mg.singleAlig == NULL:
+                _mg.singleAlig = _mg.origAlig
+                _mg.origAlig = NULL
 
-        _mg.postprocess_alignment()
-        # _mg.output_reports()
-        # _mg.save_alignment()
+            _mg.postprocess_alignment()
+            # _mg.output_reports()
+            # _mg.save_alignment()
 
         cdef TrimmedAlignment trimmed = TrimmedAlignment.__new__(TrimmedAlignment)
         trimmed._ali = new trimal.alignment.Alignment(_mg.singleAlig[0])
@@ -219,6 +264,7 @@ cdef class AutomaticTrimmer(BaseTrimmer):
         self.method = method
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
+        BaseTrimmer._configure_manager(self, manager)
         manager.automatedMethodCount = 1
         if self.method == "strict":
             manager.strict = True
@@ -299,6 +345,7 @@ cdef class ManualTrimmer(BaseTrimmer):
             self._conservation_percentage = _check_range(conservation_percentage, "conservation_percentage", 0, 100)
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
+        BaseTrimmer._configure_manager(self, manager)
         manager.automatedMethodCount = 0
         manager.gapThreshold = self._gap_threshold
         manager.gapAbsoluteThreshold = self._gap_absolute_threshold
