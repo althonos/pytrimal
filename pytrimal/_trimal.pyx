@@ -438,11 +438,18 @@ cdef class ManualTrimmer(BaseTrimmer):
 
 
 cdef class SimilarityMatrix:
+    """A similarity matrix for biological sequence characters.
+    """
 
     cdef trimal.similarity_matrix.similarityMatrix _smx
 
     @classmethod
     def aa(cls):
+        """aa(cls)\n--
+
+        Create a default amino-acid similarity matrix (BLOSUM62).
+
+        """
         cdef SimilarityMatrix matrix = cls.__new__(cls)
         with nogil:
             matrix._smx.defaultAASimMatrix()
@@ -450,6 +457,15 @@ cdef class SimilarityMatrix:
 
     @classmethod
     def nt(cls, bool degenerated=False):
+        """nt(cls, degenerated=False)\n--
+
+        Create a default nucleotide similarity matrix.
+
+        Arguments:
+            degenerated (`bool`): Set to `True` to create a similarity
+                matrix for degenerated nucleotides.
+
+        """
         cdef SimilarityMatrix matrix = cls.__new__(cls)
         with nogil:
             if degenerated:
@@ -468,6 +484,13 @@ cdef class SimilarityMatrix:
         """distance(self, a, b)\n--
 
         Return the distance between two sequence characters.
+
+        Example:
+            >>> mx = SimilarityMatrix.nt()
+            >>> mx.distance('A', 'A')
+            0.0
+            >>> mx.distance('A', 'T')
+            1.5184...
 
         """
         cdef float distance = 0.0
