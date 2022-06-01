@@ -19,7 +19,7 @@ cdef extern from "trimalManager.h" nogil:
         bool gappyout
         bool strict
         bool strictplus
-        bool automated
+        bool automated1
         bool sgc
         bool sgt
         bool ssc
