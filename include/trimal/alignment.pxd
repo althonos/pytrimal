@@ -31,7 +31,7 @@ cdef extern from "Alignment/Alignment.h" nogil:
             int **matrix
             string *seqsName
 
-        bool fillMatrices(bool aligned, bool checkInvalidChars = true)
+        bool fillMatrices(bool aligned, bool checkInvalidChars) except False
 
         Alignment()
         Alignment(Alignment&)

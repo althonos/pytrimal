@@ -60,6 +60,15 @@ cdef float _check_range(object value, str name, float min_value, float max_value
         raise ValueError(f"Invalid value for `{name}`: {value!r}")
     return value
 
+cdef extern from *:
+    """
+    template <typename T>
+    T* new_array(size_t n) {
+        return new T[n];
+    }
+    """
+    T* new_array[T](size_t)
+
 
 # --- Cython classes ---------------------------------------------------------
 
@@ -89,7 +98,7 @@ cdef class _AlignmentSequences:
 
           if index_ < 0:
               index_ += length
-          if index_ < 0 or index_ > length:
+          if index_ < 0 or index_ >= length:
               raise IndexError(index)
 
           cdef size_t   i
@@ -109,8 +118,6 @@ cdef class _AlignmentSequences:
 
           return seq
 
-          # return _AlignmentSequence.__new__(_AlignmentSequence, self._owner, index_)
-
 
 cdef class Alignment:
     """A multiple sequence alignment.
@@ -119,13 +126,6 @@ cdef class Alignment:
     cdef trimal.alignment.Alignment* _ali
     cdef int*                        _sequence_mapping
 
-    def __cinit__(self):
-        self._ali = NULL
-
-    def __dealloc__(self):
-        if self._sequence_mapping != NULL:
-            PyMem_Free(self._sequence_mapping)
-
     @classmethod
     def load(cls, object path not None):
         cdef trimal.format_manager.FormatManager manager
@@ -133,6 +133,87 @@ cdef class Alignment:
         cdef string    path_ =  os.fsencode(path)
         alignment._ali = manager.loadAlignment(path_)
         return alignment
+
+    def __cinit__(self):
+        self._ali = NULL
+
+    def __dealloc__(self):
+        if self._sequence_mapping != NULL:
+            PyMem_Free(self._sequence_mapping)
+
+    def __init__(self, object names, object sequences):
+        """__init__(self, names, sequences)\n--
+
+        Create a new alignment with the given names and sequences.
+
+        Arguments:
+            names (`~collections.abc.Sequence` of `bytes`): The names of
+                the sequences in the alignment.
+            sequences (`~collections.abc.Sequence` of `str`): The actual
+                sequences in the alignment.
+
+        Examples:
+            Create a new alignment with a list of sequences and a list of
+            names::
+
+                >>> alignment = Alignment(
+                ...     names=[b"Sp8", b"Sp10", b"Sp26"],
+                ...     sequences=[
+                ...         "-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII",
+                ...         "-------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII",
+                ...         "AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI",
+                ...     ]
+                ... )
+
+            There should be as many sequences as there are names, otherwise
+            a `ValueError` will be raised::
+
+                >>> Alignment(
+                ...     names=[b"Sp8", b"Sp10", b"Sp26"],
+                ...     sequences=["GLQIHMMGII", "GLEINMMVII"]
+                ... )
+                Traceback (most recent call last):
+                ...
+                ValueError: `Alignment` given 3 names but 2 sequences
+
+            Sequence characters will be checked, and an error will be
+            raised if they are not one of the characters from a biological
+            alphabet::
+
+                >>> Alignment(
+                ...     names=[b"Sp8", b"Sp10", b"Sp26"],
+                ...     sequences=["GLQIHMMGII", "GLEINMM123"]
+                ... )
+                Traceback (most recent call last):
+                ...
+                ValueError: The sequence "Sp10" has an unknown (49) character
+
+        """
+        cdef bytes name
+        cdef str   sequence
+        cdef int   nresidues = -1
+
+        if len(names) != len(sequences):
+            raise ValueError(f"`Alignment` given {len(names)!r} names but {len(sequences)!r} sequences")
+
+        self._ali = new trimal.alignment.Alignment()
+        self._ali.numberOfSequences = len(sequences)
+        self._ali.seqsName  = new_array[string](self._ali.numberOfSequences)
+        self._ali.sequences = new_array[string](self._ali.numberOfSequences)
+
+        for i, (name, sequence) in enumerate(zip(names, sequences)):
+
+            if not self._ali.numberOfResidues:
+                self._ali.numberOfResidues = len(sequence)
+            if len(sequence) != self._ali.numberOfResidues:
+                raise ValueError(f"Sequence length mismatch in sequence {i}: {len(sequence)} != {self._ali.numberOfResidues)}")
+
+            self._ali.seqsName[i]  = name
+            self._ali.sequences[i] = sequence.encode('ascii') # FIXME: no decoding
+
+        self._ali.fillMatrices(True, True)
+        self._ali.originalNumberOfSequences = self._ali.numberOfSequences
+        self._ali.originalNumberOfResidues = self._ali.numberOfResidues
 
     @property
     def names(self):
@@ -167,6 +248,8 @@ cdef class Alignment:
         # alignment ()
         if self._sequence_mapping is NULL:
             self._sequence_mapping = <int*> PyMem_Malloc(self._ali.numberOfSequences * sizeof(int))
+            if self._sequence_mapping is NULL:
+                raise MemoryError()
             for i in range(self._ali.originalNumberOfSequences):
                 if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
                     self._sequence_mapping[x] = i
@@ -176,7 +259,8 @@ cdef class Alignment:
 
 
 cdef class TrimmedAlignment(Alignment):
-    pass
+    """A multiple sequence alignment that has been trimmed.
+    """
 
 
 cdef class BaseTrimmer:
