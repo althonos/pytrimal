@@ -429,7 +429,6 @@ cdef class ManualTrimmer(BaseTrimmer):
             self._conservation_percentage = _check_range(conservation_percentage, "conservation_percentage", 0, 100)
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
-        BaseTrimmer._configure_manager(self, manager)
         manager.automatedMethodCount = 0
         manager.gapThreshold = self._gap_threshold
         manager.gapAbsoluteThreshold = self._gap_absolute_threshold
