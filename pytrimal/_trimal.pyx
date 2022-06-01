@@ -3,6 +3,17 @@
 
 # --- C imports --------------------------------------------------------------
 
+from cpython.bytes cimport PyBytes_FromStringAndSize
+from cpython.list cimport PyList_New, PyList_SET_ITEM
+from cpython.ref cimport Py_INCREF
+from _unicode cimport (
+    PyUnicode_New,
+    PyUnicode_1BYTE_KIND,
+    PyUnicode_1BYTE_DATA,
+    PyUnicode_READY,
+    Py_UCS1
+)
+
 from libc.math cimport isnan, NAN
 from libcpp cimport bool
 from libcpp.string cimport string
@@ -13,7 +24,6 @@ cimport trimal.format_manager
 cimport trimal.manager
 cimport trimal.report_system
 cimport trimal.similarity_matrix
-
 
 # --- Python imports ---------------------------------------------------------
 
@@ -66,23 +76,52 @@ cdef class Alignment:
 
     @property
     def names(self):
-        return [
-            self._ali.seqsName[i]
-            for i in range(self._ali.originalNumberOfSequences)
-            if self._ali.saveSequences[i] != -1
-        ]
+        """sequence of `bytes`: The names of the sequences in the alignment.
+        """
+        cdef size_t i
+        cdef size_t x     = 0
+        cdef bytes  name
+        cdef object names = PyList_New(self._ali.numberOfSequences)
+
+        for i in range(self._ali.originalNumberOfSequences):
+            if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
+                name = PyBytes_FromStringAndSize( self._ali.seqsName[i].data(), self._ali.seqsName[i].size() )
+                PyList_SET_ITEM(names, x, name)
+                Py_INCREF(name)  # manually increase reference count because `PyList_SET_ITEM` doesn't
+                x += 1
+
+        return names
 
     @property
     def sequences(self):
-        return [
-            bytes([
-                self._ali.sequences[i][j]
-                for j in range(self._ali.originalNumberOfResidues)
-                if self._ali.saveResidues is NULL or self._ali.saveResidues[j] != -1
-            ]).decode()
-            for i in range(self._ali.originalNumberOfSequences)
-            if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1
-        ]
+        """sequence of `str`: The sequences in the alignment.
+        """
+        cdef size_t i
+        cdef size_t j
+        cdef size_t x         = 0
+        cdef size_t y
+        cdef str      seq
+        cdef Py_UCS1* seqdata
+        cdef object   seqs    = PyList_New(self._ali.numberOfSequences)
+
+        for i in range(self._ali.originalNumberOfSequences):
+            if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
+                seq = PyUnicode_New(self._ali.numberOfResidues, 0x7f)
+                IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MINOR < 12:
+                    PyUnicode_READY(seq)
+                seqdata = PyUnicode_1BYTE_DATA(seq)
+                y = 0
+
+                for j in range(self._ali.originalNumberOfResidues):
+                    if self._ali.saveResidues is NULL or self._ali.saveResidues[j] != -1:
+                        seqdata[y] = self._ali.sequences[i][j]
+                        y += 1
+
+                PyList_SET_ITEM(seqs, x, seq)
+                Py_INCREF(seq)
+                x += 1
+
+        return seqs
 
 
 cdef class TrimmedAlignment(Alignment):
