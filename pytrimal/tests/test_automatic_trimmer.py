@@ -1,5 +1,4 @@
 import os
-import pathlib
 import unittest
 
 from .. import Alignment, AutomaticTrimmer
@@ -9,11 +8,11 @@ class TestAutomaticTrimmer(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.data_folder = pathlib.Path(__file__).parent.joinpath("data")
+        cls.data_folder = os.path.realpath(os.path.join(__file__, os.path.pardir, "data"))
 
     def _test_method(self, name):
-        ali = Alignment.load(self.data_folder.joinpath("ENOG411BWBU.fasta"))
-        expected = Alignment.load(self.data_folder.joinpath("ENOG411BWBU.{}.fasta".format(name)))
+        ali = Alignment.load(os.path.join(self.data_folder, "ENOG411BWBU.fasta"))
+        expected = Alignment.load(os.path.join(self.data_folder, "ENOG411BWBU.{}.fasta".format(name)))
 
         trimmer = AutomaticTrimmer(name)
         trimmed = trimmer.trim(ali)
