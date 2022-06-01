@@ -12,7 +12,8 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/pytrimal.svg?style=flat-square&maxAge=600&logo=python)](https://pypi.org/project/pytrimal/#files)
 [![Python Implementations](https://img.shields.io/pypi/implementation/pytrimal.svg?style=flat-square&maxAge=600&label=impl)](https://pypi.org/project/pytrimal/#files)
 [![Source](https://img.shields.io/badge/source-GitHub-303030.svg?maxAge=2678400&style=flat-square)](https://github.com/althonos/pytrimal/)
-[![GitHub issues](https://img.shields.io/github/issues/althonos/pytrimal.svg?style=flat-square&maxAge=600)](https://github.com/althonos/pytrimal/issues)
+[![Mirror](https://img.shields.io/badge/mirror-EMBL-009f4d?style=flat-square&maxAge=2678400)](https://git.embl.de/larralde/pytrimal/)
+[![Issues](https://img.shields.io/github/issues/althonos/pytrimal.svg?style=flat-square&maxAge=600)](https://github.com/althonos/pytrimal/issues)
 [![Docs](https://img.shields.io/readthedocs/pytrimal/latest?style=flat-square&maxAge=600)](https://pytrimal.readthedocs.io)
 [![Changelog](https://img.shields.io/badge/keep%20a-changelog-8A0707.svg?maxAge=2678400&style=flat-square)](https://github.com/althonos/pytrimal/blob/main/CHANGELOG.md)
 [![Downloads](https://img.shields.io/badge/dynamic/json?style=flat-square&color=303f9f&maxAge=86400&label=downloads&query=%24.total_downloads&url=https%3A%2F%2Fapi.pepy.tech%2Fapi%2Fprojects%2Fpytrimal)](https://pepy.tech/project/pytrimal)
@@ -38,6 +39,7 @@ internals, which has the following advantages:
 - **error management**: Errors occuring in trimAl are converted
   transparently into Python exceptions, including an informative
   error message.
+
 
 ### 📋 Roadmap
 
@@ -108,7 +110,6 @@ with multiprocessing.pool.ThreadPool() as pool:
     trimmed_alignments = pool.map(trimmer.trim, alignments)
 ```
 
-
 ## 💭 Feedback
 
 ### ⚠️ Issue Tracker
@@ -136,7 +137,7 @@ in the [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) format.
 ## ⚖️ License
 
 This library is provided under the [GNU General Public License v3.0](https://choosealicense.com/licenses/gpl-3.0/).
-trimAl is development by the [trimAl team](http://trimal.cgenomics.org/trimal_team) and is distributed under the
+trimAl is developed by the [trimAl team](http://trimal.cgenomics.org/trimal_team) and is distributed under the
 terms of the GPLv3 as well. See `vendor/trimal/LICENSE` for more information.
 
 *This project is in no way not affiliated, sponsored, or otherwise endorsed

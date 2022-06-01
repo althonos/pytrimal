@@ -1,5 +1,14 @@
 # distutils: language = c++
 # cython: language_level=3, linetrace=True
+"""Bindings to trimAl, a tool for automated alignment trimming.
+
+References:
+    - Capella-Gutiérrez, Salvador, José M. Silla-Martínez, and Toni Gabaldón.
+      *TrimAl: A Tool for Automated Alignment Trimming in Large-Scale
+      Phylogenetic Analyses*. Bioinformatics 25, no. 15 (2009): 1972–73.
+      :doi:`10.1093/bioinformatics/btp348`.
+
+"""
 
 # --- C imports --------------------------------------------------------------
 
