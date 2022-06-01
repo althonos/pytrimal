@@ -2,6 +2,9 @@ from ._version import __version__
 
 from . import _trimal
 from ._trimal import (
+    Alignment,
+    AutomaticTrimmer,
+    ManualTrimmer,
     SimilarityMatrix
 )
 
