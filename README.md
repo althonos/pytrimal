@@ -50,7 +50,7 @@ The following features are available or considered for implementation:
 - [ ] **overlap trimming**
 - [x] **alignment loading from disk**
 - [ ] **alignment loading from a file-like object**
-- [ ] **aligment creation from Python**
+- [x] **aligment creation from Python**
 
 <!-- ## 🔧 Installing
 
@@ -103,8 +103,8 @@ import glob
 import multiprocessing.pool
 from pytrimal import Alignment, AutomaticTrimmer
 
-trimmer = pytrimal.AutomaticTrimmer()
-alignments = [Alignment.load(x) for x in glob.glob("pytrimal/tests/data/*.fasta") ]
+trimmer = AutomaticTrimmer()
+alignments = map(Alignment.load, glob.iglob("pytrimal/tests/data/*.fasta"))
 
 with multiprocessing.pool.ThreadPool() as pool:
     trimmed_alignments = pool.map(trimmer.trim, alignments)
