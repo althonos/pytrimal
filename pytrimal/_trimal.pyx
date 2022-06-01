@@ -79,7 +79,7 @@ cdef class Alignment:
                 self._ali.sequences[i][j]
                 for j in range(self._ali.originalNumberOfResidues)
                 if self._ali.saveResidues is NULL or self._ali.saveResidues[j] != -1
-            ])
+            ]).decode()
             for i in range(self._ali.originalNumberOfSequences)
             if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1
         ]
@@ -94,7 +94,7 @@ cdef class BaseTrimmer:
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         pass
 
-    cpdef TrimmedAlignment process(self, Alignment alignment):
+    cpdef TrimmedAlignment trim(self, Alignment alignment):
         # use a local manager object so that this method is re-entrant
         cdef trimal.manager.trimAlManager _mg
 

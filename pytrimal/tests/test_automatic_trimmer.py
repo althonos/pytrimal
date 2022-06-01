@@ -17,7 +17,7 @@ class TestAutomaticTrimmer(unittest.TestCase):
         expected = Alignment.load(self.data_folder.joinpath(f"ENOG411BWBU.{name}.fasta"))
 
         trimmer = AutomaticTrimmer(name)
-        trimmed = trimmer.process(ali)
+        trimmed = trimmer.trim(ali)
 
         self.assertEqual(trimmed.names, expected.names)
         for seq1, seq2 in zip(trimmed.sequences, expected.sequences):
