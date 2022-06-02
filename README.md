@@ -68,17 +68,17 @@ The following features are available or considered for implementation:
 - [ ] **windows for manual methods**: Use a sliding window for computing
   statistics in manual methods.
 
-<!-- ## 🔧 Installing
+## 🔧 Installing
 
 pytrimal can be installed directly from [PyPI](https://pypi.org/project/pytrimal/),
-which hosts some pre-built wheels for the x86-64 architecture (Linux/OSX/Windows)
+which hosts some pre-built wheels for the x86-64 architecture (Linux/OSX)
 and the Aarch64 architecture (Linux only), as well as the code required to compile
 from source with Cython:
 ```console
 $ pip install pytrimal
 ```
 
-Otherwise, pytrimal is also available as a [Bioconda](https://bioconda.github.io/)
+<!-- Otherwise, pytrimal is also available as a [Bioconda](https://bioconda.github.io/)
 package:
 ```console
 $ conda install -c bioconda pytrimal

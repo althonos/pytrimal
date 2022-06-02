@@ -9,18 +9,18 @@ Installation
     which requires a C++ compiler to be available on the local machine.
 
 
-.. PyPi
-.. ^^^^
-..
-.. ``pytrimal`` is hosted on GitHub, but the easiest way to install it is to download
-.. the latest release from its `PyPi repository <https://pypi.python.org/pypi/pytrimal>`_.
-.. It will install all dependencies then install ``pytrimal`` either from a wheel if
-.. one is available, or from source after compiling the Cython code :
-..
-.. .. code:: console
-..
-..    $ pip install --user pytrimal
-..
+PyPi
+^^^^
+
+``pytrimal`` is hosted on GitHub, but the easiest way to install it is to download
+the latest release from its `PyPi repository <https://pypi.python.org/pypi/pytrimal>`_.
+It will install all dependencies then install ``pytrimal`` either from a wheel if
+one is available, or from source after compiling the Cython code :
+
+.. code:: console
+
+   $ pip install --user pytrimal
+
 .. Conda
 .. ^^^^^
 ..
@@ -32,20 +32,20 @@ Installation
 ..
 ..    $ conda install -c bioconda pytrimal
 ..
-..
-.. Arch User Repository
-.. ^^^^^^^^^^^^^^^^^^^^
-..
-.. A package recipe for Arch Linux can be found in the Arch User Repository
-.. under the name `python-pytrimal <https://aur.archlinux.org/packages/python-pytrimal>`_.
-.. It will always match the latest release from PyPI.
-..
-.. Steps to install on ArchLinux depend on your `AUR helper <https://wiki.archlinux.org/title/AUR_helpers>`_
-.. (``yaourt``, ``aura``, ``yay``, etc.). For ``aura``, you'll need to run:
-..
-.. .. code:: console
-..
-..     $ aura -A python-pytrimal
+
+Arch User Repository
+^^^^^^^^^^^^^^^^^^^^
+
+A package recipe for Arch Linux can be found in the Arch User Repository
+under the name `python-pytrimal <https://aur.archlinux.org/packages/python-pytrimal>`_.
+It will always match the latest release from PyPI.
+
+Steps to install on ArchLinux depend on your `AUR helper <https://wiki.archlinux.org/title/AUR_helpers>`_
+(``yaourt``, ``aura``, ``yay``, etc.). For ``aura``, you'll need to run:
+
+.. code:: console
+
+    $ aura -A python-pytrimal
 
 
 GitHub + ``pip``
