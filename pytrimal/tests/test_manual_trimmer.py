@@ -1,18 +1,22 @@
 import os
 import unittest
 
+try:
+    import importlib.resources as importlib_resources
+except ImportError:
+    import importlib.resources as importlib_resources
+
 from .. import Alignment, ManualTrimmer
 
 
 class TestManualTrimmer(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        cls.data_folder = os.path.realpath(os.path.join(__file__, os.path.pardir, "data"))
-
     def _test_parameters(self, gt, cons):
-        ali = Alignment.load(os.path.join(self.data_folder, "ENOG411BWBU.fasta"))
-        expected = Alignment.load(os.path.join(self.data_folder, "ENOG411BWBU.cons{:02}.gt{:02}.fasta".format(cons, int(gt*100))))
+        with importlib_resources.path("pytrimal.tests.data", "ENOG411BWBU.fasta") as path:
+            ali = Alignment.load(path)
+        filename = "ENOG411BWBU.cons{:02}.gt{:02}.fasta".format(cons, int(gt*100))
+        with importlib_resources.path("pytrimal.tests.data", filename) as path:
+            expected = Alignment.load(path)
 
         trimmer = ManualTrimmer(gap_threshold=gt, conservation_percentage=cons)
         trimmed = trimmer.trim(ali)

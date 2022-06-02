@@ -1,14 +1,15 @@
 import os
 import unittest
 
+try:
+    import importlib.resources as importlib_resources
+except ImportError:
+    import importlib.resources as importlib_resources
+
 from .. import Alignment, TrimmedAlignment
 
 
 class TestAlignment(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        cls.data_folder = os.path.realpath(os.path.join(__file__, os.path.pardir, "data"))
 
     def setUp(self):
         self.alignment = Alignment(
@@ -25,7 +26,7 @@ class TestAlignment(unittest.TestCase):
 
     def test_load_errors(self):
         self.assertRaises(FileNotFoundError, Alignment.load, "nothing")
-        self.assertRaises(IsADirectoryError, Alignment.load, self.data_folder)
+        self.assertRaises(IsADirectoryError, Alignment.load, os.getcwd())
 
     def test_residues(self):
         self.assertEqual(len(self.alignment.residues), 46)
@@ -38,11 +39,8 @@ class TestAlignment(unittest.TestCase):
         self.assertEqual(self.alignment.sequences[4], "--FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF")
         self.assertEqual(self.alignment.sequences[-1], "-------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL")
 
-class TestTrimmedAlignment(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        cls.data_folder = os.path.realpath(os.path.join(__file__, os.path.pardir, "data"))
+class TestTrimmedAlignment(unittest.TestCase):
 
     def setUp(self):
         residues_mask = [True] * 46
@@ -62,6 +60,16 @@ class TestTrimmedAlignment(unittest.TestCase):
             sequences_mask=sequences_mask,
             residues_mask=residues_mask,
         )
+
+    def test_load(self):
+        with importlib_resources.path("pytrimal.tests.data", "example.001.AA.clw") as path:
+            trimmed = TrimmedAlignment.load(path)
+        self.assertEqual(len(trimmed.sequences), 6)
+        self.assertEqual(len(trimmed.residues), 46)
+        self.assertEqual(len(trimmed.sequences_mask), 6)
+        self.assertEqual(len(trimmed.residues_mask), 46)
+        self.assertTrue(all(trimmed.sequences_mask))
+        self.assertTrue(all(trimmed.residues_mask))
 
     def test_original_alignment(self):
         original = self.trimmed.original_alignment()

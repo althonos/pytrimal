@@ -1,18 +1,21 @@
 import os
 import unittest
 
+try:
+    import importlib.resources as importlib_resources
+except ImportError:
+    import importlib.resources as importlib_resources
+
 from .. import Alignment, AutomaticTrimmer
 
 
 class TestAutomaticTrimmer(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        cls.data_folder = os.path.realpath(os.path.join(__file__, os.path.pardir, "data"))
-
     def _test_method(self, name):
-        ali = Alignment.load(os.path.join(self.data_folder, "ENOG411BWBU.fasta"))
-        expected = Alignment.load(os.path.join(self.data_folder, "ENOG411BWBU.{}.fasta".format(name)))
+        with importlib_resources.path("pytrimal.tests.data", "ENOG411BWBU.fasta") as path:
+            ali = Alignment.load(path)
+        with importlib_resources.path("pytrimal.tests.data", "ENOG411BWBU.{}.fasta".format(name)) as path:
+            expected = Alignment.load(path)
 
         trimmer = AutomaticTrimmer(name)
         trimmed = trimmer.trim(ali)
