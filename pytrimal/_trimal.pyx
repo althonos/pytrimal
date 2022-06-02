@@ -55,7 +55,7 @@ cdef set AUTOMATED_TRIMMER_METHODS = {
 
 # --- Utilities --------------------------------------------------------------
 
-cdef float _check_range(object value, str name, float min_value, float max_value) except NAN:
+cdef float _check_range(object value, str name, float min_value, float max_value) except *:
     if value < min_value or value > max_value or isnan(value):
         raise ValueError(f"Invalid value for `{name}`: {value!r}")
     return value
@@ -225,6 +225,12 @@ cdef class Alignment:
         cdef trimal.format_manager.FormatManager manager
         cdef Alignment alignment = Alignment.__new__(Alignment)
         cdef string    path_ =  os.fsencode(path)
+
+        if not os.path.exists(path):
+            raise FileNotFoundError(path)
+        elif os.path.isdir(path):
+            raise IsADirectoryError(path)
+
         alignment._ali = manager.loadAlignment(path_)
         return alignment
 
@@ -466,6 +472,8 @@ cdef class TrimmedAlignment(Alignment):
         del_array[int](orig._ali.saveResidues)
         orig._ali.saveSequences = NULL
         orig._ali.saveResidues = NULL
+        orig._ali.numberOfSequences = orig._ali.originalNumberOfSequences
+        orig._ali.numberOfResidues = orig._ali.originalNumberOfResidues
         return orig
 
     cpdef TrimmedAlignment terminal_only(self):
