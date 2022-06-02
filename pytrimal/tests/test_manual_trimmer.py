@@ -1,4 +1,5 @@
 import os
+import sys
 import unittest
 
 try:
@@ -32,6 +33,7 @@ class TestManualTrimmer(unittest.TestCase):
         self.assertRaises(ValueError, ManualTrimmer, conservation_percentage=1000)
         self.assertRaises(ValueError, ManualTrimmer, conservation_percentage=-2)
 
+    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     def test_gap_threshold(self):
         self._test_parameters(gt=0.9, cons=60)
         self._test_parameters(gt=0.4, cons=40)

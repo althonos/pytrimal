@@ -1,3 +1,4 @@
+import sys
 import os
 import unittest
 
@@ -72,6 +73,7 @@ class TestTrimmedAlignment(unittest.TestCase):
             residues_mask=residues_mask,
         )
 
+    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     def test_load(self):
         with importlib_resources.path("pytrimal.tests.data", "example.001.AA.clw") as path:
             trimmed = TrimmedAlignment.load(path)

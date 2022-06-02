@@ -1,4 +1,5 @@
 import os
+import sys
 import unittest
 
 try:
@@ -28,17 +29,22 @@ class TestAutomaticTrimmer(unittest.TestCase):
         self.assertRaises(ValueError, AutomaticTrimmer, method="nonsense")
         self.assertRaises(TypeError, AutomaticTrimmer, method=1)
 
+    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     def test_strict_method(self):
         self._test_method("strict")
 
+    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     def test_strictplus_method(self):
         self._test_method("strictplus")
 
+    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     def test_automatic1_method(self):
         self._test_method("automated1")
 
+    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     def test_noallgaps_method(self):
         self._test_method("noallgaps")
 
+    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     def test_gappyout_method(self):
         self._test_method("gappyout")
