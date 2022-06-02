@@ -77,13 +77,13 @@ cdef extern from *:
 
 # --- Alignment classes ------------------------------------------------------
 
-@cython.freelist(32)
+@cython.freelist(8)
 cdef class AlignmentSequences:
       """A read-only view over the sequences of an alignment.
 
-      Objects from this class are created in the `~BaseAlignment.sequences`
-      property of `~pytrimal.BaseAlignment` objects. Use it to access the
-      string data of individual sequences from the alignment::
+      Objects from this class are created in the `~Alignment.sequences`
+      property of `~pytrimal.Alignment` objects. Use it to access the
+      string data of individual rows from the alignment::
 
           >>> msa = Alignment.load("example.001.AA.clw")
           >>> len(msa.sequences)
@@ -102,7 +102,7 @@ cdef class AlignmentSequences:
       def __cinit__(self, Alignment alignment):
           self._owner = alignment
           self._ali = alignment._ali
-          self._index_mapping = alignment._index_mapping
+          self._index_mapping = alignment._sequences_mapping
 
       def __len__(self):
           assert self._ali is not NULL
@@ -136,12 +136,72 @@ cdef class AlignmentSequences:
           return seq
 
 
+@cython.freelist(8)
+cdef class AlignmentResidues:
+    """A read-only view over the residues of an alignment.
+
+    Objects from this class are created in the `~Alignment.sequences`
+    property of `~pytrimal.Alignment` objects. Use it to access the
+    string data of individual columns from the alignment::
+
+        >>> msa = Alignment.load("example.001.AA.clw")
+        >>> len(msa.residues)
+        46
+        >>> msa.residues[0]
+        '--A---'
+        >>> msa.residues[-1]
+        'IIIIFL'
+
+    """
+
+    cdef trimal.alignment.Alignment* _ali
+    cdef Alignment                   _owner
+    cdef int*                        _index_mapping
+
+    def __cinit__(self, Alignment alignment):
+        self._owner = alignment
+        self._ali = alignment._ali
+        self._index_mapping = alignment._residues_mapping
+
+    def __len__(self):
+        assert self._ali is not NULL
+        return self._ali.numberOfResidues
+
+    def __getitem__(self, int index):
+        assert self._ali is not NULL
+
+        cdef int index_ = index
+        cdef int length = self._ali.numberOfResidues
+
+        if index_ < 0:
+            index_ += length
+        if index_ < 0 or index_ >= length:
+            raise IndexError(index)
+        if self._index_mapping is not NULL:
+            index_ = self._index_mapping[index_]
+
+        cdef size_t   x         = 0
+        cdef str      col       = PyUnicode_New(self._ali.numberOfSequences, 0x7f)
+        cdef Py_UCS1* coldata
+        IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MINOR < 12:
+            PyUnicode_READY(col)
+        coldata = PyUnicode_1BYTE_DATA(col)
+
+        for i in range(self._ali.originalNumberOfSequences):
+            if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
+                coldata[x] = self._ali.sequences[i][index_]
+                x += 1
+
+        return col
+
+
 cdef class Alignment:
     """A multiple sequence alignment.
     """
 
     cdef trimal.alignment.Alignment* _ali
-    cdef int*                        _index_mapping
+    cdef int*                        _sequences_mapping
+    cdef int*                        _residues_mapping
 
     @classmethod
     def load(cls, object path not None):
@@ -170,13 +230,16 @@ cdef class Alignment:
 
     def __cinit__(self):
         self._ali = NULL
-        self._index_mapping = NULL
+        self._sequences_mapping = NULL
+        self._residues_mapping = NULL
 
     def __dealloc__(self):
         if self._ali is not NULL:
             del self._ali
-        if self._index_mapping is not NULL:
-            PyMem_Free(self._index_mapping)
+        if self._sequences_mapping is not NULL:
+            PyMem_Free(self._sequences_mapping)
+        if self._residues_mapping is not NULL:
+            PyMem_Free(self._residues_mapping)
 
     def __init__(self, object names, object sequences):
         """__init__(self, names, sequences)\n--
@@ -283,6 +346,13 @@ cdef class Alignment:
         assert self._ali is not NULL
         return AlignmentSequences(self)
 
+    @property
+    def residues(self):
+        """`~pytrimal.AlignmentResidues`: The residues in the alignment.
+        """
+        assert self._ali is not NULL
+        return AlignmentResidues(self)
+
     cpdef Alignment copy(self):
         assert self._ali is not NULL
         cdef Alignment copy = (type(self)).__new__(type(self))
@@ -292,6 +362,11 @@ cdef class Alignment:
 
 cdef class TrimmedAlignment(Alignment):
     """A multiple sequence alignment that has been trimmed.
+
+    Internally, the trimming process only produces a mask of sequences and
+    a mask of residues. This class exposes the filtered sequences and
+    residues.
+
     """
 
     def __init__(
@@ -336,14 +411,28 @@ cdef class TrimmedAlignment(Alignment):
 
     cdef void _build_index_mapping(self) except *:
         assert self._ali is not NULL
+
         cdef ssize_t i
-        cdef ssize_t x = 0
-        self._index_mapping = <int*> PyMem_Malloc(self._ali.numberOfSequences * sizeof(int))
-        if self._index_mapping is NULL:
+        cdef ssize_t x
+
+        # create a mapping from new sequence index to old sequence index
+        self._sequences_mapping = <int*> PyMem_Malloc(self._ali.numberOfSequences * sizeof(int))
+        if self._sequences_mapping is NULL:
             raise MemoryError()
+        x = 0
         for i in range(self._ali.originalNumberOfSequences):
             if self._ali.saveSequences[i] != -1:
-                self._index_mapping[x] = i
+                self._sequences_mapping[x] = i
+                x += 1
+
+        # create a mapping from new residue index to old residue index
+        self._residues_mapping = <int*> PyMem_Malloc(self._ali.numberOfResidues * sizeof(int))
+        if self._residues_mapping is NULL:
+            raise MemoryError()
+        x = 0
+        for i in range(self._ali.originalNumberOfResidues):
+            if self._ali.saveResidues[i] != -1:
+                self._residues_mapping[x] = i
                 x += 1
 
     cpdef Alignment original_alignment(self):

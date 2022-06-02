@@ -23,10 +23,16 @@ Trimmed Alignment
    :members: names, sequences
 
 
-Miscellaneous
-^^^^^^^^^^^^^
+Attributes
+^^^^^^^^^^
 
 AlignmentSequences
 ------------------
+
+.. autoclass:: pytrimal.AlignmentSequences
+
+
+AlignmentResidues
+-----------------
 
 .. autoclass:: pytrimal.AlignmentSequences
