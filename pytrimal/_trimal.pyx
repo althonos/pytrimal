@@ -369,6 +369,17 @@ cdef class TrimmedAlignment(Alignment):
 
     """
 
+    @classmethod
+    def load(cls, object path not None):
+        # For compatibility, allow loading a trimmed alignment from a file
+        # even though it makes it effectively not trimmed
+        cdef Alignment alignment = Alignment.load(path)
+        cdef TrimmedAlignment trimmed = TrimmedAlignment.__new__(TrimmedAlignment)
+        trimmed._ali = alignment._ali
+        alignment._ali = NULL
+        trimmed._build_index_mapping()
+        return trimmmed
+
     def __init__(
         self,
         object names,
@@ -421,7 +432,7 @@ cdef class TrimmedAlignment(Alignment):
             raise MemoryError()
         x = 0
         for i in range(self._ali.originalNumberOfSequences):
-            if self._ali.saveSequences[i] != -1:
+            if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
                 self._sequences_mapping[x] = i
                 x += 1
 
@@ -431,7 +442,7 @@ cdef class TrimmedAlignment(Alignment):
             raise MemoryError()
         x = 0
         for i in range(self._ali.originalNumberOfResidues):
-            if self._ali.saveResidues[i] != -1:
+            if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
                 self._residues_mapping[x] = i
                 x += 1
 
@@ -511,37 +522,45 @@ cdef class BaseTrimmer:
 
         """
         # use a local manager object so that this method is re-entrant
-        cdef trimal.manager.trimAlManager _mg
+        cdef Alignment                    copy
+        cdef trimal.manager.trimAlManager manager
 
         # copy the alignment to the manager object so that the original
-        # alignment is left untouched
-        _mg.origAlig = new trimal.alignment.Alignment(alignment._ali[0])
+        # alignment is left untouched; for trimmed alignments, we must
+        # first extract the saved sequences and residues, otherwise the
+        # trimming will occur on the orignal alignment instead of the
+        # trimmed one!
+        if isinstance(alignment, TrimmedAlignment):
+            copy = Alignment(alignment.names, alignment.sequences)
+            manager.origAlig = copy._ali
+            copy._ali = NULL
+        else:
+            manager.origAlig = new trimal.alignment.Alignment(alignment._ali[0])
 
         # configure the manager (to be implemented by the different subclasses)
-        self._configure_manager(&_mg)
+        self._configure_manager(&manager)
 
         with nogil:
             # set flags
-            # self._mg.origAlig.Cleaning.setTrimTerminalGapsFlag(self.terminal_only)
-            # self._mg.origAlig.setKeepSequencesFlag(self.keep_sequences)
-            _mg.set_window_size()
-            if _mg.blockSize != -1:
-                _mg.origAlig.setBlockSize(_mg.blockSize)
+            # self.manager.origAlig.setKeepSequencesFlag(self.keep_sequences)
+            manager.set_window_size()
+            if manager.blockSize != -1:
+                manager.origAlig.setBlockSize(manager.blockSize)
 
-            _mg.create_or_use_similarity_matrix()
-            # self._mg.print_statistics()
-            _mg.clean_alignment()
+            manager.create_or_use_similarity_matrix()
+            # self.manager.print_statistics()
+            manager.clean_alignment()
 
-            if _mg.singleAlig == NULL:
-                _mg.singleAlig = _mg.origAlig
-                _mg.origAlig = NULL
+            if manager.singleAlig == NULL:
+                manager.singleAlig = manager.origAlig
+                manager.origAlig = NULL
 
-            _mg.postprocess_alignment()
-            # _mg.output_reports()
-            # _mg.save_alignment()
+            manager.postprocess_alignment()
+            # manager.output_reports()
+            # manager.save_alignment()
 
         cdef TrimmedAlignment trimmed = TrimmedAlignment.__new__(TrimmedAlignment)
-        trimmed._ali = new trimal.alignment.Alignment(_mg.singleAlig[0])
+        trimmed._ali = new trimal.alignment.Alignment(manager.singleAlig[0])
         trimmed._build_index_mapping()
         return trimmed
 
