@@ -1,13 +1,24 @@
-Alignment
-=========
+Multiple Sequence Alignment
+===========================
 
 .. currentmodule:: pytrimal
+
+
+Alignments
+^^^^^^^^^^
+
+BaseAlignment
+-------------
+
+.. autoclass:: pytrimal.BaseAlignment
+   :special-members: __init__
+   :members:
 
 
 Alignment
 ---------
 
-.. autoclass:: pytrimal.Alignment
+.. autoclass:: pytrimal.Alignment(BaseAlignment)
    :special-members: __init__
    :members:
 
@@ -15,7 +26,15 @@ Alignment
 Trimmed Alignment
 -----------------
 
-.. autoclass:: pytrimal.TrimmedAlignment(Alignment)
+.. autoclass:: pytrimal.TrimmedAlignment(BaseAlignment)
    :special-members: __init__
-   :inherited-members:
-   :members:
+   :members: names, sequences
+
+
+Miscellaneous
+^^^^^^^^^^^^^
+
+AlignmentSequences
+------------------
+
+.. autoclass:: pytrimal.AlignmentSequences

@@ -8,8 +8,8 @@ import importlib
 import os
 import pkgutil
 import re
-import sys
 import shutil
+import sys
 import types
 import warnings
 from unittest import mock

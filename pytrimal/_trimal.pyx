@@ -15,7 +15,7 @@ References:
 cimport cython
 from cpython.bytes cimport PyBytes_FromStringAndSize
 from cpython.list cimport PyList_New, PyList_SET_ITEM
-from cpython.mem cimport PyMem_Malloc, PyMem_Free
+from cpython.mem cimport PyMem_Free, PyMem_Malloc
 from cpython.ref cimport Py_INCREF
 
 from _unicode cimport (
@@ -70,14 +70,14 @@ cdef extern from *:
     T* new_array[T](size_t)
 
 
-# --- Cython classes ---------------------------------------------------------
+# --- Alignment classes ------------------------------------------------------
 
 @cython.freelist(32)
-cdef class _AlignmentSequences:
+cdef class AlignmentSequences:
       """A read-only view over the sequences of an alignment.
 
-      Objects from this class are created in the `~Alignment.sequences`
-      property of `~pytrimal.Alignment` objects. Use it to access the
+      Objects from this class are created in the `~BaseAlignment.sequences`
+      property of `~pytrimal.BaseAlignment` objects. Use it to access the
       string data of individual sequences from the alignment::
 
           >>> msa = Alignment.load("example.001.AA.clw")
@@ -91,10 +91,10 @@ cdef class _AlignmentSequences:
       """
 
       cdef trimal.alignment.Alignment* _ali
-      cdef Alignment                   _owner
+      cdef BaseAlignment               _owner
       cdef int*                        _sequence_mapping
 
-      def __cinit__(self, Alignment alignment):
+      def __cinit__(self, BaseAlignment alignment):
           self._owner = alignment
           self._ali = alignment._ali
           self._sequence_mapping = alignment._sequence_mapping
@@ -103,51 +103,110 @@ cdef class _AlignmentSequences:
           assert self._ali is not NULL
           return self._ali.numberOfSequences
 
-      def __getitem__(self, ssize_t index):
+      def __getitem__(self, int index):
           assert self._ali is not NULL
 
-          cdef ssize_t index_ = index
-          cdef ssize_t length = self._ali.numberOfSequences
+          cdef int index_ = index
+          cdef int length = self._ali.numberOfSequences
 
           if index_ < 0:
               index_ += length
           if index_ < 0 or index_ >= length:
               raise IndexError(index)
+          if self._sequence_mapping is not NULL:
+              index_ = self._sequence_mapping[index_]
 
-          cdef size_t   i
+          cdef Py_UCS1* seqdata
           cdef size_t   x         = 0
-          cdef int      old_index = self._sequence_mapping[index_]
           cdef str      seq       = PyUnicode_New(self._ali.numberOfResidues, 0x7f)
-
           IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MINOR < 12:
               PyUnicode_READY(seq)
-
-          cdef Py_UCS1* seqdata = PyUnicode_1BYTE_DATA(seq)
+          seqdata = PyUnicode_1BYTE_DATA(seq)
 
           for i in range(self._ali.originalNumberOfResidues):
               if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
-                  seqdata[x] = self._ali.sequences[old_index][i]
+                  seqdata[x] = self._ali.sequences[index_][i]
                   x += 1
 
           return seq
 
 
-cdef class Alignment:
-    """A multiple sequence alignment.
+cdef class BaseAlignment:
+    """A base multiple sequence alignment.
     """
 
     cdef trimal.alignment.Alignment* _ali
     cdef int*                        _sequence_mapping
 
+    def __cinit__(self):
+        self._ali = NULL
+        self._sequence_mapping = NULL
+
+    def __init__(self):
+        self._ali = new trimal.alignment.Alignment()
+
+    def __dealloc__(self):
+        if self._ali is not NULL:
+            del self._ali
+
+    @property
+    def names(self):
+        """sequence of `bytes`: The names of the sequences in the alignment.
+        """
+        assert self._ali is not NULL
+
+        cdef int    i
+        cdef int    x     = 0
+        cdef bytes  name
+        cdef object names = PyList_New(self._ali.numberOfSequences)
+
+        for i in range(self._ali.originalNumberOfSequences):
+            if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
+                name = PyBytes_FromStringAndSize( self._ali.seqsName[i].data(), self._ali.seqsName[i].size() )
+                PyList_SET_ITEM(names, x, name)
+                Py_INCREF(name)  # manually increase reference count because `PyList_SET_ITEM` doesn't
+                x += 1
+
+        return names
+
+    @property
+    def sequences(self):
+        """`~pytrimal.AlignmentSequences`: The sequences in the alignment.
+        """
+        assert self._ali is not NULL
+
+        cdef int i
+        cdef int x = 0
+
+        # build a mapping of old to new sequence index
+        if self._sequence_mapping is NULL and self._ali.saveSequences is not NULL:
+            self._sequence_mapping = <int*> PyMem_Malloc(self._ali.numberOfSequences * sizeof(int))
+            if self._sequence_mapping is NULL:
+                raise MemoryError()
+            for i in range(self._ali.originalNumberOfSequences):
+                if self._ali.saveSequences[i] != -1:
+                    self._sequence_mapping[x] = i
+                    x += 1
+
+        return AlignmentSequences(self)
+
+
+cdef class Alignment(BaseAlignment):
+    """A multiple sequence alignment that has not yet been trimmed.
+    """
+
     @classmethod
     def load(cls, object path not None):
-        """load(path)\n--
+        """load(cls, path)\n--
 
         Load a multiple sequence alignment from a file.
 
         Arguments:
             path (`str`, `bytes` or `os.PathLike`): The path to the file
               containing the serialized alignment to load.
+
+        Returns:
+            `~pytrimal.Alignment`: The deserialized alignment.
 
         Example:
             >>> msa = Alignment.load("example.001.AA.clw")
@@ -156,17 +215,10 @@ cdef class Alignment:
 
         """
         cdef trimal.format_manager.FormatManager manager
-        cdef Alignment alignment = cls.__new__(cls)
+        cdef Alignment alignment = Alignment.__new__(Alignment)
         cdef string    path_ =  os.fsencode(path)
         alignment._ali = manager.loadAlignment(path_)
         return alignment
-
-    def __cinit__(self):
-        self._ali = NULL
-
-    def __dealloc__(self):
-        if self._sequence_mapping != NULL:
-            PyMem_Free(self._sequence_mapping)
 
     def __init__(self, object names, object sequences):
         """__init__(self, names, sequences)\n--
@@ -242,53 +294,13 @@ cdef class Alignment:
         self._ali.originalNumberOfSequences = self._ali.numberOfSequences
         self._ali.originalNumberOfResidues = self._ali.numberOfResidues
 
-    @property
-    def names(self):
-        """sequence of `bytes`: The names of the sequences in the alignment.
-        """
-        assert self._ali is not NULL
 
-        cdef size_t i
-        cdef size_t x     = 0
-        cdef bytes  name
-        cdef object names = PyList_New(self._ali.numberOfSequences)
-
-        for i in range(self._ali.originalNumberOfSequences):
-            if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
-                name = PyBytes_FromStringAndSize( self._ali.seqsName[i].data(), self._ali.seqsName[i].size() )
-                PyList_SET_ITEM(names, x, name)
-                Py_INCREF(name)  # manually increase reference count because `PyList_SET_ITEM` doesn't
-                x += 1
-
-        return names
-
-    @property
-    def sequences(self):
-        """`_AlignmentSequences`: The sequences in the alignment.
-        """
-        assert self._ali is not NULL
-
-        cdef int i
-        cdef int x = 0
-
-        # build a mapping of old index to new index for sequences in the
-        # alignment ()
-        if self._sequence_mapping is NULL:
-            self._sequence_mapping = <int*> PyMem_Malloc(self._ali.numberOfSequences * sizeof(int))
-            if self._sequence_mapping is NULL:
-                raise MemoryError()
-            for i in range(self._ali.originalNumberOfSequences):
-                if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
-                    self._sequence_mapping[x] = i
-                    x += 1
-
-        return _AlignmentSequences(self)
-
-
-cdef class TrimmedAlignment(Alignment):
+cdef class TrimmedAlignment(BaseAlignment):
     """A multiple sequence alignment that has been trimmed.
     """
 
+
+# -- Trimmer classes ---------------------------------------------------------
 
 cdef class BaseTrimmer:
     """A sequence alignment trimmer.
@@ -511,6 +523,9 @@ cdef class ManualTrimmer(BaseTrimmer):
         manager.similarityThreshold = self._similarity_threshold
         manager.consistencyThreshold = self._consistency_threshold
         manager.conservationThreshold = self._conservation_percentage
+
+
+# -- Misc classes ------------------------------------------------------------
 
 
 cdef class SimilarityMatrix:
