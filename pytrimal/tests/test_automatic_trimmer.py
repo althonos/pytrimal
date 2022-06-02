@@ -21,6 +21,10 @@ class TestAutomaticTrimmer(unittest.TestCase):
         for seq1, seq2 in zip(trimmed.sequences, expected.sequences):
             self.assertEqual(seq1, seq2)
 
+    def test_invalid_method(self):
+        self.assertRaises(ValueError, AutomaticTrimmer, method="nonsense")
+        self.assertRaises(TypeError, AutomaticTrimmer, method=1)
+
     def test_strict_method(self):
         self._test_method("strict")
 

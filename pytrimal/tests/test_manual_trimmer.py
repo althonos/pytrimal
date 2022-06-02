@@ -21,6 +21,13 @@ class TestManualTrimmer(unittest.TestCase):
         for seq1, seq2 in zip(trimmed.sequences, expected.sequences):
             self.assertEqual(seq1, seq2)
 
+    def test_invalid_parameters(self):
+        self.assertRaises(ValueError, ManualTrimmer, gap_threshold=100)
+        self.assertRaises(ValueError, ManualTrimmer, gap_threshold=-1)
+        self.assertRaises(ValueError, ManualTrimmer, gap_absolute_threshold=-1)
+        self.assertRaises(ValueError, ManualTrimmer, conservation_percentage=1000)
+        self.assertRaises(ValueError, ManualTrimmer, conservation_percentage=-2)
+
     def test_gap_threshold(self):
         self._test_parameters(gt=0.9, cons=60)
         self._test_parameters(gt=0.4, cons=40)
