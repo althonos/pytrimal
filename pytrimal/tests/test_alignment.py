@@ -3,9 +3,12 @@ import os
 import unittest
 
 try:
-    import importlib.resources as importlib_resources
+    try:
+        import importlib.resources as importlib_resources
+    except ImportError:
+        import importlib_resources
 except ImportError:
-    import importlib_resources
+    importlib_resources = None
 
 from .. import Alignment, TrimmedAlignment
 
@@ -74,6 +77,7 @@ class TestTrimmedAlignment(unittest.TestCase):
         )
 
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
+    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
     def test_load(self):
         with importlib_resources.path("pytrimal.tests.data", "example.001.AA.clw") as path:
             trimmed = TrimmedAlignment.load(path)

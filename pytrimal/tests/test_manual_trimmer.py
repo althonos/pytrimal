@@ -3,9 +3,12 @@ import sys
 import unittest
 
 try:
-    import importlib.resources as importlib_resources
+    try:
+        import importlib.resources as importlib_resources
+    except ImportError:
+        import importlib_resources
 except ImportError:
-    import importlib_resources
+    importlib_resources = None
 
 from .. import Alignment, ManualTrimmer
 
@@ -34,6 +37,7 @@ class TestManualTrimmer(unittest.TestCase):
         self.assertRaises(ValueError, ManualTrimmer, conservation_percentage=-2)
 
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
+    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
     def test_gap_threshold(self):
         self._test_parameters(gt=0.9, cons=60)
         self._test_parameters(gt=0.4, cons=40)
