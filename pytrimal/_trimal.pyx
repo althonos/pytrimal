@@ -319,6 +319,9 @@ cdef class Alignment:
         cdef str ty = type(self).__name__
         return f"{ty}(names={self.names!r}, sequences={list(self.sequences)!r})"
 
+    def __copy__(self):
+        return self.copy()
+
     @property
     def names(self):
         """sequence of `bytes`: The names of the sequences in the alignment.
@@ -378,7 +381,7 @@ cdef class TrimmedAlignment(Alignment):
         trimmed._ali = alignment._ali
         alignment._ali = NULL
         trimmed._build_index_mapping()
-        return trimmmed
+        return trimmed
 
     def __init__(
         self,
@@ -393,7 +396,7 @@ cdef class TrimmedAlignment(Alignment):
         cdef bool mask
         cdef int  i
 
-        # build sequences mask
+        # mask sequences
         if sequences_mask is not None:
             if len(sequences_mask) != self._ali.originalNumberOfSequences:
                 raise ValueError("Sequences mask must have the same length as the sequences list")
@@ -405,7 +408,7 @@ cdef class TrimmedAlignment(Alignment):
                     self._ali.saveSequences[i] = -1
                     self._ali.numberOfSequences -= 1
 
-        # build residues mask
+        # mask residues
         if residues_mask is not None:
             if len(residues_mask) != self._ali.originalNumberOfResidues:
                 raise ValueError("Sequences mask must have the same length as the sequences list")
@@ -481,6 +484,12 @@ cdef class TrimmedAlignment(Alignment):
         term_only._ali.Cleaning.removeOnlyTerminal()
         term_only._build_index_mapping()
         return term_only
+
+    cpdef TrimmedAlignment copy(self):
+        cdef TrimmedAlignment copy = TrimmedAlignment.__new__(TrimmedAlignment)
+        copy._ali = new trimal.alignment.Alignment(self._ali[0])
+        copy._build_index_mapping()
+        return copy
 
 
 # -- Trimmer classes ---------------------------------------------------------
