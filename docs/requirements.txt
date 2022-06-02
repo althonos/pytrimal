@@ -10,6 +10,7 @@ pygments-style-monokailight ~=0.4
 ipython ~=7.19
 pygments ~=2.4
 nbsphinx ~=0.8
+ipykernel ~=6.0
 
 # example notebook requirements
 pyhmmer ~=0.6
