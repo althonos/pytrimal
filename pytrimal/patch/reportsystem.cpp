@@ -45,8 +45,12 @@
 
 static PyObject* error_from_errorcode(ErrorCode code) {
     switch (code) {
-        case UnknownCharacter: return PyExc_ValueError;
-        default: return PyExc_RuntimeError;
+        case UnknownCharacter:
+        case UndefinedSymbol:
+        case IncorrectSymbol:
+            return PyExc_ValueError;
+        default:
+            return PyExc_RuntimeError;
     }
 }
 
