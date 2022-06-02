@@ -14,13 +14,13 @@ References:
 
 cimport cython
 from _unicode cimport (
-    Py_UCS1,
-    PyUnicode_1BYTE_DATA,
-    PyUnicode_1BYTE_KIND,
     PyUnicode_New,
     PyUnicode_READY,
+    PyUnicode_KIND,
+    PyUnicode_DATA,
+    PyUnicode_WRITE,
 )
-from cpython.bytes cimport PyBytes_FromStringAndSize
+from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
 from cpython.list cimport PyList_New, PyList_SET_ITEM
 from cpython.mem cimport PyMem_Free, PyMem_Malloc
 from cpython.ref cimport Py_INCREF
@@ -121,19 +121,27 @@ cdef class AlignmentSequences:
           if self._index_mapping is not NULL:
               index_ = self._index_mapping[index_]
 
-          cdef Py_UCS1* seqdata
-          cdef size_t   x         = 0
-          cdef str      seq       = PyUnicode_New(self._ali.numberOfResidues, 0x7f)
-          IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MINOR < 12:
-              PyUnicode_READY(seq)
-          seqdata = PyUnicode_1BYTE_DATA(seq)
-
-          for i in range(self._ali.originalNumberOfResidues):
-              if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
-                  seqdata[x] = self._ali.sequences[index_][i]
-                  x += 1
-
-          return seq
+          IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MAJOR <= 7 and SYS_IMPLEMENTATION_NAME == "pypy":
+              cdef bytes    seq  = PyBytes_FromStringAndSize(NULL, self._ali.numberOfResidues)
+              cdef char*    data = PyBytes_AsString(seq)
+              cdef size_t   x    = 0
+              for i in range(self._ali.originalNumberOfResidues):
+                  if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
+                      data[x] = self._ali.sequences[index_][i]
+                      x += 1
+              return seq.decode('ascii')
+          ELSE:
+              cdef str      seq  = PyUnicode_New(self._ali.numberOfResidues, 0x7f)
+              IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MINOR < 12:
+                  PyUnicode_READY(seq)
+              cdef void*    data = PyUnicode_DATA(seq)
+              cdef int      kind = PyUnicode_KIND(seq)
+              cdef size_t   x    = 0
+              for i in range(self._ali.originalNumberOfResidues):
+                  if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
+                      PyUnicode_WRITE(kind, data, x, self._ali.sequences[index_][i])
+                      x += 1
+              return seq
 
 
 @cython.freelist(8)
@@ -180,19 +188,27 @@ cdef class AlignmentResidues:
         if self._index_mapping is not NULL:
             index_ = self._index_mapping[index_]
 
-        cdef size_t   x         = 0
-        cdef str      col       = PyUnicode_New(self._ali.numberOfSequences, 0x7f)
-        cdef Py_UCS1* coldata
-        IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MINOR < 12:
-            PyUnicode_READY(col)
-        coldata = PyUnicode_1BYTE_DATA(col)
-
-        for i in range(self._ali.originalNumberOfSequences):
-            if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
-                coldata[x] = self._ali.sequences[i][index_]
-                x += 1
-
-        return col
+        IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MAJOR <= 7 and SYS_IMPLEMENTATION_NAME == "pypy":
+            cdef bytes    col  = PyBytes_FromStringAndSize(NULL, self._ali.numberOfSequences)
+            cdef char*    data = PyBytes_AsString(col)
+            cdef size_t   x    = 0
+            for i in range(self._ali.originalNumberOfSequences):
+                if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
+                    data[x] = self._ali.sequences[i][index_]
+                    x += 1
+            return col.decode('ascii')
+        ELSE:
+            cdef str      col = PyUnicode_New(self._ali.numberOfSequences, 0x7f)
+            IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MINOR < 12:
+                PyUnicode_READY(col)
+            cdef void*    data = PyUnicode_DATA(col)
+            cdef int      kind = PyUnicode_KIND(col)
+            cdef size_t   x    = 0
+            for i in range(self._ali.originalNumberOfSequences):
+                if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
+                    PyUnicode_WRITE(kind, data, x, self._ali.sequences[i][index_])
+                    x += 1
+            return col
 
 
 cdef class Alignment:
