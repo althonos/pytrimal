@@ -1,5 +1,6 @@
 from libcpp cimport bool
 
+
 cdef extern from "Alignment/Alignment.h" nogil:
     cdef cppclass Alignment:
         pass

@@ -13,11 +13,6 @@ References:
 # --- C imports --------------------------------------------------------------
 
 cimport cython
-from cpython.bytes cimport PyBytes_FromStringAndSize
-from cpython.list cimport PyList_New, PyList_SET_ITEM
-from cpython.mem cimport PyMem_Free, PyMem_Malloc
-from cpython.ref cimport Py_INCREF
-
 from _unicode cimport (
     Py_UCS1,
     PyUnicode_1BYTE_DATA,
@@ -25,6 +20,11 @@ from _unicode cimport (
     PyUnicode_New,
     PyUnicode_READY,
 )
+from cpython.bytes cimport PyBytes_FromStringAndSize
+from cpython.list cimport PyList_New, PyList_SET_ITEM
+from cpython.mem cimport PyMem_Free, PyMem_Malloc
+from cpython.ref cimport Py_INCREF
+
 from libc.math cimport NAN, isnan
 from libcpp cimport bool
 from libcpp.string cimport string
@@ -479,7 +479,7 @@ cdef class TrimmedAlignment(Alignment):
 
         """
         assert self._ali is not NULL
-        cdef Alignment term_only = Alignment.__new__(Alignment)
+        cdef TrimmedAlignment term_only = TrimmedAlignment.__new__(TrimmedAlignment)
         term_only._ali = new trimal.alignment.Alignment(self._ali[0])
         term_only._ali.Cleaning.removeOnlyTerminal()
         term_only._build_index_mapping()
@@ -491,6 +491,43 @@ cdef class TrimmedAlignment(Alignment):
         copy._build_index_mapping()
         return copy
 
+    @property
+    def residues_mask(self):
+        """sequence of `bool`: Which residues are kept in the alignment.
+        """
+        assert self._ali is not NULL
+
+        cdef int    i
+        cdef object mask = PyList_New(self._ali.originalNumberOfResidues)
+
+        for i in range(self._ali.originalNumberOfResidues):
+            if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
+                Py_INCREF(True)
+                PyList_SET_ITEM(mask, i, True)
+            else:
+                Py_INCREF(False)
+                PyList_SET_ITEM(mask, i, False)
+
+        return mask
+
+    @property
+    def sequences_mask(self):
+        """sequence of `bool`: Which sequences are kept in the alignment.
+        """
+        assert self._ali is not NULL
+
+        cdef int    i
+        cdef object mask = PyList_New(self._ali.originalNumberOfSequences)
+
+        for i in range(self._ali.originalNumberOfSequences):
+            if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
+                Py_INCREF(True)
+                PyList_SET_ITEM(mask, i, True)
+            else:
+                Py_INCREF(False)
+                PyList_SET_ITEM(mask, i, False)
+
+        return mask
 
 # -- Trimmer classes ---------------------------------------------------------
 

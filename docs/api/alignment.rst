@@ -35,4 +35,4 @@ AlignmentSequences
 AlignmentResidues
 -----------------
 
-.. autoclass:: pytrimal.AlignmentSequences
+.. autoclass:: pytrimal.AlignmentResidues

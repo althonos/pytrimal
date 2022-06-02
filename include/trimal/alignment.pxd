@@ -4,6 +4,7 @@ from libcpp.string cimport string
 from trimal cimport SequenceTypes
 from trimal.cleaner cimport Cleaner
 
+
 cdef extern from "Alignment/Alignment.h" nogil:
 
     cdef cppclass Alignment:

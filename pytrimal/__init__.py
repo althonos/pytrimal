@@ -4,6 +4,7 @@ from ._version import __version__  # isort: skip
 from . import _trimal
 from ._trimal import (
     Alignment,
+    AlignmentResidues,
     AlignmentSequences,
     AutomaticTrimmer,
     BaseTrimmer,
@@ -15,6 +16,7 @@ from ._trimal import (
 __doc__ = _trimal.__doc__
 __all__ = [
     "Alignment",
+    "AlignmentResidues",
     "AlignmentSequences",
     "TrimmedAlignment",
     "BaseTrimmer",
