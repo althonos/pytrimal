@@ -3,7 +3,7 @@ include CHANGELOG.md
 include CONTRIBUTING.md
 include README.md
 
-recursive-include pytrimal/tests      *.py *.txt
+recursive-include pytrimal/tests      *.py requirements.txt
 recursive-include pytrimal/tests/data *
 
 recursive-include vendor/trimal         README.md LICENSE AUTHORS CHANGELOG CMakeLists.txt

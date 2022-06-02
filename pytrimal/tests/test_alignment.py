@@ -4,7 +4,7 @@ import unittest
 try:
     import importlib.resources as importlib_resources
 except ImportError:
-    import importlib.resources as importlib_resources
+    import importlib_resources
 
 from .. import Alignment, TrimmedAlignment
 
