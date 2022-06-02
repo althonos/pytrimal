@@ -7,18 +7,10 @@ Multiple Sequence Alignment
 Alignments
 ^^^^^^^^^^
 
-BaseAlignment
--------------
-
-.. autoclass:: pytrimal.BaseAlignment
-   :special-members: __init__
-   :members:
-
-
 Alignment
 ---------
 
-.. autoclass:: pytrimal.Alignment(BaseAlignment)
+.. autoclass:: pytrimal.Alignment
    :special-members: __init__
    :members:
 
@@ -26,7 +18,7 @@ Alignment
 Trimmed Alignment
 -----------------
 
-.. autoclass:: pytrimal.TrimmedAlignment(BaseAlignment)
+.. autoclass:: pytrimal.TrimmedAlignment(Alignment)
    :special-members: __init__
    :members: names, sequences
 

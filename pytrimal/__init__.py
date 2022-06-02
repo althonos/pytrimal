@@ -6,7 +6,6 @@ from ._trimal import (
     Alignment,
     AlignmentSequences,
     AutomaticTrimmer,
-    BaseAlignment,
     BaseTrimmer,
     ManualTrimmer,
     SimilarityMatrix,
@@ -17,7 +16,6 @@ __doc__ = _trimal.__doc__
 __all__ = [
     "Alignment",
     "AlignmentSequences",
-    "BaseAlignment",
     "TrimmedAlignment",
     "BaseTrimmer",
     "AutomaticTrimmer",

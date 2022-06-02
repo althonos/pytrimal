@@ -66,8 +66,13 @@ cdef extern from *:
     T* new_array(size_t n) {
         return new T[n];
     }
+    template <typename T>
+    void del_array(T* array) {
+        delete array;
+    }
     """
     T* new_array[T](size_t)
+    void del_array[T](T*)
 
 
 # --- Alignment classes ------------------------------------------------------
@@ -91,13 +96,13 @@ cdef class AlignmentSequences:
       """
 
       cdef trimal.alignment.Alignment* _ali
-      cdef BaseAlignment               _owner
-      cdef int*                        _sequence_mapping
+      cdef Alignment                   _owner
+      cdef int*                        _index_mapping
 
-      def __cinit__(self, BaseAlignment alignment):
+      def __cinit__(self, Alignment alignment):
           self._owner = alignment
           self._ali = alignment._ali
-          self._sequence_mapping = alignment._sequence_mapping
+          self._index_mapping = alignment._index_mapping
 
       def __len__(self):
           assert self._ali is not NULL
@@ -113,8 +118,8 @@ cdef class AlignmentSequences:
               index_ += length
           if index_ < 0 or index_ >= length:
               raise IndexError(index)
-          if self._sequence_mapping is not NULL:
-              index_ = self._sequence_mapping[index_]
+          if self._index_mapping is not NULL:
+              index_ = self._index_mapping[index_]
 
           cdef Py_UCS1* seqdata
           cdef size_t   x         = 0
@@ -131,69 +136,12 @@ cdef class AlignmentSequences:
           return seq
 
 
-cdef class BaseAlignment:
-    """A base multiple sequence alignment.
+cdef class Alignment:
+    """A multiple sequence alignment.
     """
 
     cdef trimal.alignment.Alignment* _ali
-    cdef int*                        _sequence_mapping
-
-    def __cinit__(self):
-        self._ali = NULL
-        self._sequence_mapping = NULL
-
-    def __init__(self):
-        self._ali = new trimal.alignment.Alignment()
-
-    def __dealloc__(self):
-        if self._ali is not NULL:
-            del self._ali
-
-    @property
-    def names(self):
-        """sequence of `bytes`: The names of the sequences in the alignment.
-        """
-        assert self._ali is not NULL
-
-        cdef int    i
-        cdef int    x     = 0
-        cdef bytes  name
-        cdef object names = PyList_New(self._ali.numberOfSequences)
-
-        for i in range(self._ali.originalNumberOfSequences):
-            if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
-                name = PyBytes_FromStringAndSize( self._ali.seqsName[i].data(), self._ali.seqsName[i].size() )
-                PyList_SET_ITEM(names, x, name)
-                Py_INCREF(name)  # manually increase reference count because `PyList_SET_ITEM` doesn't
-                x += 1
-
-        return names
-
-    @property
-    def sequences(self):
-        """`~pytrimal.AlignmentSequences`: The sequences in the alignment.
-        """
-        assert self._ali is not NULL
-
-        cdef int i
-        cdef int x = 0
-
-        # build a mapping of old to new sequence index
-        if self._sequence_mapping is NULL and self._ali.saveSequences is not NULL:
-            self._sequence_mapping = <int*> PyMem_Malloc(self._ali.numberOfSequences * sizeof(int))
-            if self._sequence_mapping is NULL:
-                raise MemoryError()
-            for i in range(self._ali.originalNumberOfSequences):
-                if self._ali.saveSequences[i] != -1:
-                    self._sequence_mapping[x] = i
-                    x += 1
-
-        return AlignmentSequences(self)
-
-
-cdef class Alignment(BaseAlignment):
-    """A multiple sequence alignment that has not yet been trimmed.
-    """
+    cdef int*                        _index_mapping
 
     @classmethod
     def load(cls, object path not None):
@@ -219,6 +167,16 @@ cdef class Alignment(BaseAlignment):
         cdef string    path_ =  os.fsencode(path)
         alignment._ali = manager.loadAlignment(path_)
         return alignment
+
+    def __cinit__(self):
+        self._ali = NULL
+        self._index_mapping = NULL
+
+    def __dealloc__(self):
+        if self._ali is not NULL:
+            del self._ali
+        if self._index_mapping is not NULL:
+            PyMem_Free(self._index_mapping)
 
     def __init__(self, object names, object sequences):
         """__init__(self, names, sequences)\n--
@@ -294,10 +252,135 @@ cdef class Alignment(BaseAlignment):
         self._ali.originalNumberOfSequences = self._ali.numberOfSequences
         self._ali.originalNumberOfResidues = self._ali.numberOfResidues
 
+    def __repr__(self):
+        cdef str ty = type(self).__name__
+        return f"{ty}(names={self.names!r}, sequences={list(self.sequences)!r})"
 
-cdef class TrimmedAlignment(BaseAlignment):
+    @property
+    def names(self):
+        """sequence of `bytes`: The names of the sequences in the alignment.
+        """
+        assert self._ali is not NULL
+
+        cdef int    i
+        cdef int    x     = 0
+        cdef bytes  name
+        cdef object names = PyList_New(self._ali.numberOfSequences)
+
+        for i in range(self._ali.originalNumberOfSequences):
+            if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
+                name = PyBytes_FromStringAndSize( self._ali.seqsName[i].data(), self._ali.seqsName[i].size() )
+                PyList_SET_ITEM(names, x, name)
+                Py_INCREF(name)  # manually increase reference count because `PyList_SET_ITEM` doesn't
+                x += 1
+
+        return names
+
+    @property
+    def sequences(self):
+        """`~pytrimal.AlignmentSequences`: The sequences in the alignment.
+        """
+        assert self._ali is not NULL
+        return AlignmentSequences(self)
+
+    cpdef Alignment copy(self):
+        assert self._ali is not NULL
+        cdef Alignment copy = (type(self)).__new__(type(self))
+        copy._ali = new trimal.alignment.Alignment(self._ali[0])
+        return copy
+
+
+cdef class TrimmedAlignment(Alignment):
     """A multiple sequence alignment that has been trimmed.
     """
+
+    def __init__(
+        self,
+        object names,
+        object sequences,
+        object sequences_mask = None,
+        object residues_mask = None,
+    ):
+        super().__init__(names, sequences)
+        assert self._ali is not NULL
+
+        cdef bool mask
+        cdef int  i
+
+        # build sequences mask
+        if sequences_mask is not None:
+            if len(sequences_mask) != self._ali.originalNumberOfSequences:
+                raise ValueError("Sequences mask must have the same length as the sequences list")
+            self._ali.saveSequences = new_array[int](self._ali.originalNumberOfSequences)
+            for i, mask in enumerate(sequences_mask):
+                if mask:
+                    self._ali.saveSequences[i] = i
+                else:
+                    self._ali.saveSequences[i] = -1
+                    self._ali.numberOfSequences -= 1
+
+        # build residues mask
+        if residues_mask is not None:
+            if len(residues_mask) != self._ali.originalNumberOfResidues:
+                raise ValueError("Sequences mask must have the same length as the sequences list")
+            self._ali.saveResidues = new_array[int](self._ali.originalNumberOfResidues)
+            for i, mask in enumerate(residues_mask):
+                if mask:
+                    self._ali.saveResidues[i] = i
+                else:
+                    self._ali.saveResidues[i] = -1
+                    self._ali.numberOfResidues -= 1
+
+        # build index mapping
+        self._build_index_mapping()
+
+    cdef void _build_index_mapping(self) except *:
+        assert self._ali is not NULL
+        cdef ssize_t i
+        cdef ssize_t x = 0
+        self._index_mapping = <int*> PyMem_Malloc(self._ali.numberOfSequences * sizeof(int))
+        if self._index_mapping is NULL:
+            raise MemoryError()
+        for i in range(self._ali.originalNumberOfSequences):
+            if self._ali.saveSequences[i] != -1:
+                self._index_mapping[x] = i
+                x += 1
+
+    cpdef Alignment original_alignment(self):
+        """original_alignment(self)\n--
+
+        Rebuild the original alignment from which this object was obtained.
+
+        Returns:
+            `~pytrimal.Alignment`: The untrimmed alignment that produced
+                this trimmed alignment.
+
+        """
+        assert self._ali is not NULL
+        cdef Alignment orig = Alignment.__new__(Alignment)
+        orig._ali = new trimal.alignment.Alignment(self._ali[0])
+        del_array[int](orig._ali.saveSequences)
+        del_array[int](orig._ali.saveResidues)
+        orig._ali.saveSequences = NULL
+        orig._ali.saveResidues = NULL
+        return orig
+
+    cpdef TrimmedAlignment terminal_only(self):
+        """terminal_only(self)\n--
+
+        Get a trimmed alignment where only the terminal residues are removed.
+
+        Returns:
+            `~pytrimal.TrimmedAlignment`: The alignment where only terminal
+                residues have been trimmed.
+
+        """
+        assert self._ali is not NULL
+        cdef Alignment term_only = Alignment.__new__(Alignment)
+        term_only._ali = new trimal.alignment.Alignment(self._ali[0])
+        term_only._ali.Cleaning.removeOnlyTerminal()
+        term_only._build_index_mapping()
+        return term_only
 
 
 # -- Trimmer classes ---------------------------------------------------------
@@ -370,6 +453,7 @@ cdef class BaseTrimmer:
 
         cdef TrimmedAlignment trimmed = TrimmedAlignment.__new__(TrimmedAlignment)
         trimmed._ali = new trimal.alignment.Alignment(_mg.singleAlig[0])
+        trimmed._build_index_mapping()
         return trimmed
 
 

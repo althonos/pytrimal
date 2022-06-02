@@ -2,12 +2,14 @@ from libcpp cimport bool
 from libcpp.string cimport string
 
 from trimal cimport SequenceTypes
-
+from trimal.cleaner cimport Cleaner
 
 cdef extern from "Alignment/Alignment.h" nogil:
 
     cdef cppclass Alignment:
         int dataType
+
+        Cleaner* Cleaning
 
         int* SeqRef
         int originalNumberOfSequences
