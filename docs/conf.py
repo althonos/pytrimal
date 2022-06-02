@@ -147,6 +147,19 @@ html_theme_options = {
     "admonition_use_panel": True,
 }
 
+# Custom sidebar templates, must be a dictionary that maps document names
+# to template names.
+#
+# The default sidebars (for documents that don't match any pattern) are
+# defined by theme itself.  Builtin themes are using these templates by
+# default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
+# 'searchbox.html']``.
+#
+html_sidebars = {
+    "*": ["localtoc.html"],
+    "api/*": ["localtoc.html"],
+    "examples/*": ["localtoc.html"],
+}
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
