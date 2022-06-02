@@ -32,13 +32,24 @@ class TestAlignment(unittest.TestCase):
         self.assertEqual(len(self.alignment.residues), 46)
         self.assertEqual(self.alignment.residues[0], "--A---")
         self.assertEqual(self.alignment.residues[10], "IVLLLL")
+        with self.assertRaises(IndexError):
+            self.alignment.residues[100]
+        with self.assertRaises(IndexError):
+            self.alignment.residues[46]
+        with self.assertRaises(IndexError):
+            self.alignment.residues[-100]
 
     def test_sequences(self):
         self.assertEqual(len(self.alignment.sequences), 6)
         self.assertEqual(self.alignment.sequences[0], "-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII")
         self.assertEqual(self.alignment.sequences[4], "--FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF")
         self.assertEqual(self.alignment.sequences[-1], "-------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL")
-
+        with self.assertRaises(IndexError):
+            self.alignment.sequences[100]
+        with self.assertRaises(IndexError):
+            self.alignment.sequences[6]
+        with self.assertRaises(IndexError):
+            self.alignment.sequences[-100]
 
 class TestTrimmedAlignment(unittest.TestCase):
 
@@ -79,8 +90,20 @@ class TestTrimmedAlignment(unittest.TestCase):
     def test_residues(self):
         self.assertEqual(len(self.trimmed.residues), 39)
         self.assertEqual(self.trimmed.residues[0], "G-AT-")
+        with self.assertRaises(IndexError):
+            self.trimmed.residues[100]
+        with self.assertRaises(IndexError):
+            self.trimmed.residues[39]
+        with self.assertRaises(IndexError):
+            self.trimmed.residues[-100]
 
     def test_sequences(self):
         self.assertEqual(len(self.trimmed.sequences), 5)
         self.assertEqual(self.trimmed.sequences[3], "TAPDLL-LIGFLLKTVA-TFGDTWFQLWQGLDLNKMPVF")
         self.assertEqual(self.trimmed.sequences[-1], "--PTILNIAGLHMETDI-NFSLAWFQAWGGLEINKQAIL")
+        with self.assertRaises(IndexError):
+            self.trimmed.sequences[5]
+        with self.assertRaises(IndexError):
+            self.trimmed.sequences[100]
+        with self.assertRaises(IndexError):
+            self.trimmed.sequences[-100]

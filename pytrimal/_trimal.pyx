@@ -148,7 +148,7 @@ cdef class AlignmentSequences:
 cdef class AlignmentResidues:
     """A read-only view over the residues of an alignment.
 
-    Objects from this class are created in the `~Alignment.sequences`
+    Objects from this class are created in the `~Alignment.residues`
     property of `~pytrimal.Alignment` objects. Use it to access the
     string data of individual columns from the alignment::
 
