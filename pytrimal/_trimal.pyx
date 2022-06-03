@@ -79,69 +79,65 @@ cdef extern from *:
 
 @cython.freelist(8)
 cdef class AlignmentSequences:
-      """A read-only view over the sequences of an alignment.
+    """A read-only view over the sequences of an alignment.
 
-      Objects from this class are created in the `~Alignment.sequences`
-      property of `~pytrimal.Alignment` objects. Use it to access the
-      string data of individual rows from the alignment::
+    Objects from this class are created in the `~Alignment.sequences`
+    property of `~pytrimal.Alignment` objects. Use it to access the
+    string data of individual rows from the alignment::
 
-          >>> msa = Alignment.load("example.001.AA.clw")
-          >>> len(msa.sequences)
-          6
-          >>> msa.sequences[0]
-          '-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII'
-          >>> sum(letter == '-' for seq in msa.sequences for letter in seq)
-          43
+        >>> msa = Alignment.load("example.001.AA.clw")
+        >>> len(msa.sequences)
+        6
+        >>> msa.sequences[0]
+        '-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII'
+        >>> sum(letter == '-' for seq in msa.sequences for letter in seq)
+        43
 
-      """
+    """
 
-      cdef trimal.alignment.Alignment* _ali
-      cdef Alignment                   _owner
-      cdef int*                        _index_mapping
+    def __cinit__(self, Alignment alignment):
+        self._owner = alignment
+        self._ali = alignment._ali
+        self._index_mapping = alignment._sequences_mapping
 
-      def __cinit__(self, Alignment alignment):
-          self._owner = alignment
-          self._ali = alignment._ali
-          self._index_mapping = alignment._sequences_mapping
+    def __len__(self):
+        assert self._ali is not NULL
+        return self._ali.numberOfSequences
 
-      def __len__(self):
-          assert self._ali is not NULL
-          return self._ali.numberOfSequences
+    def __getitem__(self, int index):
+        assert self._ali is not NULL
 
-      def __getitem__(self, int index):
-          assert self._ali is not NULL
+        cdef int index_ = index
+        cdef int length = self._ali.numberOfSequences
 
-          cdef int index_ = index
-          cdef int length = self._ali.numberOfSequences
+        if index_ < 0:
+            index_ += length
+        if index_ < 0 or index_ >= length:
+            raise IndexError(index)
+        if self._index_mapping is not NULL:
+            index_ = self._index_mapping[index_]
 
-          if index_ < 0:
-              index_ += length
-          if index_ < 0 or index_ >= length:
-              raise IndexError(index)
-          if self._index_mapping is not NULL:
-              index_ = self._index_mapping[index_]
-
-          IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MAJOR <= 7 and SYS_IMPLEMENTATION_NAME == "pypy":
-              cdef bytes    seq  = PyBytes_FromStringAndSize(NULL, self._ali.numberOfResidues)
-              cdef char*    data = PyBytes_AsString(seq)
-              cdef size_t   x    = 0
-              for i in range(self._ali.originalNumberOfResidues):
-                  if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
-                      data[x] = self._ali.sequences[index_][i]
-                      x += 1
-              return seq.decode('ascii')
-          ELSE:
-              cdef str      seq  = PyUnicode_New(self._ali.numberOfResidues, 0x7f)
-              IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MINOR < 12:
-                  PyUnicode_READY(seq)
-              cdef void*    data = PyUnicode_DATA(seq)
-              cdef int      kind = PyUnicode_KIND(seq)
-              cdef size_t   x    = 0
-              for i in range(self._ali.originalNumberOfResidues):
-                  if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
-                      PyUnicode_WRITE(kind, data, x, self._ali.sequences[index_][i])
-                      x += 1
-              return seq
+        IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MAJOR <= 7 and SYS_IMPLEMENTATION_NAME == "pypy":
+            cdef bytes    seq  = PyBytes_FromStringAndSize(NULL, self._ali.numberOfResidues)
+            cdef char*    data = PyBytes_AsString(seq)
+            cdef size_t   x    = 0
+            for i in range(self._ali.originalNumberOfResidues):
+                if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
+                    data[x] = self._ali.sequences[index_][i]
+                    x += 1
+            return seq.decode('ascii')
+        ELSE:
+            cdef str      seq  = PyUnicode_New(self._ali.numberOfResidues, 0x7f)
+            IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MINOR < 12:
+                PyUnicode_READY(seq)
+            cdef void*    data = PyUnicode_DATA(seq)
+            cdef int      kind = PyUnicode_KIND(seq)
+            cdef size_t   x    = 0
+            for i in range(self._ali.originalNumberOfResidues):
+                if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
+                    PyUnicode_WRITE(kind, data, x, self._ali.sequences[index_][i])
+                    x += 1
+            return seq
 
 
 @cython.freelist(8)
@@ -161,10 +157,6 @@ cdef class AlignmentResidues:
         'IIIIFL'
 
     """
-
-    cdef trimal.alignment.Alignment* _ali
-    cdef Alignment                   _owner
-    cdef int*                        _index_mapping
 
     def __cinit__(self, Alignment alignment):
         self._owner = alignment
@@ -214,10 +206,6 @@ cdef class AlignmentResidues:
 cdef class Alignment:
     """A multiple sequence alignment.
     """
-
-    cdef trimal.alignment.Alignment* _ali
-    cdef int*                        _sequences_mapping
-    cdef int*                        _residues_mapping
 
     @classmethod
     def load(cls, object path not None):
@@ -658,8 +646,6 @@ cdef class AutomaticTrimmer(BaseTrimmer):
 
     """
 
-    cdef readonly str method
-
     def __init__(self, str method="strict"):
         """__init__(self, method="strict")\n--
 
@@ -717,12 +703,6 @@ cdef class ManualTrimmer(BaseTrimmer):
     trimming.
 
     """
-
-    cdef float   _gap_threshold
-    cdef ssize_t _gap_absolute_threshold
-    cdef float   _similarity_threshold
-    cdef float   _consistency_threshold
-    cdef float   _conservation_percentage
 
     def __cinit__(self):
         self._gap_threshold           = -1
@@ -793,8 +773,6 @@ cdef class ManualTrimmer(BaseTrimmer):
 cdef class SimilarityMatrix:
     """A similarity matrix for biological sequence characters.
     """
-
-    cdef trimal.similarity_matrix.similarityMatrix _smx
 
     @classmethod
     def aa(cls):
