@@ -6,7 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.1.1...HEAD
+
+
+## [v0.1.1] - 2022-06-03
+[v0.1.1]: https://github.com/althonos/pytrimal/compare/v0.1.0...v0.1.1
+
+### Added
+- Type annotations for all classes of the `pytrimal` extension module.
+
+### Fixed
+- Cython header files not being included in source distribution.
 
 
 ## [v0.1.0] - 2022-06-02
