@@ -41,14 +41,24 @@ def _load_tests_from_module(tests, module, globs, setUp=None, tearDown=None):
 def load_tests(loader, tests, ignore):
     """`load_test` function used by unittest to find the doctests.
     """
-    # _current_cwd = os.getcwd()
+    _current_cwd = os.getcwd()
+    # demonstrate how to use Biopython substitution matrices without
+    # actually requiring Biopython
+    Bio = mock.Mock()
+    Bio.Align = mock.Mock()
+    Bio.Align.substitution_matrices = mock.Mock()
+    Bio.Align.substitution_matrices.load = mock.Mock()
+    Bio.Align.substitution_matrices.load.return_value = jones = mock.Mock()
+    jones.alphabet = "ARNDCQEGHILKMFPSTWYV"
+    jones.__len__ = mock.Mock(return_value=len(jones.alphabet))
+    jones.__iter__ = mock.Mock(return_value=iter([[0] * len(jones.alphabet)]*len(jones.alphabet)))
 
     def setUp(self):
         warnings.simplefilter("ignore")
         os.chdir(os.path.realpath(os.path.join(__file__, os.path.pardir, "data")))
 
     def tearDown(self):
-        # os.chdir(_current_cwd)
+        os.chdir(_current_cwd)
         warnings.simplefilter(warnings.defaultaction)
 
     # doctests are not compatible with `green`, so we may want to bail out
@@ -73,6 +83,7 @@ def load_tests(loader, tests, ignore):
             module = importlib.import_module(".".join([pkg.__name__, subpkgname]))
             globs = dict(
                 numpy=numpy,
+                Bio=Bio,
                 **module.__dict__
             )
             tests.addTests(

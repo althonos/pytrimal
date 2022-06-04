@@ -67,4 +67,5 @@ cdef class ManualTrimmer(BaseTrimmer):
 cdef class SimilarityMatrix:
     cdef trimal.similarity_matrix.similarityMatrix _smx
 
+    cpdef float similarity(self, str a, str b) except -1
     cpdef float distance(self, str a, str b) except -1

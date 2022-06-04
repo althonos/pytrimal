@@ -25,7 +25,7 @@ from cpython.list cimport PyList_New, PyList_SET_ITEM
 from cpython.mem cimport PyMem_Free, PyMem_Malloc
 from cpython.ref cimport Py_INCREF
 
-from libc.math cimport NAN, isnan
+from libc.math cimport NAN, isnan, sqrt
 from libcpp cimport bool
 from libcpp.string cimport string
 
@@ -805,11 +805,119 @@ cdef class SimilarityMatrix:
                 matrix._smx.defaultNTDegeneratedSimMatrix()
         return matrix
 
-    def __cinit__(self):
-        self._smx
+    def __init__(self, str alphabet not None, object matrix not None):
+        """__init__(alphabet, matrix)\n--
 
-    def __init__(self):
-        raise NotImplementedError("SimilarityMatrix.__init__")
+        Create a new similarity matrix from the given alphabet and data.
+
+        Arguments:
+            alphabet (`str`): The alphabet of the similarity matrix.
+            matrix (`list` of `list` of `float`): The similarity matrix,
+                as a square matrix indexed by the alphabet characters.
+
+        Example:
+            Create a new similarity matrix using the HOXD70 scores by
+            Chiaromonte, Yap and Miller (:pmid:`11928468`)::
+
+                >>> matrix = SimilarityMatrix(
+                ...     "ATCG",
+                ...     [[  91, -114,  -31, -123],
+                ...      [-114,  100, -125,  -31],
+                ...      [ -31, -125,  100, -114],
+                ...      [-123,  -31, -114,   91]]
+                ... )
+
+            Create a new similarity matrix using one of the matrices from
+            the `Bio.Align.substitution_matrices` module::
+
+                >>> jones = Bio.Align.substitution_matrices.load('JONES')
+                >>> matrix = SimilarityMatrix(jones.alphabet, jones)
+
+        .. versionadded:: 0.1.2
+
+        """
+        cdef int    i
+        cdef int    j
+        cdef object row
+        cdef float  value
+        cdef float  sum
+        cdef str    letter
+        cdef int    length = len(matrix)
+
+        if len(alphabet) != length:
+            raise ValueError("Alphabet must have the same length as matrix")
+        if not alphabet.isupper():
+            raise ValueError("Alphabet must only contain uppercase letters")
+        if not all(len(row) == length for row in matrix):
+            raise ValueError("`matrix` must be a square matrix")
+        if length > 28:
+            raise ValueError(f"Cannot use alphabet of more than 28 symbols: {alphabet!r}")
+
+        # allocate memory
+        self._smx.memoryAllocation(length)
+
+        # create the hashing vector with support for all ASCII codes
+        for i, letter in enumerate(alphabet):
+            j = ord(letter) - ord('A')
+            if j < 0:
+                raise ValueError("Invalid symbol in alphabet: {letter!r}")
+            self._smx.vhash[ord(letter) - ord('A')] = i
+
+        # create the similarity matrix
+        for i, row in enumerate(matrix):
+            for j, value in enumerate(row):
+                self._smx.simMat[i][j] = value
+
+        # calculate Euclidean distance
+        with nogil:
+            for j in range(length):
+                for i in range(j+1, length):
+                    sum = 0
+                    for k in range(length):
+                        sum += (
+                            (self._smx.simMat[k][j] - self._smx.simMat[k][i])
+                          * (self._smx.simMat[k][j] - self._smx.simMat[k][i])
+                        )
+                    self._smx.distMat[i][j] = self._smx.distMat[j][i] = sqrt(sum)
+
+    cpdef float similarity(self, str a, str b) except -1:
+        """similarity(self, a, b)\n--
+
+        Return the similarity between two sequence characters.
+
+        Example:
+            >>> mx = SimilarityMatrix.nt()
+            >>> mx.similarity('A', 'A')
+            1.0
+            >>> mx.similarity('A', 'T')
+            0.0
+
+        Raises:
+            `ValueError`: When ``a`` or ``b`` is an invalid character or a
+                character that was not defined in the matrix alphabet.
+            `TypeError`: When ``a`` or ``b`` is a string containing more
+                than one character.
+
+        .. versionadded:: 0.1.2
+
+        """
+        cdef int ia   = ord(a)
+        cdef int ib   = ord(b)
+
+        if ia < ord('A') or ia > ord('Z'):
+            raise ValueError(f"the symbol {a!r} is incorrect")
+        if ib < ord('A') or ib > ord('Z'):
+            raise ValueError(f"the symbol {b!r} is incorrect")
+
+        cdef int numa = self._smx.vhash[ia - ord('A')]
+        cdef int numb = self._smx.vhash[ib - ord('A')]
+
+        if numa == -1:
+            raise ValueError(f"the symbol {a!r} accesing the matrix is not defined in this object")
+        if numb == -1:
+            raise ValueError(f"the symbol {b!r} accesing the matrix is not defined in this object")
+
+        return self._smx.simMat[numa][numb]
 
     cpdef float distance(self, str a, str b) except -1:
         """distance(self, a, b)\n--
@@ -822,6 +930,12 @@ cdef class SimilarityMatrix:
             0.0
             >>> mx.distance('A', 'T')
             1.5184...
+
+        Raises:
+            `ValueError`: When ``a`` or ``b`` is an invalid character or a
+                character that was not defined in the matrix alphabet.
+            `TypeError`: When ``a`` or ``b`` is a string containing more
+                than one character.
 
         """
         cdef float distance = 0.0
