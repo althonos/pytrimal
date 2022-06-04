@@ -30,6 +30,7 @@ API Reference
     .. autosummary::
        :nosignatures:
 
+       pytrimal.BaseTrimmer
        pytrimal.AutomaticTrimmer
        pytrimal.ManualTrimmer
 

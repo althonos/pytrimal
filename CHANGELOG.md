@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [v0.1.2] - 2022-06-04
-[v0.1.1]: https://github.com/althonos/pytrimal/compare/v0.1.1...v0.1.2
+[v0.1.2]: https://github.com/althonos/pytrimal/compare/v0.1.1...v0.1.2
 
 ### Added
 - Python constructor and buffer protocol support for `SimilarityMatrix`.

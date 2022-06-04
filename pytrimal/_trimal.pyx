@@ -594,7 +594,7 @@ cdef class BaseTrimmer:
         pass
 
     cpdef TrimmedAlignment trim(self, Alignment alignment, SimilarityMatrix matrix = None):
-        """trim(self, alignment)\n--
+        """trim(self, alignment, matrix=None)\n--
 
         Trim the provided alignment.
 
