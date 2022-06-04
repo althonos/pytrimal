@@ -369,6 +369,11 @@ cdef class Alignment:
         return AlignmentResidues(self)
 
     cpdef Alignment copy(self):
+        """copy(self)\n--
+
+        Create a copy of this alignment.
+
+        """
         assert self._ali is not NULL
         cdef Alignment copy = (type(self)).__new__(type(self))
         copy._ali = new trimal.alignment.Alignment(self._ali[0])
@@ -519,6 +524,11 @@ cdef class TrimmedAlignment(Alignment):
         return term_only
 
     cpdef TrimmedAlignment copy(self):
+        """copy(self)\n--
+
+        Create a copy of this trimmed alignment.
+
+        """
         cdef TrimmedAlignment copy = TrimmedAlignment.__new__(TrimmedAlignment)
         copy._ali = new trimal.alignment.Alignment(self._ali[0])
         copy._build_index_mapping()
@@ -561,6 +571,7 @@ cdef class TrimmedAlignment(Alignment):
                 PyList_SET_ITEM(mask, i, False)
 
         return mask
+
 
 # -- Trimmer classes ---------------------------------------------------------
 
