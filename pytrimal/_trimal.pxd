@@ -65,6 +65,9 @@ cdef class ManualTrimmer(BaseTrimmer):
 
 
 cdef class SimilarityMatrix:
+    cdef Py_ssize_t                                _suboffsets[2]
+    cdef Py_ssize_t                                _shape[2]
+    cdef Py_ssize_t                                _strides[2]
     cdef trimal.similarity_matrix.similarityMatrix _smx
 
     cpdef float similarity(self, str a, str b) except -1

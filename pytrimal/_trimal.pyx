@@ -20,6 +20,8 @@ from _unicode cimport (
     PyUnicode_DATA,
     PyUnicode_WRITE,
 )
+from cpython cimport Py_buffer
+from cpython.buffer cimport PyBUF_FORMAT, PyBUF_READ
 from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
 from cpython.list cimport PyList_New, PyList_SET_ITEM
 from cpython.mem cimport PyMem_Free, PyMem_Malloc
@@ -904,6 +906,35 @@ cdef class SimilarityMatrix:
                           * (self._smx.simMat[k][j] - self._smx.simMat[k][i])
                         )
                     self._smx.distMat[i][j] = self._smx.distMat[j][i] = sqrt(sum)
+
+    def __len__(self):
+        return self._smx.numPositions
+
+    IF SYS_IMPLEMENTATION_NAME == "cpython":
+
+        def __getbuffer__(self, Py_buffer* buffer, int flags):
+            # setup indexing information
+            self._shape[0] = self._smx.numPositions
+            self._shape[1] = self._smx.numPositions
+            self._suboffsets[0] = 0
+            self._suboffsets[1] = -1
+            self._strides[0] = sizeof(float*)
+            self._strides[1] = sizeof(float)
+            # update buffer information
+            if flags & PyBUF_FORMAT:
+                buffer.format = b"f"
+            else:
+                buffer.format = NULL
+            buffer.buf = self._smx.simMat
+            buffer.internal = NULL
+            buffer.itemsize = sizeof(float)
+            buffer.len = self._shape[0] * self._shape[1] * sizeof(float)
+            buffer.ndim = 2
+            buffer.obj = self
+            buffer.readonly = 1
+            buffer.shape = &self._shape[0]
+            buffer.suboffsets = &self._suboffsets[0]
+            buffer.strides = &self._strides[0]
 
     cpdef float similarity(self, str a, str b) except -1:
         """similarity(self, a, b)\n--

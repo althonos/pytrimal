@@ -1,5 +1,6 @@
 import math
 import os
+import sys
 import unittest
 
 from .. import SimilarityMatrix
@@ -42,3 +43,13 @@ class TestSimilarityMatrix(unittest.TestCase):
         self.assertEqual(matrix.distance('A', 'A'), 0.0)
         self.assertGreater(matrix.distance('A', 'R'), 0.0)
         self.assertRaises(ValueError, matrix.distance, '+', ':')
+
+    @unittest.skipUnless(sys.implementation.name == "cpython", "buffer protocol only supported on CPython")
+    def test_memoryview(self):
+        matrix = SimilarityMatrix.nt()
+        mv = memoryview(matrix)
+        self.assertEqual(mv.ndim, 2)
+        self.assertEqual(mv.format, "f")
+        self.assertTrue(mv.readonly)
+        self.assertEqual(mv[0, 0], 1.0)
+        self.assertEqual(mv[0, 1], 0.0)
