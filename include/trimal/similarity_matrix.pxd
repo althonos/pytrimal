@@ -6,6 +6,9 @@ cdef extern from "Statistics/similarityMatrix.h" namespace "statistics" nogil:
         float** distMat
         int numPositions
 
+        similarityMatrix()
+        void memoryAllocation(int nPos)
+
         void defaultAASimMatrix() except +
         void defaultNTSimMatrix() except +
         void defaultNTDegeneratedSimMatrix() except +

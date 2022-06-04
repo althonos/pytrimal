@@ -165,6 +165,8 @@ class build_clib(_build_clib):
             with open(output, "wb") as dst:
                 for line in src:
                     dst.write(line.replace(b"private:", b"public:"))
+                    if re.match(rb'\W*class\W*.*\W*\{', line):
+                        dst.write(b"public:\n")
 
     # --- Compatibility with base `build_clib` command ---
 
