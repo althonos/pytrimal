@@ -3,6 +3,7 @@ from libcpp.string cimport string
 
 from trimal cimport SequenceTypes
 from trimal.cleaner cimport Cleaner
+from trimal.statistics cimport Manager
 
 
 cdef extern from "Alignment/Alignment.h" nogil:
@@ -11,7 +12,7 @@ cdef extern from "Alignment/Alignment.h" nogil:
         int dataType
 
         Cleaner* Cleaning
-
+        Manager* Statistics
         int* SeqRef
         int originalNumberOfSequences
         int numberOfSequences
