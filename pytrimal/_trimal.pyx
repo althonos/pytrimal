@@ -400,6 +400,25 @@ cdef class TrimmedAlignment(Alignment):
         object sequences_mask = None,
         object residues_mask = None,
     ):
+        """__init__(self, names, sequences, sequences_mask=None, residues_mask=None)\n--
+
+        Create a new alignment with the given names, sequences and masks.
+
+        Arguments:
+            names (`~collections.abc.Sequence` of `bytes`): The names of
+                the sequences in the alignment.
+            sequences (`~collections.abc.Sequence` of `str`): The actual
+                sequences in the alignment.
+            sequences_mask (`~collections.abc.Sequence` of `bool`): A mask
+                for which sequences to keep in the trimmed alignment. If
+                given, must be as long as the ``sequences`` and ``names``
+                list.
+            residues_mask (`~collections.abc.Sequence` of `bool`): A mask
+                for which residues to keep in the trimmed alignment. If
+                given, must be as long as every element in the ``sequences``
+                argument.
+
+        """
         super().__init__(names, sequences)
         assert self._ali is not NULL
 
@@ -569,6 +588,10 @@ cdef class BaseTrimmer:
         Arguments:
             alignment (`~pytrimal.Alignment`): A multiple sequence
                 alignment to trim.
+            matrix (`~pytrimal.SimilarityMatrix`, optional): An alternative
+                similarity matrix to use for computing the similarity
+                statistic. If `None`, a default matrix will be used based
+                on the type of the alignment.
 
         Returns:
             `~pytrimal.TrimmedAlignment`: The trimmed alignment.
@@ -577,6 +600,9 @@ cdef class BaseTrimmer:
             This method is re-entrant, and can be called safely accross
             different threads. Most of the computations will be done after
             releasing the GIL.
+
+        .. versionchanged:: 0.1.2
+           Added the ``matrix`` optional argument.
 
         """
         # use a local manager object so that this method is re-entrant
@@ -811,7 +837,7 @@ cdef class SimilarityMatrix:
 
         Arguments:
             alphabet (`str`): The alphabet of the similarity matrix.
-            matrix (`list` of `list` of `float`): The similarity matrix,
+            matrix (`~numpy.typing.ArrayLike`): The similarity matrix,
                 as a square matrix indexed by the alphabet characters.
 
         Example:
