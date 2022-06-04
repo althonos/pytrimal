@@ -6,7 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.1.2...HEAD
+
+
+## [v0.1.2] - 2022-06-04
+[v0.1.1]: https://github.com/althonos/pytrimal/compare/v0.1.1...v0.1.2
+
+### Added
+- Python constructor and buffer protocol support for `SimilarityMatrix`.
+- `SimilarityMatrix.similarity` method to get the similarity between two characters instead.
+
+### Fixed
+- Source compilation failing because of source files in the `pytrimal` folder.
 
 
 ## [v0.1.1] - 2022-06-03
