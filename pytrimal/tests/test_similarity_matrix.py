@@ -31,6 +31,14 @@ class TestSimilarityMatrix(unittest.TestCase):
              [4, 0, 0, 5]]
         )
 
+    def test_length(self):
+        aa = SimilarityMatrix.aa()
+        self.assertEqual(len(aa), 20)
+        nt = SimilarityMatrix.nt()
+        self.assertEqual(len(nt), 15)
+        dn = SimilarityMatrix.nt(degenerated=True)
+        self.assertEqual(len(nt), 15)
+
     def test_distance_nt(self):
         matrix = SimilarityMatrix.nt()
         self.assertEqual(matrix.distance('A', 'A'), 0.0)
