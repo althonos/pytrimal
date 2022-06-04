@@ -561,7 +561,7 @@ cdef class BaseTrimmer:
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         pass
 
-    cpdef TrimmedAlignment trim(self, Alignment alignment):
+    cpdef TrimmedAlignment trim(self, Alignment alignment, SimilarityMatrix matrix = None):
         """trim(self, alignment)\n--
 
         Trim the provided alignment.
@@ -600,23 +600,22 @@ cdef class BaseTrimmer:
 
         with nogil:
             # set flags
-            # self.manager.origAlig.setKeepSequencesFlag(self.keep_sequences)
             manager.set_window_size()
             if manager.blockSize != -1:
                 manager.origAlig.setBlockSize(manager.blockSize)
-
-            manager.create_or_use_similarity_matrix()
-            # self.manager.print_statistics()
+            # set similarity matrix from argument or load a default one
+            if matrix is not None:
+                manager.origAlig.Statistics.setSimilarityMatrix(&matrix._smx)
+            else:
+                manager.create_or_use_similarity_matrix()
+            # clean alignment
             manager.clean_alignment()
-
+            # use original alignment as single alignment if needed
             if manager.singleAlig == NULL:
                 manager.singleAlig = manager.origAlig
                 manager.origAlig = NULL
 
-            manager.postprocess_alignment()
-            # manager.output_reports()
-            # manager.save_alignment()
-
+        # trim alignment and create a TrimmedAlignment object
         cdef TrimmedAlignment trimmed = TrimmedAlignment.__new__(TrimmedAlignment)
         trimmed._ali = new trimal.alignment.Alignment(manager.singleAlig[0])
         trimmed._build_index_mapping()
@@ -860,7 +859,7 @@ cdef class SimilarityMatrix:
         for i, letter in enumerate(alphabet):
             j = ord(letter) - ord('A')
             if j < 0:
-                raise ValueError("Invalid symbol in alphabet: {letter!r}")
+                raise ValueError(f"Invalid symbol in alphabet: {letter!r}")
             self._smx.vhash[ord(letter) - ord('A')] = i
 
         # create the similarity matrix

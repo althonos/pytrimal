@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import unittest
 
 try:
@@ -10,7 +11,7 @@ try:
 except ImportError:
     importlib_resources = None
 
-from .. import Alignment, AutomaticTrimmer
+from .. import Alignment, AutomaticTrimmer, SimilarityMatrix
 
 
 class TestAutomaticTrimmer(unittest.TestCase):
@@ -56,3 +57,14 @@ class TestAutomaticTrimmer(unittest.TestCase):
     @unittest.skipUnless(importlib_resources, "importlib.resources not available")
     def test_gappyout_method(self):
         self._test_method("gappyout")
+
+    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
+    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
+    def test_custom_similarity_matrix(self):
+        with importlib_resources.path("pytrimal.tests.data", "ENOG411BWBU.fasta") as path:
+            alignment = Alignment.load(path)
+        with importlib_resources.open_binary("pytrimal.tests.data", "pam70.json") as f:
+            pam70 = SimilarityMatrix(**json.load(f))
+
+        trimmer = AutomaticTrimmer("strict")
+        trimmed = trimmer.trim(alignment, pam70)

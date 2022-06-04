@@ -61,7 +61,7 @@ The following features are available or considered for implementation:
   of sequences stored in Python strings.
 - [ ] **reverse-translation**: Back-translate a protein alignment to align
   the sequences in genomic space.
-- [ ] **alternative similarity matrix**: Specify an alternative similarity
+- [x] **alternative similarity matrix**: Specify an alternative similarity
   matrix for the alignment (instead of BLOSUM62).
 - [x] **similarity matrix creation**: Create a similarity matrix from scratch
   from Python code.
