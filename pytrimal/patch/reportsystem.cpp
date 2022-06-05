@@ -117,7 +117,6 @@ void reporting::reportManager::report(ErrorCode message, const char *vars) {
     std::string s(reporting::reportManager::ErrorMessages.at(message));
 
     if (vars != nullptr) {
-      int counter = 0;
       std::size_t index;
       std::string FindWord = "[tag]";
       std::string Vars = vars;
@@ -159,7 +158,6 @@ void reporting::reportManager::report(WarningCode message, const char *vars) {
     std::string s(reporting::reportManager::WarningMessages.at(message));
 
     if (vars != nullptr) {
-      int counter = 0;
       std::size_t index;
       std::string FindWord = "[tag]";
       std::string Vars = vars;
