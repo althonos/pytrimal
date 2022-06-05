@@ -84,6 +84,6 @@ cdef extern from "trimalManager.h" nogil:
         void svg_stats_out()
         void print_statistics()
         bool create_or_use_similarity_matrix() except False
-        void clean_alignment()
+        void clean_alignment() except *
         void postprocess_alignment()
         void set_window_size()
