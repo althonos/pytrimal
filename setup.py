@@ -363,11 +363,26 @@ class build_clib(_build_clib):
         with open(input, "rb") as src:
             with open(output, "wb") as dst:
                 for line in src:
+                    # make the `Similarity::calculateMatrixIdentity` virtual so it
+                    # we can override it with an SSE implementation
                     if line.strip() == b"void calculateMatrixIdentity();":
                         dst.write(b"virtual void calculateMatrixIdentity();\n")
+                    # make the `Cleaner::calculateSeqIdentity` virtual so it
+                    # we can override it with an SSE implementation
+                    elif line.strip() == b"void calculateSeqIdentity();":
+                        dst.write(b"virtual void calculateSeqIdentity();\n")
+                    # add a virtual destructor to `Cleaner` so it can be
+                    # subclassed safely
+                    elif line.strip() == b"explicit Cleaner(Alignment *parent);":
+                        dst.write(line)
+                        dst.write(b"virtual ~Cleaner() {};\n")
+                    # expose all attributes as public by adding a `public`
+                    # qualifier right at the beginning of a class declaration
                     elif re.match(rb'\W*class\W*.*\W*\{', line):
                         dst.write(line)
                         dst.write(b"public:\n")
+                    # expose all attributes as public by preventing any
+                    # `private` qualifier
                     else:
                         dst.write(line.replace(b"private:", b"public:"))
 
@@ -566,6 +581,9 @@ setuptools.setup(
             libraries=[
                 "trimal",
             ],
+            extra_link_args=[
+                "-Wno-alloc-size-larger-than"
+            ]
         ),
     ],
     cmdclass={
