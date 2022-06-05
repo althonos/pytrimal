@@ -363,9 +363,14 @@ class build_clib(_build_clib):
         with open(input, "rb") as src:
             with open(output, "wb") as dst:
                 for line in src:
-                    dst.write(line.replace(b"private:", b"public:"))
-                    if re.match(rb'\W*class\W*.*\W*\{', line):
+                    if line.strip() == b"void calculateMatrixIdentity();":
+                        dst.write(b"virtual void calculateMatrixIdentity();\n")
+                    elif re.match(rb'\W*class\W*.*\W*\{', line):
+                        dst.write(line)
                         dst.write(b"public:\n")
+                    else:
+                        dst.write(line.replace(b"private:", b"public:"))
+
 
     # --- Compatibility with base `build_clib` command ---
 
@@ -549,6 +554,9 @@ setuptools.setup(
                 os.path.join("pytrimal", "patch", "reportsystem.cpp"),
                 os.path.join("pytrimal", "_trimal.pyx"),
             ],
+            platform_sources={
+                "SSE2": [os.path.join("pytrimal", "impl", "sse.cpp")]
+            },
             include_dirs=[
                 os.path.join("pytrimal", "patch"),
                 os.path.join("pytrimal", "impl"),
