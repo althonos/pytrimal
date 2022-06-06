@@ -6,7 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.2.1...HEAD
+
+
+## [v0.2.1] - 2022-06-06
+[v0.2.1]: https://github.com/althonos/pytrimal/compare/v0.2.0...v0.2.1
+
+### Fixed
+- Missing SSE2 files in source distribution.
 
 
 ## [v0.2.0] - 2022-06-06
