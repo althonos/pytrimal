@@ -336,22 +336,22 @@ class build_ext(_build_ext):
 
         # check if we can build platform-specific code
         if TARGET_CPU == "x86":
-            if not self._simd_disabled["AVX2"] and self._check_avx2():
-                cython_args["compile_time_env"]["AVX2_BUILD_SUPPORT"] = True
-                self._simd_supported["AVX2"] = True
-                self._simd_flags["AVX2"].extend(self._avx2_flags())
-                self._simd_defines["AVX2"].append(("__AVX2__", 1))
+            # if not self._simd_disabled["AVX2"] and self._check_avx2():
+            #     cython_args["compile_time_env"]["AVX2_BUILD_SUPPORT"] = True
+            #     self._simd_supported["AVX2"] = True
+            #     self._simd_flags["AVX2"].extend(self._avx2_flags())
+            #     self._simd_defines["AVX2"].append(("__AVX2__", 1))
             if not self._simd_disabled["SSE2"] and self._check_sse2():
                 cython_args["compile_time_env"]["SSE2_BUILD_SUPPORT"] = True
                 self._simd_supported["SSE2"] = True
                 self._simd_flags["SSE2"].extend(self._sse2_flags())
                 self._simd_defines["SSE2"].append(("__SSE2__", 1))
-        elif TARGET_CPU == "arm" or TARGET_CPU == "aarch64":
-            if not self._simd_disabled["NEON"] and self._check_neon():
-                cython_args["compile_time_env"]["NEON_BUILD_SUPPORT"] = True
-                self._simd_supported["NEON"] = True
-                self._simd_flags["NEON"].extend(self._neon_flags())
-                self._simd_defines["NEON"].append(("__ARM_NEON__", 1))
+        # elif TARGET_CPU == "arm" or TARGET_CPU == "aarch64":
+        #     if not self._simd_disabled["NEON"] and self._check_neon():
+        #         cython_args["compile_time_env"]["NEON_BUILD_SUPPORT"] = True
+        #         self._simd_supported["NEON"] = True
+        #         self._simd_flags["NEON"].extend(self._neon_flags())
+        #         self._simd_defines["NEON"].append(("__ARM_NEON__", 1))
 
         # add the platform sources as dependencies
         for ext in self.extensions:
