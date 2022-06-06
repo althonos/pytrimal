@@ -6,7 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.2.0...HEAD
+
+
+## [v0.2.0] - 2022-06-06
+[v0.2.0]: https://github.com/althonos/pytrimal/compare/v0.1.2...v0.2.0
+
+### Added
+- Vendored `cpu_features` library to perform runtime detection of CPU features.
+- SIMD implementation of the *similarity* statistic code with SSE2 instructions.
+
+### Fixed
+- Compilation on platforms without OpenMP by adding an empty `omp.h` header file.
 
 
 ## [v0.1.2] - 2022-06-04
