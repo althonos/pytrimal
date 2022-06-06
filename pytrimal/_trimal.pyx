@@ -640,10 +640,11 @@ cdef class BaseTrimmer:
                 raise ValueError(f"Unsupported backend on this architecture: {backend}")
 
     cdef void _setup_simd_code(self, trimal.manager.trimAlManager* manager):
-        if self._backend == simd_backend.SSE2:
-            manager.origAlig.Statistics.similarity = new SSESimilarity(manager.origAlig)
-            del manager.origAlig.Cleaning
-            manager.origAlig.Cleaning = new SSECleaner(manager.origAlig)
+        IF SSE2_BUILD_SUPPORT:
+            if self._backend == simd_backend.SSE2:
+                manager.origAlig.Statistics.similarity = new SSESimilarity(manager.origAlig)
+                del manager.origAlig.Cleaning
+                manager.origAlig.Cleaning = new SSECleaner(manager.origAlig)
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         pass

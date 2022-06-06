@@ -403,6 +403,7 @@ class build_clib(_build_clib):
     def _check_function(self, funcname, header, args="()"):
         _eprint('checking whether function', repr(funcname), 'is available', end="... ")
 
+        self.mkpath(self.build_temp)
         base = "have_{}".format(funcname)
         testfile = os.path.join(self.build_temp, "{}.c".format(base))
         binfile = self.compiler.executable_filename(base, output_dir=self.build_temp)
@@ -582,6 +583,7 @@ setuptools.setup(
                     "string_view.c",
                     "copy.inl",
                     "define_introspection.inl",
+                    "define_introspection_and_hwcaps.inl",
                     "equals.inl",
                     "impl_x86__base_implementation.inl",
                 ]
