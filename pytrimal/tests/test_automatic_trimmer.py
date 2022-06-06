@@ -12,17 +12,21 @@ except ImportError:
     importlib_resources = None
 
 from .. import Alignment, AutomaticTrimmer, SimilarityMatrix
+from .._trimal import _SSE2_RUNTIME_SUPPORT
 
 
 class TestAutomaticTrimmer(unittest.TestCase):
 
-    def _test_method(self, name):
-        with importlib_resources.path("pytrimal.tests.data", "ENOG411BWBU.fasta") as path:
-            ali = Alignment.load(path)
-        with importlib_resources.path("pytrimal.tests.data", "ENOG411BWBU.{}.fasta".format(name)) as path:
-            expected = Alignment.load(path)
+    @staticmethod
+    def _load_alignment(name):
+        with importlib_resources.path("pytrimal.tests.data", name) as path:
+            return Alignment.load(path)
 
-        trimmer = AutomaticTrimmer(name)
+    def _test_method(self, name):
+        ali = self._load_alignment("ENOG411BWBU.fasta")
+        expected = self._load_alignment("ENOG411BWBU.{}.fasta".format(name))
+
+        trimmer = AutomaticTrimmer(method=name)
         trimmed = trimmer.trim(ali)
 
         self.assertEqual(trimmed.names, expected.names)
@@ -61,10 +65,25 @@ class TestAutomaticTrimmer(unittest.TestCase):
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(importlib_resources, "importlib.resources not available")
     def test_custom_similarity_matrix(self):
-        with importlib_resources.path("pytrimal.tests.data", "ENOG411BWBU.fasta") as path:
-            alignment = Alignment.load(path)
+        alignment = self._load_alignment("ENOG411BWBU.fasta")
         with importlib_resources.open_binary("pytrimal.tests.data", "pam70.json") as f:
             pam70 = SimilarityMatrix(**json.load(f))
 
         trimmer = AutomaticTrimmer("strict")
         trimmed = trimmer.trim(alignment, pam70)
+
+    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
+    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
+    @unittest.skipUnless(_SSE2_RUNTIME_SUPPORT, "SSE2 not available")
+    def test_sse2_consistency(self):
+        ali = self._load_alignment("ENOG411BWBU.fasta")
+
+        trimmer_generic = AutomaticTrimmer(method="automated1", backend=None)
+        trimmer_sse = AutomaticTrimmer(method="automated1", backend="sse")
+
+        trimmed_generic = trimmer_generic.trim(ali)
+        trimmed_sse = trimmer_sse.trim(ali)
+
+        self.assertEqual(trimmed_generic.names, trimmed_sse.names)
+        for seq1, seq2 in zip(trimmed_generic.sequences, trimmed_sse.sequences):
+            self.assertEqual(seq1, seq2)
