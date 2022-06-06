@@ -1,4 +1,5 @@
 #include <immintrin.h>
+#include <limits.h>
 #include <stdint.h>
 
 #include "Alignment/Alignment.h"
@@ -111,7 +112,7 @@ namespace statistics {
                     // at least 255 iterations can be done until the accumulators
                     // overflow; when we reach iteration 255, we move data from
                     // the lane accumulators to the main counter variables
-                    if (k % (255 * sizeof(__m128i))) {
+                    if (k % (UCHAR_MAX * sizeof(__m128i))) {
                         sum    += _mm_hsum_epi8(sum_acc);
                         length += _mm_hsum_epi8(len_acc);
                         sum_acc = _mm_setzero_si128();
@@ -224,7 +225,7 @@ void SSECleaner::calculateSeqIdentity() {
               // at least 255 iterations can be done until the accumulators
               // overflow; when we reach iteration 255, we move data from
               // the lane accumulators to the main counter variables
-              if (k % (255 * sizeof(__m128i))) {
+              if (k % (UCHAR_MAX * sizeof(__m128i))) {
                   dst += _mm_hsum_epi8(dst_acc);
                   hit += _mm_hsum_epi8(hit_acc);
                   dst_acc = _mm_setzero_si128();
