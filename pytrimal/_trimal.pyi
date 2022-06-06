@@ -58,20 +58,22 @@ class TrimmedAlignment(Alignment):
 
 # -- Trimmer classes ---------------------------------------------------------
 
+TRIMMER_BACKEND = Literal["detect", "sse", None]
 class BaseTrimmer:
-    def __init__(self) -> None: ...
+    def __init__(self, *, backend: TRIMMER_BACKEND = "detect") -> None: ...
     def trim(self, alignment: Alignment, matrix: Optional[SimilarityMatrix] = None) -> TrimmedAlignment: ...
 
 
 AUTOMATIC_TRIMMER_METHODS = Literal["strict", "strictplus", "gappyout", "nogaps", "noallgaps", "automated1"]
 class AutomaticTrimmer(BaseTrimmer):
-    def __init__(self, method: AUTOMATIC_TRIMMER_METHODS = "strict") -> None: ...
+    def __init__(self, method: AUTOMATIC_TRIMMER_METHODS = "strict", *, backend: TRIMMER_BACKEND = "detect") -> None: ...
 
 
 class ManualTrimmer(BaseTrimmer):
     def __init__(
         self,
         *,
+        backend: TRIMMER_BACKEND = "detect",
         gap_threshold: Optional[float] = None,
         gap_absolute_threshold: Optional[int] = None,
         similarity_threshold: Optional[float] = None,
