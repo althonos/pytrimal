@@ -26,7 +26,6 @@ except ImportError as err:
 SETUP_FOLDER = os.path.realpath(os.path.join(__file__, os.pardir))
 INCLUDE_FOLDER = os.path.join(SETUP_FOLDER, "vendor", "trimal", "include")
 
-SYSTEM  = platform.system()
 MACHINE = platform.machine()
 if re.match("^mips", MACHINE):
     TARGET_CPU = "mips"
@@ -38,6 +37,20 @@ elif re.match("(x86_64)|(AMD64|amd64)|(^i.86$)", MACHINE):
     TARGET_CPU = "x86"
 elif re.match("^(powerpc|ppc)", MACHINE):
     TARGET_CPU = "ppc"
+else:
+    TARGET_CPU = None
+
+SYSTEM  = platform.system()
+if SYSTEM == "Linux" or SYSTEM == "Java":
+    TARGET_SYSTEM = "linux_or_android"
+elif SYSTEM.endswith("FreeBSD"):
+    TARGET_SYSTEM = "freebsd"
+elif SYSTEM == "Darwin":
+    TARGET_SYSTEM = "macos"
+elif SYSTEM.startswith(("Windows", "MSYS", "MINGW", "CYGWIN")):
+    TARGET_SYSTEM = "windows"
+else:
+    TARGET_SYSTEM = None
 
 # --- Utils ------------------------------------------------------------------
 
@@ -291,6 +304,7 @@ class build_ext(_build_ext):
                 "SYS_VERSION_INFO_MINOR": sys.version_info.minor,
                 "SYS_VERSION_INFO_MICRO": sys.version_info.micro,
                 "TARGET_CPU": TARGET_CPU,
+                "TARGET_SYSTEM": TARGET_SYSTEM,
                 "AVX2_BUILD_SUPPORT": False,
                 "NEON_BUILD_SUPPORT": False,
                 "SSE2_BUILD_SUPPORT": False,
@@ -424,6 +438,7 @@ class build_clib(_build_clib):
         # add C++11 flags
         if self.compiler.compiler_type in {"unix", "cygwin", "mingw32"}:
             library.extra_compile_args.append("-std=c++11")
+            library.extra_link_args.append("-Wno-alloc-size-larger-than")
         elif self.compiler.compiler_type == "msvc":
             library.extra_compile_args.append("/std:c11")
 
@@ -443,17 +458,20 @@ class build_clib(_build_clib):
             )
 
         # copy sources to build directory
-        sources = [
-            os.path.join(self.build_temp, os.path.basename(source))
-            for source in library.sources
-        ]
-        for source, source_copy in zip(library.sources, sources):
-            self.make_file(
-                [source],
-                source_copy,
-                self.copy_file,
-                (source, source_copy)
-            )
+        if library.name == "trimal":
+            sources = [
+                os.path.join(self.build_temp, os.path.basename(source))
+                for source in library.sources
+            ]
+            for source, source_copy in zip(library.sources, sources):
+                self.make_file(
+                    [source],
+                    source_copy,
+                    self.copy_file,
+                    (source, source_copy)
+                )
+        else:
+            sources = library.sources[:]
 
         # store compile args
         compile_args = (
@@ -466,7 +484,7 @@ class build_clib(_build_clib):
         )
         # manually prepare sources and get the names of object files
         objects = [
-            s.replace(".cpp", self.compiler.obj_extension)
+            re.sub(r'(.cpp|.c)$', self.compiler.obj_extension, s)
             for s in sources
         ]
         # only compile outdated files
@@ -515,6 +533,21 @@ class clean(_clean):
 
 setuptools.setup(
     libraries=[
+        Library(
+            "cpu_features",
+            language="c++",
+            sources=[
+                os.path.join("vendor", "cpu_features", "src", "{}.c".format(base))
+                for base in [
+                    "impl_{}_{}".format(TARGET_CPU, TARGET_SYSTEM),
+                    "filesystem",
+                    "stack_line_reader",
+                    "string_view",
+                ]
+            ],
+            include_dirs=[os.path.join("vendor", "cpu_features", "include")],
+            define_macros=[("STACK_LINE_READER_BUFFER_SIZE", 1024)]
+        ),
         Library(
             "trimal",
             language="c++",
@@ -575,15 +608,14 @@ setuptools.setup(
             include_dirs=[
                 os.path.join("pytrimal", "patch"),
                 os.path.join("pytrimal", "impl"),
+                os.path.join("vendor", "cpu_features", "include"),
                 "pytrimal",
                 "include",
             ],
             libraries=[
+                "cpu_features",
                 "trimal",
             ],
-            extra_link_args=[
-                "-Wno-alloc-size-larger-than"
-            ]
         ),
     ],
     cmdclass={
