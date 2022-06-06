@@ -12,6 +12,10 @@ recursive-include vendor/trimal/source  *.cpp
 recursive-include vendor/trimal/include *.h *.txt
 recursive-include vendor/trimal/dataset *
 
+recursive-include vendor/cpu_features         README.md LICENSE CONTRIBUTING.md
+recursive-include vendor/cpu_features/src     *.c *.inl
+recursive-include vendor/cpu_features/include *.h
+
 recursive-include pytrimal            *.py *.pyi *.pyx *.pxd *.h py.typed
 recursive-exclude pytrimal            *.cpp *.html
 recursive-include pytrimal/patch      *.cpp *.h *.pxd
