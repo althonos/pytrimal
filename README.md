@@ -1,6 +1,6 @@
 # 🐍✂️ PytrimAl [![Stars](https://img.shields.io/github/stars/althonos/pytrimal.svg?style=social&maxAge=3600&label=Star)](https://github.com/althonos/pytrimal/stargazers)
 
-*[Cython](https://cython.org/) bindings and Python interface to [trimAl](http://trimal.cgenomics.org/), a tool for automated alignment trimming.*
+*[Cython](https://cython.org/) bindings and Python interface to [trimAl](http://trimal.cgenomics.org/), a tool for automated alignment trimming. **Now with SIMD!***
 
 [![Actions](https://img.shields.io/github/workflow/status/althonos/pytrimal/Test/main?logo=github&style=flat-square&maxAge=300)](https://github.com/althonos/pytrimal/actions)
 [![Coverage](https://img.shields.io/codecov/c/gh/althonos/pytrimal?style=flat-square&maxAge=3600&logo=codecov)](https://codecov.io/gh/althonos/pytrimal/)
@@ -41,9 +41,12 @@ the following advantages:
 - **error management**: Errors occuring in trimAl are converted
   transparently into Python exceptions, including an informative
   error message.
+- **better performance**: PytrimAl uses *SIMD* instructions to compute
+  statistics like pairwise sequence similarity. On supported platforms,
+  this can save up to two thirds of the runtime for certain alignments
+  and trimming methods.
 
-
-### 📋 Roadmap
+## 📋 Roadmap
 
 The following features are available or considered for implementation:
 
@@ -109,7 +112,7 @@ Sp17   GFLLTWFQLWQGLDLNKMPVF
 Sp33   GLHMAWFQAWGGLEINKQAIL
 ```
 
-### 🧶 Thread-safety
+## 🧶 Thread-safety
 
 Trimmer objects are thread-safe, and the `trim` method is re-entrant.
 This means you can batch-process alignments in parallel using a [`ThreadPool`](https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.ThreadPool)
@@ -155,6 +158,8 @@ in the [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) format.
 This library is provided under the [GNU General Public License v3.0](https://choosealicense.com/licenses/gpl-3.0/).
 trimAl is developed by the [trimAl team](http://trimal.cgenomics.org/trimal_team) and is distributed under the
 terms of the GPLv3 as well. See `vendor/trimal/LICENSE` for more information.
+The `cpu_features` library was written by [Guillaume Chatelet](https://github.com/gchatelet) and is
+licensed under the terms of the [Apache License 2.0](https://choosealicense.com/licenses/apache-2.0/). See `vendor/cpu_features/LICENSE` for more information.
 
 *This project is in no way not affiliated, sponsored, or otherwise endorsed
 by the [trimAl authors](http://trimal.cgenomics.org/trimal_team). It was developed

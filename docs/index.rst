@@ -102,7 +102,9 @@ License
 
 This library is provided under the `GNU General Public License v3.0 <https://choosealicense.com/licenses/gpl-3.0/>`_.
 trimAl is developed by the `trimAl team <http://trimal.cgenomics.org/trimal_team>`_ and is distributed under the
-terms of the GPLv3 as well.
+terms of the GPLv3 as well. The ``cpu_features`` library was written by
+`Guillaume Chatelet <https://github.com/gchatelet>`_ and is licensed under the terms of the
+`Apache License 2.0 <https://choosealicense.com/licenses/apache-2.0/>`_.
 
 *This project is in no way not affiliated, sponsored, or otherwise endorsed by
 the original* `trimAl`_ *authors. It was developed by* `Martin Larralde <https://github.com/althonos>`_ *during his
