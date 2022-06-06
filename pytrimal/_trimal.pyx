@@ -743,7 +743,7 @@ cdef class AutomaticTrimmer(BaseTrimmer):
 
         Arguments:
             method (`str`): The automatic aligment trimming method. See
-                the documentation for `AutomatedTrimmer` for a list of
+                the documentation for `AutomaticTrimmer` for a list of
                 supported values.
 
         Keyword Arguments:
