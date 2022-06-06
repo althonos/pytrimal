@@ -90,7 +90,7 @@ namespace statistics {
                 int sum = 0;
                 int length = 0;
 
-                for (k = 0; k + sizeof(__m128i) < alig->originalNumberOfResidues; k += sizeof(__m128i)) {
+                for (k = 0; k + ((int) sizeof(__m128i)) < alig->originalNumberOfResidues; k += sizeof(__m128i)) {
                     // load data for the sequences; load is unaligned because
                     // string data is not guaranteed to be aligned.
                     seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
@@ -200,7 +200,7 @@ void SSECleaner::calculateSeqIdentity() {
           int hit = 0;
           int dst = 0;
 
-          for (k = 0; k + sizeof(__m128i) < alig->originalNumberOfResidues; k += sizeof(__m128i)) {
+          for (k = 0; k + ((int) sizeof(__m128i)) < alig->originalNumberOfResidues; k += sizeof(__m128i)) {
               // load data for the sequences; load is unaligned because
               // string data is not guaranteed to be aligned.
               seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
