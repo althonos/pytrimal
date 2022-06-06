@@ -28,6 +28,7 @@ from cpython.mem cimport PyMem_Free, PyMem_Malloc
 from cpython.ref cimport Py_INCREF
 
 from libc.math cimport NAN, isnan, sqrt
+from libc.stdio cimport printf
 from libcpp cimport bool
 from libcpp.string cimport string
 
@@ -37,6 +38,9 @@ cimport trimal.format_manager
 cimport trimal.manager
 cimport trimal.report_system
 cimport trimal.similarity_matrix
+
+IF SSE2_BUILD_SUPPORT:
+    from pytrimal.impl.sse cimport SSESimilarity, SSECleaner
 
 # --- Python imports ---------------------------------------------------------
 
@@ -53,6 +57,18 @@ cdef set AUTOMATED_TRIMMER_METHODS = {
     "noallgaps",
     "automated1",
 }
+
+_TARGET_CPU           = TARGET_CPU
+_SSE2_RUNTIME_SUPPORT = False
+_SSE2_BUILD_SUPPORT   = False
+
+IF TARGET_CPU == "x86" and TARGET_SYSTEM in ("freebsd", "linux_or_android", "macos", "windows"):
+    from cpu_features.x86 cimport GetX86Info, X86Info
+    cdef X86Info cpu_info = GetX86Info()
+    _SSE2_BUILD_SUPPORT   = SSE2_BUILD_SUPPORT
+    _AVX2_BUILD_SUPPORT   = AVX2_BUILD_SUPPORT
+    _SSE2_RUNTIME_SUPPORT = cpu_info.features.sse2 != 0
+    _AVX2_RUNTIME_SUPPORT = cpu_info.features.avx2 != 0
 
 
 # --- Utilities --------------------------------------------------------------
@@ -590,6 +606,13 @@ cdef class BaseTrimmer:
 
         """
 
+    cdef void _setup_simd_code(self, trimal.manager.trimAlManager* manager):
+        IF SSE2_BUILD_SUPPORT:
+            if _SSE2_RUNTIME_SUPPORT:
+                manager.origAlig.Statistics.similarity = new SSESimilarity(manager.origAlig)
+                del manager.origAlig.Cleaning
+                manager.origAlig.Cleaning = new SSECleaner(manager.origAlig)
+
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         pass
 
@@ -636,6 +659,7 @@ cdef class BaseTrimmer:
 
         # configure the manager (to be implemented by the different subclasses)
         self._configure_manager(&manager)
+        self._setup_simd_code(&manager)
 
         with nogil:
             # set flags
