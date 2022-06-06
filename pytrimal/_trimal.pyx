@@ -591,6 +591,10 @@ cdef class TrimmedAlignment(Alignment):
 
 # -- Trimmer classes ---------------------------------------------------------
 
+cdef enum simd_backend:
+    NONE = 0
+    SSE2 = 1
+
 cdef class BaseTrimmer:
     """A sequence alignment trimmer.
 
@@ -599,19 +603,43 @@ cdef class BaseTrimmer:
 
     """
 
-    def __init__(self):
-        """__init__(self)\n--
+    def __init__(self, *, backend="detect"):
+        """__init__(self, *, backend="detect")\n--
 
         Create a new base trimmer.
 
+        Arguments:
+            backend (`str`): The SIMD extension backend to use to accelerate
+                computation of pairwise similarity statistics.
+
         """
+        IF TARGET_CPU == "x86":
+            if backend =="detect":
+                self._backend = simd_backend.NONE
+                IF SSE2_BUILD_SUPPORT:
+                    if _SSE2_RUNTIME_SUPPORT:
+                        self._backend = simd_backend.SSE2
+            elif backend == "sse":
+                IF not SSE2_BUILD_SUPPORT:
+                    raise RuntimeError("Extension was compiled without SSE2 support")
+                if not _SSE2_RUNTIME_SUPPORT:
+                    raise RuntimeError("Cannot run SSE2 instructions on this machine")
+                self._backend = simd_backend.SSE2
+            elif backend is None:
+                self._backend = simd_backend.NONE
+            else:
+                raise ValueError(f"Unsupported backend on this architecture: {backend}")
+        ELSE:
+            if backend == "detect" or backend is None:
+                self._backend = simd_backend.NONE
+            else:
+                raise ValueError(f"Unsupported backend on this architecture: {backend}")
 
     cdef void _setup_simd_code(self, trimal.manager.trimAlManager* manager):
-        IF SSE2_BUILD_SUPPORT:
-            if _SSE2_RUNTIME_SUPPORT:
-                manager.origAlig.Statistics.similarity = new SSESimilarity(manager.origAlig)
-                del manager.origAlig.Cleaning
-                manager.origAlig.Cleaning = new SSECleaner(manager.origAlig)
+        if self._backend == simd_backend.SSE2:
+            manager.origAlig.Statistics.similarity = new SSESimilarity(manager.origAlig)
+            del manager.origAlig.Cleaning
+            manager.origAlig.Cleaning = new SSECleaner(manager.origAlig)
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         pass
@@ -708,8 +736,8 @@ cdef class AutomaticTrimmer(BaseTrimmer):
 
     """
 
-    def __init__(self, str method="strict"):
-        """__init__(self, method="strict")\n--
+    def __init__(self, str method="strict", *, str backend="detect"):
+        """__init__(self, method="strict", *, backend="detect")\n--
 
         Create a new automatic alignment trimmer using the given method.
 
@@ -718,12 +746,16 @@ cdef class AutomaticTrimmer(BaseTrimmer):
                 the documentation for `AutomatedTrimmer` for a list of
                 supported values.
 
+        Keyword Arguments:
+            backend (`str`): The SIMD extension backend to use to accelerate
+                computation of pairwise similarity statistics.
+
         Raises:
             `ValueError`: When ``method`` is not one of the automatic
                 alignment trimming methods supported by trimAl.
 
         """
-        super().__init__()
+        super().__init__(backend=backend)
 
         if method not in AUTOMATED_TRIMMER_METHODS:
             raise ValueError(f"Invalid value for `method`: {method!r}")
@@ -781,8 +813,9 @@ cdef class ManualTrimmer(BaseTrimmer):
         object similarity_threshold    = None,
         object consistency_threshold   = None,
         object conservation_percentage = None,
+        str backend="detect",
     ):
-        """__init__(self, *, gap_threshold=None, gap_absolute_threshold=None, similarity_threshold=None, consistency_threshold=None, conservation_percentage=None)\n--
+        """__init__(self, *, gap_threshold=None, gap_absolute_threshold=None, similarity_threshold=None, consistency_threshold=None, conservation_percentage=None, backend="detect")\n--
 
         Create a new manual alignment trimmer with the given parameters.
 
@@ -800,9 +833,11 @@ cdef class ManualTrimmer(BaseTrimmer):
             conservation_percentage (`float`, *optional*): The minimum
                 percentage of positions in the original alignment to
                 conserve.
+            backend (`str`): The SIMD extension backend to use to accelerate
+                computation of pairwise similarity statistics.
 
         """
-        super().__init__()
+        super().__init__(backend=backend)
 
         if gap_threshold is not None and gap_absolute_threshold is not None:
             raise ValueError("Cannot specify both `gap_threshold` and `gap_absolute_threshold`")
