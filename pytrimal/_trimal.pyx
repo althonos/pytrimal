@@ -595,6 +595,7 @@ cdef enum simd_backend:
     NONE = 0
     SSE2 = 1
 
+
 cdef class BaseTrimmer:
     """A sequence alignment trimmer.
 
@@ -611,6 +612,9 @@ cdef class BaseTrimmer:
         Arguments:
             backend (`str`): The SIMD extension backend to use to accelerate
                 computation of pairwise similarity statistics.
+
+        .. versionadded:: 0.2.0
+           The ``backend`` keyword argument.
 
         """
         IF TARGET_CPU == "x86":
@@ -754,6 +758,9 @@ cdef class AutomaticTrimmer(BaseTrimmer):
             `ValueError`: When ``method`` is not one of the automatic
                 alignment trimming methods supported by trimAl.
 
+        .. versionadded:: 0.2.0
+           The ``backend`` keyword argument.
+
         """
         super().__init__(backend=backend)
 
@@ -835,6 +842,9 @@ cdef class ManualTrimmer(BaseTrimmer):
                 conserve.
             backend (`str`): The SIMD extension backend to use to accelerate
                 computation of pairwise similarity statistics.
+
+        .. versionadded:: 0.2.0
+           The ``backend`` keyword argument.
 
         """
         super().__init__(backend=backend)
