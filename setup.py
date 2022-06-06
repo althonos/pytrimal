@@ -216,7 +216,6 @@ class build_ext(_build_ext):
             extract="vgetq_lane_s16"
         )
 
-
     # --- Build code ---
 
     def build_simd_code(self, ext):
@@ -401,7 +400,6 @@ class build_clib(_build_clib):
                     else:
                         dst.write(line.replace(b"private:", b"public:"))
 
-
     # --- Compatibility with base `build_clib` command ---
 
     def check_library_list(self, libraries):
@@ -460,20 +458,20 @@ class build_clib(_build_clib):
             )
 
         # copy sources to build directory
-        if library.name == "trimal":
-            sources = [
-                os.path.join(self.build_temp, os.path.basename(source))
-                for source in library.sources
-            ]
-            for source, source_copy in zip(library.sources, sources):
-                self.make_file(
-                    [source],
-                    source_copy,
-                    self.copy_file,
-                    (source, source_copy)
-                )
-        else:
-            sources = library.sources[:]
+        # if library.name == "trimal":
+        sources = [
+            os.path.join(self.build_temp, os.path.basename(source))
+            for source in library.sources
+        ]
+        for source, source_copy in zip(library.sources, sources):
+            self.make_file(
+                [source],
+                source_copy,
+                self.copy_file,
+                (source, source_copy)
+            )
+        # else:
+        #     sources = library.sources[:]
 
         # store compile args
         compile_args = (
@@ -539,12 +537,17 @@ setuptools.setup(
             "cpu_features",
             language="c",
             sources=[
-                os.path.join("vendor", "cpu_features", "src", "{}.c".format(base))
+                os.path.join("vendor", "cpu_features", "src", base)
                 for base in [
-                    "impl_{}_{}".format(TARGET_CPU, TARGET_SYSTEM),
-                    "filesystem",
-                    "stack_line_reader",
-                    "string_view",
+                    "impl_{}_{}.c".format(TARGET_CPU, TARGET_SYSTEM),
+                    "filesystem.c",
+                    "stack_line_reader.c",
+                    "string_view.c",
+
+                    "copy.inl",
+                    "define_introspection.inl",
+                    "equals.inl",
+                    "impl_x86__base_implementation.inl",
                 ]
             ],
             include_dirs=[os.path.join("vendor", "cpu_features", "include")],
