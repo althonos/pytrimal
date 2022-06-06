@@ -263,6 +263,7 @@ class build_ext(_build_ext):
         # add C++11 flags
         if self.compiler.compiler_type in {"unix", "cygwin", "mingw32"}:
             ext.extra_compile_args.append("-std=c++11")
+            ext.extra_link_args.append("-Wno-alloc-size-larger-than")
         elif self.compiler.compiler_type == "msvc":
             ext.extra_compile_args.append("/std:c11")
 
@@ -436,11 +437,12 @@ class build_clib(_build_clib):
                 library.extra_compile_args.append("/Z7")
 
         # add C++11 flags
-        if self.compiler.compiler_type in {"unix", "cygwin", "mingw32"}:
-            library.extra_compile_args.append("-std=c++11")
-            library.extra_link_args.append("-Wno-alloc-size-larger-than")
-        elif self.compiler.compiler_type == "msvc":
-            library.extra_compile_args.append("/std:c11")
+        if library.language == "c++":
+            if self.compiler.compiler_type in {"unix", "cygwin", "mingw32"}:
+                library.extra_compile_args.append("-std=c++11")
+                library.extra_link_args.append("-Wno-alloc-size-larger-than")
+            elif self.compiler.compiler_type == "msvc":
+                library.extra_compile_args.append("/std:c11")
 
         # add Windows flags
         if self.compiler.compiler_type == "msvc":
@@ -535,7 +537,7 @@ setuptools.setup(
     libraries=[
         Library(
             "cpu_features",
-            language="c++",
+            language="c",
             sources=[
                 os.path.join("vendor", "cpu_features", "src", "{}.c".format(base))
                 for base in [
