@@ -400,6 +400,38 @@ class build_clib(_build_clib):
                     else:
                         dst.write(line.replace(b"private:", b"public:"))
 
+    def _check_function(self, funcname, header, args="()"):
+        _eprint('checking whether function', repr(funcname), 'is available', end="... ")
+
+        base = "have_{}".format(funcname)
+        testfile = os.path.join(self.build_temp, "{}.c".format(base))
+        binfile = self.compiler.executable_filename(base, output_dir=self.build_temp)
+        objects = []
+
+        with open(testfile, "w") as f:
+            f.write("""
+                #include <{}>
+                int main() {{
+                    {}{};
+                    return 0;
+                }}
+            """.format(header, funcname, args))
+        try:
+            objects = self.compiler.compile([testfile], debug=self.debug)
+            self.compiler.link_executable(objects, base, output_dir=self.build_temp)
+        except CompileError:
+            _eprint("no")
+            return False
+        else:
+            _eprint("yes")
+            return True
+        finally:
+            os.remove(testfile)
+            for obj in filter(os.path.isfile, objects):
+                os.remove(obj)
+            if os.path.isfile(binfile):
+                os.remove(binfile)
+
     # --- Compatibility with base `build_clib` command ---
 
     def check_library_list(self, libraries):
@@ -417,6 +449,11 @@ class build_clib(_build_clib):
     # --- Build code ---
 
     def build_libraries(self, libraries):
+        # check for functions required for libcpu_features on OSX
+        if SYSTEM == "Darwin":
+            if self._check_function("sysctlbyname", "sys/sysctl.h", args="(NULL, NULL, 0, NULL, 0)"):
+                self.compiler.define_macro("HAVE_SYSCTLBYNAME", 1)
+
         # build each library only if the sources are outdated
         self.mkpath(self.build_clib)
         for library in libraries:
@@ -543,7 +580,6 @@ setuptools.setup(
                     "filesystem.c",
                     "stack_line_reader.c",
                     "string_view.c",
-
                     "copy.inl",
                     "define_introspection.inl",
                     "equals.inl",
