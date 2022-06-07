@@ -377,10 +377,14 @@ class build_clib(_build_clib):
         with open(input, "rb") as src:
             with open(output, "wb") as dst:
                 for line in src:
-                    # make the `Similarity::calculateMatrixIdentity` virtual so it
-                    # we can override it with an SSE implementation
+                    # make the `Similarity::calculateMatrixIdentity` virtual
+                    # so it we can override it with an SSE implementation
                     if line.strip() == b"void calculateMatrixIdentity();":
                         dst.write(b"virtual void calculateMatrixIdentity();\n")
+                    # make the `Similarity::calculateVectors` virtual so it
+                    # we can override it with an SSE implementation
+                    elif line.strip() == b"bool calculateVectors(bool cutByGap = true);":
+                        dst.write(b"virtual bool calculateVectors(bool cutByGap = true);\n")
                     # make the `Cleaner::calculateSeqIdentity` virtual so it
                     # we can override it with an SSE implementation
                     elif line.strip() == b"void calculateSeqIdentity();":

@@ -9,6 +9,7 @@ namespace statistics {
     public:
         SSESimilarity(Alignment* parentAlignment);
         void calculateMatrixIdentity() override;
+        bool calculateVectors(bool cutByGap) override;
     };
 }
 
