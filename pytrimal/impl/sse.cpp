@@ -11,35 +11,9 @@
 
 #include "sse.h"
 
-void print_cvec(__m128i v) {
-    union { __m128i vec; unsigned char text[16]; } x;
-    x.vec = v;
-
-    for (int i = 0; i < 16; i++)
-        printf("%c ", x.text[i]);
-    printf("\n");
-}
-
-void print_vec(__m128i v) {
-    union { __m128i vec; unsigned char text[16]; } x;
-    x.vec = v;
-
-    for (int i = 0; i < 16; i++)
-        printf("%3u ", x.text[i]);
-    printf("\n");
-}
-
-static inline uint64_t _mm_hsum_epi8(__m128i a) {
-  const __m128i ZEROS = _mm_setzero_si128();
-
-  __m128i x = _mm_unpackhi_epi8(a, ZEROS); // [ 0 a0  0 a1  0  a2  0  a3  0  a4  0  a5  0  a6  0  a7]
-  __m128i y = _mm_unpacklo_epi8(a, ZEROS); // [ 0 a8  0 a9  0 a10  0 a11  0 a12  0 a13  0 a14  0 a15]
-  __m128i z = _mm_add_epi16(x, y);         // [a0+a8 a1+a9 a2+a10 a3+a11 a4+a12 a5+a13 a6+a14 a7+a15]
-                                           // [  X0     X1     X2     X3     X4     X5     X6     X7]
-
-  __m128i h1 = _mm_add_epi16(z,  _mm_shuffle_epi32(z,  0b10110001));  // [ X0+X2 X1+X3 X2+X0 X3+X1 X4+X6 X5+X7 X6+X4 X7+X5 ]
-  __m128i h2 = _mm_add_epi16(h1, _mm_shuffle_epi32(h1, 0b00011011));  // [ X0+X2+X6+X4 X1+X3+X5+X7 ....]
-  return _mm_extract_epi16(h2, 0) + _mm_extract_epi16(h2, 1);         // (X0+X2+X6+X4) + (X1+X3+X5+X7)
+static inline uint32_t _mm_hsum_epi8(__m128i a) {
+    __m128i vsum = _mm_sad_epu8(a, _mm_setzero_si128());
+    return _mm_extract_epi16(vsum, 0) + _mm_extract_epi16(vsum, 4);
 }
 
 namespace statistics {
@@ -56,7 +30,7 @@ namespace statistics {
             return;
 
         // declare indices
-        int i, j, k;
+        int i, j, k, l;
 
         // Allocate memory for the matrix identity
         matrixIdentity = new float *[alig->originalNumberOfSequences];
@@ -90,37 +64,49 @@ namespace statistics {
                 int sum = 0;
                 int length = 0;
 
-                for (k = 0; k + ((int) sizeof(__m128i)) < alig->originalNumberOfResidues; k += sizeof(__m128i)) {
+                // run with unrolled loops of UCHAR_MAX iterations first
+                for (k = 0; k + ((int) sizeof(__m128i))*UCHAR_MAX < alig->originalNumberOfResidues;) {
+                    // unroll the internal loop
+                    for (l = 0; l < UCHAR_MAX; l++, k += sizeof(__m128i)) {
+                        // load data for the sequences
+                        seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
+                        seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
+                        // find which sequence characters are gap or indet
+                        gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
+                        gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
+                        // find which sequence characters are equal
+                        eq    = _mm_cmpeq_epi8(seqi, seqj);
+                        // update counters
+                        sum_acc = _mm_add_epi8(sum_acc, _mm_and_si128(eq, _mm_andnot_si128( _mm_or_si128(gapsi, gapsj), ONES)));
+                        len_acc = _mm_add_epi8(len_acc,                   _mm_andnot_si128(_mm_and_si128(gapsi, gapsj), ONES));
+                    }
+                    // merge accumulators
+                    sum    += _mm_hsum_epi8(sum_acc);
+                    length += _mm_hsum_epi8(len_acc);
+                    sum_acc = _mm_setzero_si128();
+                    len_acc = _mm_setzero_si128();
+                }
+
+                // run remaining iterations in SIMD while possible
+                for (; k + ((int) sizeof(__m128i)) < alig->originalNumberOfResidues; k += sizeof(__m128i)) {
                     // load data for the sequences; load is unaligned because
                     // string data is not guaranteed to be aligned.
                     seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
                     seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
-
                     // find which sequence characters are either a gap or
                     // an indeterminate character
                     gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
                     gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
                     // find which sequence characters are equal
                     eq    = _mm_cmpeq_epi8(seqi, seqj);
-
                     // update counters: update sum if both sequence characters
                     // are non-gap/indeterminate and equal; update length if
                     // any of the characters is non-gappy/indeterminate.
                     sum_acc = _mm_add_epi8(sum_acc, _mm_and_si128(eq, _mm_andnot_si128( _mm_or_si128(gapsi, gapsj), ONES)));
                     len_acc = _mm_add_epi8(len_acc,                   _mm_andnot_si128(_mm_and_si128(gapsi, gapsj), ONES));
-
-                    // at least 255 iterations can be done until the accumulators
-                    // overflow; when we reach iteration 255, we move data from
-                    // the lane accumulators to the main counter variables
-                    if (k % (UCHAR_MAX * sizeof(__m128i))) {
-                        sum    += _mm_hsum_epi8(sum_acc);
-                        length += _mm_hsum_epi8(len_acc);
-                        sum_acc = _mm_setzero_si128();
-                        len_acc = _mm_setzero_si128();
-                    }
                 }
 
-                // update counters after last loop
+                // merge accumulators
                 sum    += _mm_hsum_epi8(sum_acc);
                 length += _mm_hsum_epi8(len_acc);
 
@@ -158,7 +144,7 @@ void SSECleaner::calculateSeqIdentity() {
   StartTiming("void SSECleaner::calculateSeqIdentity(void) ");
 
   // declare indices
-  int i, j, k;
+  int i, j, k, l;
 
   // Depending on alignment type, indetermination symbol will be one or other
   char indet = (alig->getAlignmentType() & SequenceTypes::AA) ? 'X' : 'N';
@@ -200,54 +186,62 @@ void SSECleaner::calculateSeqIdentity() {
           int hit = 0;
           int dst = 0;
 
-          for (k = 0; k + ((int) sizeof(__m128i)) < alig->originalNumberOfResidues; k += sizeof(__m128i)) {
+          // run with unrolled loops of UCHAR_MAX iterations first
+          for (k = 0; k + ((int) sizeof(__m128i))*UCHAR_MAX < alig->originalNumberOfResidues;) {
+              for (l = 0; l < UCHAR_MAX; l++, k += sizeof(__m128i)) {
+                  // load data for the sequences
+                  seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
+                  seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
+                  skip = _mm_loadu_si128( (const __m128i*) (&skipResidues[k]));
+                  eq = _mm_cmpeq_epi8(seqi, seqj);
+                  // find which sequence characters are gap or indet
+                  gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
+                  gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
+                  // find position where not both characters are gap
+                  mask = _mm_andnot_si128(skip, _mm_andnot_si128(_mm_and_si128(gapsi, gapsj), ONES));
+                  // update counters
+                  dst_acc = _mm_add_epi8(dst_acc,                   mask);
+                  hit_acc = _mm_add_epi8(hit_acc, _mm_and_si128(eq, mask));
+              }
+              // merge accumulators
+              dst += _mm_hsum_epi8(dst_acc);
+              hit += _mm_hsum_epi8(hit_acc);
+              dst_acc = _mm_setzero_si128();
+              hit_acc = _mm_setzero_si128();
+          }
+
+          // run remaining iterations in SIMD while possible
+          for (; k + ((int) sizeof(__m128i)) < alig->originalNumberOfResidues; k += sizeof(__m128i)) {
               // load data for the sequences; load is unaligned because
               // string data is not guaranteed to be aligned.
               seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
               seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
               skip = _mm_loadu_si128( (const __m128i*) (&skipResidues[k]));
               eq = _mm_cmpeq_epi8(seqi, seqj);
-
               // find which sequence characters are either a gap or
               // an indeterminate character
               gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
               gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
-
               // find position where not both characters are gap
               mask = _mm_andnot_si128(skip, _mm_andnot_si128(_mm_and_si128(gapsi, gapsj), ONES));
-
               // update counters: update dst if any of the two sequence
               // characters is non-gap/indeterminate; update length if
               // any of the characters is non-gappy/indeterminate.
               dst_acc = _mm_add_epi8(dst_acc,                   mask);
               hit_acc = _mm_add_epi8(hit_acc, _mm_and_si128(eq, mask));
-
-              // at least 255 iterations can be done until the accumulators
-              // overflow; when we reach iteration 255, we move data from
-              // the lane accumulators to the main counter variables
-              if (k % (UCHAR_MAX * sizeof(__m128i))) {
-                  dst += _mm_hsum_epi8(dst_acc);
-                  hit += _mm_hsum_epi8(hit_acc);
-                  dst_acc = _mm_setzero_si128();
-                  hit_acc = _mm_setzero_si128();
-              }
           }
 
           // update counters after last loop
           hit += _mm_hsum_epi8(hit_acc);
           dst += _mm_hsum_epi8(dst_acc);
 
+          // process the tail elements when there remain less than
+          // can be fitted in a SIMD vector
           for (; k < alig->originalNumberOfResidues; k++) {
-              if (skipResidues[k] != 0) continue;
-              // If one of the two positions is a valid residue,
-              // count it for the common length
-              if (((datai[k] != indet) && (datai[k] != '-')) ||
-                  ((dataj[k] != indet) && (dataj[k] != '-'))) {
-                  dst++;
-                  // If both positions are the same, count a hit
-                  if (datai[k] == dataj[k])
-                      hit++;
-              }
+              int gapi = (datai[k] == indet) || (datai[k] == '-');
+              int gapj = (dataj[k] == indet) || (dataj[k] == '-');
+              dst += (!(gapi && gapj)) && (!skipResidues[k]);
+              hit += (!(gapi && gapj)) && (!skipResidues[k]) && (datai[k] == dataj[k]);
           }
 
           if (dst == 0) {
