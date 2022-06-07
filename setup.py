@@ -385,6 +385,10 @@ class build_clib(_build_clib):
                     # we can override it with an SSE implementation
                     elif line.strip() == b"bool calculateVectors(bool cutByGap = true);":
                         dst.write(b"virtual bool calculateVectors(bool cutByGap = true);\n")
+                    # make the `Similarity::setSimilarityMatrix` virtual so it
+                    # we can override it with an SSE implementation
+                    elif line.strip() == b"bool setSimilarityMatrix(similarityMatrix * sm);":
+                        dst.write(b"virtual bool setSimilarityMatrix(similarityMatrix * sm);\n")
                     # make the `Cleaner::calculateSeqIdentity` virtual so it
                     # we can override it with an SSE implementation
                     elif line.strip() == b"void calculateSeqIdentity();":

@@ -18,7 +18,11 @@ static inline uint32_t _mm_hsum_epi8(__m128i a) {
 }
 
 namespace statistics {
-    SSESimilarity::SSESimilarity(Alignment* parentAlignment): Similarity(parentAlignment) {}
+    SSESimilarity::SSESimilarity(Alignment* parentAlignment): Similarity(parentAlignment) {
+        ascii_vhash = std::vector<char>(UCHAR_MAX, -1);
+        column = std::string(parentAlignment->originalNumberOfSequences, 0);
+        colgap = std::vector<char>(parentAlignment->originalNumberOfSequences);
+    }
 
     void SSESimilarity::calculateMatrixIdentity() {
         // Create a timerLevel that will report times upon its destruction
@@ -168,10 +172,6 @@ namespace statistics {
         //      similarity
         float gapThreshold = 0.8F * alig->numberOfResidues;
 
-        // Create an uppercase copy of the column for fast indexing
-        std::string       column = std::string(alig->originalNumberOfSequences, 0);
-        std::vector<char> colgap = std::vector<char>(alig->originalNumberOfSequences);
-
         // For each column calculate the Q value and the MD value using an equation
         for (i = 0; i < alig->originalNumberOfResidues; i++) {
             // Set MDK for columns with gaps values bigger or equal to 0.8F
@@ -191,7 +191,7 @@ namespace statistics {
                     if ((chA < 'A') || (chA > 'Z')) {
                         debug.report(ErrorCode::IncorrectSymbol, new std::string[1]{std::string(1, chA)});
                         return false;
-                    } else if (simMatrix->vhash[chA - 'A'] == -1) {
+                    } else if (ascii_vhash[chA] == -1) {
                         debug.report(ErrorCode::UndefinedSymbol, new std::string[1]{std::string(1, chA)});
                         return false;
                     }
@@ -212,7 +212,7 @@ namespace statistics {
                 //      allows to check if the indetermination is not capitalized
                 chA = column[j];
                 // Search the first character position
-                numA = simMatrix->vhash[chA - 'A'];
+                numA = ascii_vhash[chA];
 
                 for (k = j + 1; k < alig->originalNumberOfSequences; k++) {
                     // We don't compute the distance if the second element is
@@ -228,7 +228,7 @@ namespace statistics {
                     //      allows to check if the indetermination is not capitalized
                     chB = column[k];
                     // Search the second character position
-                    numB = simMatrix->vhash[chB - 'A'];
+                    numB = ascii_vhash[chB];
 
                     // We use the identity value for the two pairs and
                     //      its distance based on similarity matrix's value.
@@ -258,6 +258,14 @@ namespace statistics {
         matrixIdentity = nullptr;
 
         return true;
+    }
+
+    bool SSESimilarity::setSimilarityMatrix(similarityMatrix *sm) {
+        if (sm != nullptr) {
+            for (char x = 'A'; x <= 'Z'; x++)
+                ascii_vhash[x] = sm->vhash[x - 'A'];
+        }
+        return Similarity::setSimilarityMatrix(sm);
     }
 }
 

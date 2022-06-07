@@ -6,10 +6,15 @@
 
 namespace statistics {
     class SSESimilarity: public Similarity {
+    private:
+        std::vector<char> ascii_vhash;
+        std::vector<char> colgap;
+        std::string column;
     public:
         SSESimilarity(Alignment* parentAlignment);
         void calculateMatrixIdentity() override;
         bool calculateVectors(bool cutByGap) override;
+        bool setSimilarityMatrix(similarityMatrix *sm) override;
     };
 }
 
