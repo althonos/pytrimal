@@ -75,7 +75,7 @@ class TestAutomaticTrimmer(unittest.TestCase):
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(importlib_resources, "importlib.resources not available")
     @unittest.skipUnless(_SSE2_RUNTIME_SUPPORT, "SSE2 not available")
-    def test_sse2_consistency(self):
+    def test_consistency_sse2(self):
         ali = self._load_alignment("ENOG411BWBU.fasta")
 
         trimmer_generic = AutomaticTrimmer(method="automated1", backend=None)
@@ -87,3 +87,14 @@ class TestAutomaticTrimmer(unittest.TestCase):
         self.assertEqual(trimmed_generic.names, trimmed_sse.names)
         for seq1, seq2 in zip(trimmed_generic.sequences, trimmed_sse.sequences):
             self.assertEqual(seq1, seq2)
+
+    def test_invalid_character_generic(self):
+        alignment = Alignment([b"seq1", b"seq2"], ["MKKBO", "MKKAY"])
+        trimmer = AutomaticTrimmer(method="strict", backend=None)
+        self.assertRaises(ValueError, trimmer.trim, alignment)
+
+    @unittest.skipUnless(_SSE2_RUNTIME_SUPPORT, "SSE2 not available")
+    def test_invalid_character_sse2(self):
+        alignment = Alignment([b"seq1", b"seq2"], ["MKKBO", "MKKAY"])
+        trimmer = AutomaticTrimmer(method="strict", backend="sse")
+        self.assertRaises(ValueError, trimmer.trim, alignment)
