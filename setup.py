@@ -650,6 +650,7 @@ setuptools.setup(
             "pytrimal._trimal",
             language="c++",
             sources=[
+                os.path.join("pytrimal", "fileobj", "pyfilebuf.cpp"),
                 os.path.join("pytrimal", "patch", "reportsystem.cpp"),
                 os.path.join("pytrimal", "_trimal.pyx"),
             ],
@@ -658,6 +659,7 @@ setuptools.setup(
             },
             include_dirs=[
                 os.path.join("pytrimal", "patch"),
+                os.path.join("pytrimal", "fileobj"),
                 os.path.join("pytrimal", "impl"),
                 os.path.join("vendor", "cpu_features", "include"),
                 "pytrimal",

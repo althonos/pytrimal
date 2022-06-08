@@ -19,4 +19,5 @@ recursive-include vendor/cpu_features/include *.h
 recursive-include pytrimal            *.py *.pyi *.pyx *.pxd *.h py.typed
 recursive-exclude pytrimal            *.cpp *.html
 recursive-include pytrimal/patch      *.cpp *.h *.pxd
+recursive-include pytrimal/fileobj    *.cpp *.h *.pxd
 recursive-include pytrimal/impl       *.cpp *.h *.pxd
