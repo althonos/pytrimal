@@ -78,6 +78,11 @@ cdef float _check_range(object value, str name, float min_value, float max_value
         raise ValueError(f"Invalid value for `{name}`: {value!r}")
     return value
 
+cdef int _check_positive(object value, str name) except *:
+    if value <= 0:
+        raise ValueError(f"Invalid value for `{name}`: {value!r}")
+    return value
+
 cdef extern from *:
     """
     template <typename T>
@@ -812,6 +817,10 @@ cdef class ManualTrimmer(BaseTrimmer):
         self._similarity_threshold    = -1
         self._consistency_threshold   = -1
         self._conservation_percentage = -1
+        self._window                  = -1
+        self._gap_window              = -1
+        self._similarity_window       = -1
+        self._consistency_window      = -1
 
     def __init__(
         self,
@@ -821,15 +830,19 @@ cdef class ManualTrimmer(BaseTrimmer):
         object similarity_threshold    = None,
         object consistency_threshold   = None,
         object conservation_percentage = None,
-        str backend="detect",
+        object window                  = None,
+        object gap_window              = None,
+        object similarity_window       = None,
+        object consistency_window      = None,
+        str    backend                 = "detect",
     ):
-        """__init__(self, *, gap_threshold=None, gap_absolute_threshold=None, similarity_threshold=None, consistency_threshold=None, conservation_percentage=None, backend="detect")\n--
+        """__init__(self, *, gap_threshold=None, gap_absolute_threshold=None, similarity_threshold=None, consistency_threshold=None, conservation_percentage=None, window=None, gap_window=None, similarity_window=None, consistency_window=None, backend="detect")\n--
 
         Create a new manual alignment trimmer with the given parameters.
 
         Keyword Arguments:
-            gap_threshold (`float`): The minimum fraction of non-gap
-                 characters that must be present in a column to keep
+            gap_threshold (`float`, *optional*): The minimum fraction of
+                 non-gap characters that must be present in a column to keep
                  the column.
             gap_absolute_threshold (`int`, *optional*): The absolute number
                 of gaps allowed on a column to keep it in the alignment.
@@ -841,17 +854,33 @@ cdef class ManualTrimmer(BaseTrimmer):
             conservation_percentage (`float`, *optional*): The minimum
                 percentage of positions in the original alignment to
                 conserve.
+            window (`float`, *optional*): The size of the half-window to use
+                when computing statistics for an alignment.
+            gap_window (`float`, *optional*): The size of the half-window to
+                use when computing the *gap* statistic for an alignment.
+                Incompatible with ``window``.
+            similarity_window (`float`, *optional*): The size of the
+                half-window to use when computing the *similarity* statistic
+                for an alignment. Incompatible with ``window``.
+            consistency_window (`float`, *optional*): The size of the
+                half-window to use when computing the *consistency*
+                statistic for an alignment. Incompatible with ``window``.
             backend (`str`): The SIMD extension backend to use to accelerate
-                computation of pairwise similarity statistics.
+                computation of pairwise similarity statistics. 
 
         .. versionadded:: 0.2.0
            The ``backend`` keyword argument.
+
+        .. versionadded:: 0.2.2
+           The keyword arguments for controling the half-window sizes.
 
         """
         super().__init__(backend=backend)
 
         if gap_threshold is not None and gap_absolute_threshold is not None:
             raise ValueError("Cannot specify both `gap_threshold` and `gap_absolute_threshold`")
+        if window is not None and any(w is not None for w in (gap_window, similarity_window, consistency_window)):
+            raise ValueError("Cannot specify both `window` and a specific window argument")
 
         if gap_threshold is not None:
             self._gap_threshold = 1 - _check_range(gap_threshold, "gap_threshold", 0, 1)
@@ -865,14 +894,26 @@ cdef class ManualTrimmer(BaseTrimmer):
             self._consistency_threshold = _check_range(consistency_threshold, "consistency_threshold", 0, 1)
         if conservation_percentage is not None:
             self._conservation_percentage = _check_range(conservation_percentage, "conservation_percentage", 0, 100)
+        if window is not None:
+            self._window = _check_positive(window, "window")
+        if gap_window is not None:
+            self._gap_window = _check_positive(gap_window, "gap_window")
+        if similarity_window is not None:
+            self._similarity_window = _check_positive(similarity_window, "similarity_window")
+        if consistency_window is not None:
+            self._consistency_window = _check_positive(consistency_window, "consistency_window")
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
-        manager.automatedMethodCount = 0
-        manager.gapThreshold = self._gap_threshold
-        manager.gapAbsoluteThreshold = self._gap_absolute_threshold
-        manager.similarityThreshold = self._similarity_threshold
-        manager.consistencyThreshold = self._consistency_threshold
+        manager.automatedMethodCount  = 0
+        manager.gapThreshold          = self._gap_threshold
+        manager.gapAbsoluteThreshold  = self._gap_absolute_threshold
+        manager.similarityThreshold   = self._similarity_threshold
+        manager.consistencyThreshold  = self._consistency_threshold
         manager.conservationThreshold = self._conservation_percentage
+        manager.windowSize            = self._window
+        manager.gapWindow             = self._gap_window
+        manager.similarityWindow      = self._similarity_window
+        manager.consistencyWindow     = self._consistency_window
 
 
 # -- Misc classes ------------------------------------------------------------

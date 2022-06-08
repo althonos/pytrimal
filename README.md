@@ -68,7 +68,7 @@ The following features are available or considered for implementation:
   matrix for the alignment (instead of BLOSUM62).
 - [x] **similarity matrix creation**: Create a similarity matrix from scratch
   from Python code.
-- [ ] **windows for manual methods**: Use a sliding window for computing
+- [x] **windows for manual methods**: Use a sliding window for computing
   statistics in manual methods.
 
 ## 🔧 Installing
