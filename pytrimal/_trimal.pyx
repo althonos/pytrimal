@@ -332,6 +332,8 @@ cdef class Alignment:
             and  ``phylip40`` formats support an ``_m10`` variant, which limits
             the sequence names to 10 characters.
 
+        .. versionadded:: 0.2.2
+
         """
         assert self._ali != NULL
 
@@ -349,7 +351,11 @@ cdef class Alignment:
         if handler is NULL:
             raise ValueError(f"Could not recognize alignment format: {format!r}")
 
-        if isinstance(file, (str, bytes, os.PathLike)):
+        IF SYS_VERSION_INFO_MAJOR == 3 and SYS_VERSION_INFO_MINOR < 6:
+            TYPES = (str, bytes)
+        ELSE:
+            TYPES = (str, bytes, os.PathLike)
+        if isinstance(file, TYPES):
             is_fileobj = False
             path_ = os.fsencode(file)
             if fbuffer.open(<const char*> path_, OPENMODE) is NULL:
@@ -383,6 +389,8 @@ cdef class Alignment:
 
         Raises:
             `ValueError`: When ``format`` is not a recognized file format.
+
+        .. versionadded:: 0.2.2
 
         """
         assert self._ali != NULL
