@@ -6,7 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.2.2...HEAD
+
+
+## [v0.2.2] - 2022-06-08
+[v0.2.2]: https://github.com/althonos/pytrimal/compare/v0.2.1...v0.2.2
+
+### Added
+- Keyword arguments to specify the half-window sizes in manual trimmer.
+- `Alignment.dump` and `Alignment.dumps` function to write an alignment to a file, file-like object, or string.
+- Optimized implementation of `Similarity::calculateVectors`.
+
+### Changed
+- Use faster implementation of SSE2 horizontal sum based on `_mm_sad_epu8`.
 
 
 ## [v0.2.1] - 2022-06-06
