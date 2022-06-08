@@ -29,6 +29,8 @@ cdef class Alignment:
     cdef int*                        _residues_mapping
 
     cpdef Alignment copy(self)
+    cpdef str dumps(self, str format=*, str encoding=*)
+    cpdef void dump(self, object file, str format=*) except *
 
 
 cdef class TrimmedAlignment(Alignment):

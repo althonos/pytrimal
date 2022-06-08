@@ -1,5 +1,6 @@
-import sys
+import io
 import os
+import sys
 import unittest
 
 try:
@@ -26,6 +27,37 @@ class TestAlignment(unittest.TestCase):
                 "--FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF",
                 "-------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL",
             ],
+        )
+
+    def test_dump_error(self):
+        ali = Alignment([b"seq1", b"seq2"], ["MVVK", "MVYK"])
+        self.assertRaises(FileNotFoundError, ali.dump, "/some/nonsensical/path")
+        self.assertRaises(IsADirectoryError, ali.dump, os.getcwd())
+
+    def test_dump_fileobj(self):
+        ali = Alignment([b"seq1", b"seq2"], ["MVVK", "MVYK"])
+        s = io.BytesIO()
+        ali.dump(s)
+        print(s.getvalue())
+        self.assertEqual(
+            s.getvalue().decode().splitlines(),
+            [">seq1", "MVVK", ">seq2", "MVYK"]
+        )
+
+    def test_dump_filename(self):
+        ali = Alignment([b"seq1", b"seq2"], ["MVVK", "MVYK"])
+        s = ali.dumps()
+        self.assertEqual(
+            s.splitlines(),
+            [">seq1", "MVVK", ">seq2", "MVYK"]
+        )
+
+    def test_dumps(self):
+        ali = Alignment([b"seq1", b"seq2"], ["MVVK", "MVYK"])
+        s = ali.dumps()
+        self.assertEqual(
+            s.splitlines(),
+            [">seq1", "MVVK", ">seq2", "MVYK"]
         )
 
     def test_load_errors(self):

@@ -28,14 +28,16 @@ from cpython.mem cimport PyMem_Free, PyMem_Malloc
 from cpython.memoryview cimport PyMemoryView_FromMemory, PyMemoryView_GET_BUFFER
 from cpython.ref cimport Py_INCREF
 
+from libc.errno cimport errno
 from libc.math cimport NAN, isnan, sqrt
 from libc.stdio cimport printf
 from libcpp cimport bool
 from libcpp.string cimport string
+from iostream cimport ostream, stringbuf, filebuf, ios_base
 
 cimport trimal
 cimport trimal.alignment
-cimport trimal.format_manager
+cimport trimal.format_handling
 cimport trimal.manager
 cimport trimal.report_system
 cimport trimal.similarity_matrix
@@ -97,6 +99,12 @@ cdef extern from *:
     """
     T* new_array[T](size_t)
     void del_array[T](T*)
+
+cdef extern from "<ios>":
+    """
+    std::ios_base::openmode OPENMODE = std::ios_base::out | std::ios_base::trunc;
+    """
+    ios_base.openmode OPENMODE
 
 
 # --- Alignment classes ------------------------------------------------------
@@ -231,6 +239,8 @@ cdef class Alignment:
     """A multiple sequence alignment.
     """
 
+    # --- Parser / Loader ----------------------------------------------------
+
     @classmethod
     def load(cls, object path not None):
         """load(cls, path)\n--
@@ -250,7 +260,7 @@ cdef class Alignment:
             [b'Sp8', b'Sp10', b'Sp26', b'Sp6', b'Sp17', b'Sp33']
 
         """
-        cdef trimal.format_manager.FormatManager manager
+        cdef trimal.format_handling.FormatManager manager
         cdef Alignment alignment = Alignment.__new__(Alignment)
         cdef string    path_ =  os.fsencode(path)
 
@@ -261,6 +271,141 @@ cdef class Alignment:
 
         alignment._ali = manager.loadAlignment(path_)
         return alignment
+
+    cpdef void dump(self, object file, str format="fasta") except *:
+        """dump(self, file, format="fasta")\n--
+
+        Dump the alignment to a file or a file-like object.
+
+        Arguments:
+            file (`str`, `bytes`, `os.PathLike` or file-like object): The
+                file to which to write the alignment. If a file-like object
+                is given, it must be open in *binary* mode. Otherwise,
+                ``file`` is treated as a path.
+            format (`str`): The name of the alignment format to write. See
+                below for a list of supported formats.
+
+        Raises:
+            `ValueError`: When ``format`` is not a recognized file format.
+            `OSError`: When the path given as ``file`` could not be opened.
+
+        Hint:
+            The alignment can be written in one of the following formats:
+
+            ``clustal``
+              The alignment format produced by the Clustal and Clustal Omega
+              alignment softwares.
+
+            ``fasta``
+              The aligned FASTA format, which outputs all sequences
+              in the alignment as FASTA records with gap characters
+              (see :wiki:`FASTA format`).
+
+            ``html``
+              An HTML report showing alignment in pseudo-Clustal format with
+              colored residues.
+
+            ``mega``
+              The alignment format produced by the
+              `MEGA <https://www.megasoftware.net>`_ software for evolutionary
+              analysis of alignments.
+
+            ``nexus``
+              The NEXUS alignment format (see :wiki:`Nexus file`).
+
+            ``phylip`` (or ``phylip40``):
+              The PHYLIP 4.0 alignment format.
+
+            ``phylip32``
+              The PHYLIP 3.2 alignment format.
+
+            ``phylippaml``
+              A variant of PHYLIP 4.0 compatible with the
+              `PAML <http://abacus.gene.ucl.ac.uk/software/paml.html>`_ tool
+              for phylogenetic analysis.
+
+            ``nbrf`` or ``pir``
+              The format of Protein Information Resource database files,
+              provided by the National Biomedical Research Foundation.
+
+            Additionally, the ``fasta``, ``nexus``, ``phylippaml``, ``phylip32``,
+            and  ``phylip40`` formats support an ``_m10`` variant, which limits
+            the sequence names to 10 characters.
+
+        """
+        assert self._ali != NULL
+
+        cdef bool                                      is_fileobj
+        cdef bytes                                     path_
+        cdef filebuf                                   fbuffer
+        cdef stringbuf                                 sbuffer
+        cdef ostream*                                  stream
+        cdef trimal.format_handling.FormatManager      manager
+        cdef trimal.format_handling.BaseFormatHandler* handler
+        cdef object                                    mem
+        cdef string                                    contents
+
+        handler = manager.getFormatFromToken(format.lower().encode('ascii'))
+        if handler is NULL:
+            raise ValueError(f"Could not recognize alignment format: {format!r}")
+
+        if isinstance(file, (str, bytes, os.PathLike)):
+            is_fileobj = False
+            path_ = os.fsencode(file)
+            if fbuffer.open(<const char*> path_, OPENMODE) is NULL:
+                raise OSError(errno, f"Failed to open {file!r}")
+            stream = new ostream(&fbuffer)
+        else:
+            is_fileobj = True
+            sbuffer = stringbuf()
+            stream = new ostream(&sbuffer)
+
+        try:
+            handler.SaveAlignment(self._ali[0], stream)
+        finally:
+            del stream
+
+        if is_fileobj:
+            contents = sbuffer.str()
+            mem = PyMemoryView_FromMemory(<char*> contents.data(), contents.size(), PyBUF_READ)
+            file.write(mem)
+
+    cpdef str dumps(self, str format="fasta", str encoding="utf-8"):
+        """dumps(self, format="fasta", encoding="utf-8")\n--
+
+        Dump the alignment to a string in the provided format.
+
+        Arguments:
+            format (`str`): The format of the alignment. See
+                the `~Alignment.dump` method for a list of supported
+                formats.
+            encoding (`str`): The encoding to use to decode sequence names.
+
+        Raises:
+            `ValueError`: When ``format`` is not a recognized file format.
+
+        """
+        assert self._ali != NULL
+
+        cdef stringbuf                                 buffer
+        cdef ostream*                                  stream
+        cdef trimal.format_handling.FormatManager      manager
+        cdef trimal.format_handling.BaseFormatHandler* handler
+
+        handler = manager.getFormatFromToken(format.lower().encode('ascii'))
+        if handler is NULL:
+            raise ValueError(f"Could not recognize alignment format: {format!r}")
+
+        buffer = stringbuf()
+        stream = new ostream(&buffer)
+
+        try:
+            handler.SaveAlignment(self._ali[0], stream)
+            return buffer.str().decode(encoding)
+        finally:
+            del stream
+
+    # --- Magic methods ------------------------------------------------------
 
     def __cinit__(self):
         self._ali = NULL
@@ -356,6 +501,8 @@ cdef class Alignment:
     def __copy__(self):
         return self.copy()
 
+    # --- Properties ---------------------------------------------------------
+
     @property
     def names(self):
         """sequence of `bytes`: The names of the sequences in the alignment.
@@ -389,6 +536,8 @@ cdef class Alignment:
         """
         assert self._ali is not NULL
         return AlignmentResidues(self)
+
+    # --- Functions ----------------------------------------------------------
 
     cpdef Alignment copy(self):
         """copy(self)\n--
