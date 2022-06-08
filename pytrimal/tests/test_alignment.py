@@ -39,7 +39,6 @@ class TestAlignment(unittest.TestCase):
         ali = Alignment([b"seq1", b"seq2"], ["MVVK", "MVYK"])
         s = io.BytesIO()
         ali.dump(s)
-        print(s.getvalue())
         self.assertEqual(
             s.getvalue().decode().splitlines(),
             [">seq1", "MVVK", ">seq2", "MVYK"]

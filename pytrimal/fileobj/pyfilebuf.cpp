@@ -17,7 +17,7 @@ pyfilebuf::~pyfilebuf() {
 int pyfilebuf::overflow(int c) {
     if (c != EOF) {
         buffer[0] = c;
-        if (PyObject_CallMethodOneArg(handle, method, mview) == nullptr)
+        if (PyObject_CallMethodObjArgs(handle, method, mview, NULL) == nullptr)
             return EOF;
     }
     return c;
