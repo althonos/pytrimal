@@ -33,6 +33,7 @@ class TestAlignment(unittest.TestCase):
         ali = Alignment([b"seq1", b"seq2"], ["MVVK", "MVYK"])
         self.assertRaises(FileNotFoundError, ali.dump, "/some/nonsensical/path")
         self.assertRaises(IsADirectoryError, ali.dump, os.getcwd())
+        self.assertRaises(TypeError, ali.dump, io.StringIO())
 
     def test_dump_fileobj(self):
         ali = Alignment([b"seq1", b"seq2"], ["MVVK", "MVYK"])

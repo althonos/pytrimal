@@ -42,6 +42,7 @@ cimport trimal.manager
 cimport trimal.report_system
 cimport trimal.similarity_matrix
 
+from pytrimal.fileobj cimport pyfilebuf
 IF SSE2_BUILD_SUPPORT:
     from pytrimal.impl.sse cimport SSESimilarity, SSECleaner
 
@@ -339,13 +340,11 @@ cdef class Alignment:
 
         cdef bool                                      is_fileobj
         cdef bytes                                     path_
-        cdef filebuf                                   fbuffer
-        cdef stringbuf                                 sbuffer
-        cdef ostream*                                  stream
         cdef trimal.format_handling.FormatManager      manager
         cdef trimal.format_handling.BaseFormatHandler* handler
-        cdef object                                    mem
-        cdef string                                    contents
+        cdef filebuf                                   fbuffer
+        cdef pyfilebuf*                                pbuffer    = NULL
+        cdef ostream*                                  stream     = NULL
 
         handler = manager.getFormatFromToken(format.lower().encode('ascii'))
         if handler is NULL:
@@ -356,25 +355,20 @@ cdef class Alignment:
         ELSE:
             TYPES = (str, bytes, os.PathLike)
         if isinstance(file, TYPES):
-            is_fileobj = False
             path_ = os.fsencode(file)
             if fbuffer.open(<const char*> path_, OPENMODE) is NULL:
                 raise OSError(errno, f"Failed to open {file!r}")
             stream = new ostream(&fbuffer)
         else:
-            is_fileobj = True
-            sbuffer = stringbuf()
-            stream = new ostream(&sbuffer)
+            pbuffer = new pyfilebuf(file)
+            stream = new ostream(pbuffer)
 
         try:
             handler.SaveAlignment(self._ali[0], stream)
         finally:
             del stream
-
-        if is_fileobj:
-            contents = sbuffer.str()
-            mem = PyMemoryView_FromMemory(<char*> contents.data(), contents.size(), PyBUF_READ)
-            file.write(mem)
+            if pbuffer is not NULL:
+                del pbuffer
 
     cpdef str dumps(self, str format="fasta", str encoding="utf-8"):
         """dumps(self, format="fasta", encoding="utf-8")\n--
