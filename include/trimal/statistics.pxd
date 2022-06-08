@@ -66,10 +66,10 @@ cdef extern from "Statistics/Manager.h" namespace "statistics" nogil:
         Manager(Alignment *parent)
         Manager(Alignment *parent, Manager *mold)
         bool setSimilarityMatrix(similarityMatrix *sm)
-        bool calculateGapStats()
+        bool calculateGapStats() except? False
         void printStatisticsGapsColumns()
         void printStatisticsGapsTotal()
-        bool calculateConservationStats()
+        bool calculateConservationStats() except? False
         void printStatisticsConservationColumns()
         void printStatisticsConservationTotal()
         void printCorrespondence()

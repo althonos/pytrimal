@@ -21,10 +21,11 @@ from _unicode cimport (
     PyUnicode_WRITE,
 )
 from cpython cimport Py_buffer
-from cpython.buffer cimport PyBUF_FORMAT, PyBUF_READ
+from cpython.buffer cimport PyBUF_FORMAT, PyBUF_READ, PyBuffer_FillInfo
 from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
 from cpython.list cimport PyList_New, PyList_SET_ITEM
 from cpython.mem cimport PyMem_Free, PyMem_Malloc
+from cpython.memoryview cimport PyMemoryView_FromMemory, PyMemoryView_GET_BUFFER
 from cpython.ref cimport Py_INCREF
 
 from libc.math cimport NAN, isnan, sqrt
@@ -404,9 +405,38 @@ cdef class Alignment:
 cdef class TrimmedAlignment(Alignment):
     """A multiple sequence alignment that has been trimmed.
 
-    Internally, the trimming process only produces a mask of sequences and
-    a mask of residues. This class exposes the filtered sequences and
-    residues.
+    Internally, the trimming process produces a mask of sequences and
+    a mask of residues. This class only exposes the filtered sequences
+    and residues.
+
+    Example:
+        Create a trimmed alignment using two lists to filter out some
+        residues and sequences::
+
+            >>> trimmed = TrimmedAlignment(
+            ...    names=[b"Sp8", b"Sp10", b"Sp26"],
+            ...    sequences=["QFSNWV", "KFS--S", "NFA--A"],
+            ...    sequences_mask=[True, True, False],
+            ...    residues_mask=[True, True, True, False, False, True],
+            ... )
+
+        The `~TrimmedAlignment.names` and `~TrimmedAlignment.sequences`
+        properties will only contain the retained sequences and residues::
+
+            >>> list(trimmed.names)
+            [b'Sp8', b'Sp10']
+            >>> list(trimmed.sequences)
+            ['QFSV', 'KFSS']
+
+        Use the `~TrimmedAlignment.original_alignment` method to build
+        the original unfiltered alignment containing all sequences and
+        residues:
+
+            >>> ali = trimmed.original_alignment()
+            >>> list(ali.names)
+            [b'Sp8', b'Sp10', b'Sp26']
+            >>> list(ali.sequences)
+            ['QFSNWV', 'KFS--S', 'NFA--A']
 
     """
 
@@ -866,7 +896,7 @@ cdef class ManualTrimmer(BaseTrimmer):
                 half-window to use when computing the *consistency*
                 statistic for an alignment. Incompatible with ``window``.
             backend (`str`): The SIMD extension backend to use to accelerate
-                computation of pairwise similarity statistics. 
+                computation of pairwise similarity statistics.
 
         .. versionadded:: 0.2.0
            The ``backend`` keyword argument.
