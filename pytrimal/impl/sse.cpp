@@ -168,6 +168,10 @@ namespace statistics {
         char chA, chB;
         int numA, numB;
 
+        // Cache pointer to rows of distance and identity matrices
+        float* distRow;
+        float* identityRow;
+
         // Calculate the maximum number of gaps a column can have to calculate it's
         //      similarity
         float gapThreshold = 0.8F * alig->numberOfResidues;
@@ -214,6 +218,10 @@ namespace statistics {
                 // Search the first character position
                 numA = ascii_vhash[chA];
 
+                // Cache pointers to matrix rows
+                distRow = simMatrix->distMat[numA];
+                identityRow = matrixIdentity[j];
+
                 for (k = j + 1; k < alig->originalNumberOfSequences; k++) {
                     // We don't compute the distance if the second element is
                     //      a indeterminate (XN) or a gap (-) element
@@ -232,8 +240,8 @@ namespace statistics {
 
                     // We use the identity value for the two pairs and
                     //      its distance based on similarity matrix's value.
-                    num += matrixIdentity[j][k] * simMatrix->distMat[numA][numB];
-                    den += matrixIdentity[j][k];
+                    num += identityRow[k] * distRow[numB];
+                    den += identityRow[k];
                 }
             }
 
