@@ -34,17 +34,18 @@ the following advantages:
   trimAl binary being present on the end-user machine.
 - **no intermediate files**: Everything happens in memory, in a Python object
   you control, so you don't have to invoke the trimAl CLI using a
-  sub-process and temporary files. `Alignment` objects can be created
-  directly from Python code.
+  sub-process and temporary files.
+  [`Alignment`](https://pytrimal.readthedocs.io/en/latest/api/alignment.html#pytrimal.Alignment)
+  objects can be created directly from Python code.
 - **friendly interface**: The different trimming methods are implement as
   Python classes that can be configured independently.
 - **error management**: Errors occuring in trimAl are converted
   transparently into Python exceptions, including an informative
   error message.
 - **better performance**: PytrimAl uses *SIMD* instructions to compute
-  statistics like pairwise sequence similarity. On supported platforms,
-  this can save up to two thirds of the runtime for certain alignments
-  and trimming methods.
+  statistics like pairwise sequence similarity. This makes the whole
+  trimming process much faster for alignment with a large number of
+  sequences, at the expense of slightly higher memory consumption.
 
 ## 📋 Roadmap
 
@@ -62,6 +63,10 @@ The following features are available or considered for implementation:
   disk given a [file object](https://docs.python.org/3/glossary.html#term-file-object).
 - [x] **aligment creation from Python**: Create an alignment from a collection
   of sequences stored in Python strings.
+- [x] **alignment formatting to disk**: Write an alignment to a file given
+  a filename in one of the supported file formats.
+- [x] **alignment formatting to a file-like object**: Write an alignment to
+  a file-like object in one of the supported file formats.
 - [ ] **reverse-translation**: Back-translate a protein alignment to align
   the sequences in genomic space.
 - [x] **alternative similarity matrix**: Specify an alternative similarity
@@ -112,10 +117,21 @@ Sp17   GFLLTWFQLWQGLDLNKMPVF
 Sp33   GLHMAWFQAWGGLEINKQAIL
 ```
 
+You can then use the
+[`dump`](https://pytrimal.readthedocs.io/en/latest/api/alignment.html#pytrimal.Alignment.dump)
+method to write the trimmed alignment to a file or file-like
+object. For instance, save the results in
+[PIR format](https://www.bioinformatics.nl/tools/crab_pir.html)
+to a file named `example.trimmed.pir`:
+```python
+trimmed.dump("example.trimmed.pir", format="pir")
+```
+
 ## 🧶 Thread-safety
 
 Trimmer objects are thread-safe, and the `trim` method is re-entrant.
-This means you can batch-process alignments in parallel using a [`ThreadPool`](https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.ThreadPool)
+This means you can batch-process alignments in parallel using a
+[`ThreadPool`](https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.ThreadPool)
 with a single trimmer object:
 ```python
 import glob
