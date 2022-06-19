@@ -1,0 +1,8 @@
+@@ -428 +428 @@
+-    void calculateSeqIdentity();
++    virtual void calculateSeqIdentity();
+@@ -478 +478 @@
+-private:
++public:
+@@ -490,0 +490,1 @@
++     virtual ~Cleaner() {};

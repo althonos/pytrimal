@@ -21,6 +21,9 @@ try:
 except ImportError as err:
     cythonize = err
 
+import patch
+from diff_match_patch import diff_match_patch
+
 # --- Constants -----------------------------------------------------------------
 
 SETUP_FOLDER = os.path.realpath(os.path.join(__file__, os.pardir))
@@ -54,9 +57,44 @@ else:
 
 # --- Utils ------------------------------------------------------------------
 
+_HEADER_PATTERN = re.compile("^@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@$")
+
 def _eprint(*args, **kwargs):
     print(*args, **kwargs, file=sys.stderr)
 
+def _apply_patch(s,patch,revert=False):
+    # see https://stackoverflow.com/a/40967337
+    s = s.splitlines(keepends=True)
+    p = patch.splitlines(keepends=True)
+    t = []
+    i = 0
+    sl = 0
+    midx, sign = (1,'+') if not revert else (3,'-')
+    while i < len(p) and p[i].startswith(("---","+++")):
+        i += 1 # skip header lines
+
+    while i < len(p):
+        match = _HEADER_PATTERN.match(p[i])
+        if not match:
+          raise ValueError("Invalid line in patch: {!r}".format(p[i]))
+        i += 1
+        l = int(match.group(midx)) - 1 + (match.group(midx+1) == '0')
+        t.extend(s[sl:l])
+        sl = l
+        while i < len(p) and p[i][0] != '@':
+            if i+1 < len(p) and p[i+1][0] == '\\':
+                line = p[i][:-1]
+                i += 2
+            else:
+                line = p[i]
+                i += 1
+            if len(line) > 0:
+                if line[0] == sign or line[0] == ' ':
+                    t += line[1:]
+                sl += (line[0] != sign)
+
+    t.extend(s[sl:])
+    return ''.join(t)
 
 # --- Extension with SIMD support --------------------------------------------
 
@@ -373,40 +411,18 @@ class build_clib(_build_clib):
 
     # --- Autotools-like helpers ---
 
-    def _publicize(self, input, output):
-        with open(input, "rb") as src:
-            with open(output, "wb") as dst:
-                for line in src:
-                    # make the `Similarity::calculateMatrixIdentity` virtual
-                    # so it we can override it with an SSE implementation
-                    if line.strip() == b"void calculateMatrixIdentity();":
-                        dst.write(b"virtual void calculateMatrixIdentity();\n")
-                    # make the `Similarity::calculateVectors` virtual so it
-                    # we can override it with an SSE implementation
-                    elif line.strip() == b"bool calculateVectors(bool cutByGap = true);":
-                        dst.write(b"virtual bool calculateVectors(bool cutByGap = true);\n")
-                    # make the `Similarity::setSimilarityMatrix` virtual so it
-                    # we can override it with an SSE implementation
-                    elif line.strip() == b"bool setSimilarityMatrix(similarityMatrix * sm);":
-                        dst.write(b"virtual bool setSimilarityMatrix(similarityMatrix * sm);\n")
-                    # make the `Cleaner::calculateSeqIdentity` virtual so it
-                    # we can override it with an SSE implementation
-                    elif line.strip() == b"void calculateSeqIdentity();":
-                        dst.write(b"virtual void calculateSeqIdentity();\n")
-                    # add a virtual destructor to `Cleaner` so it can be
-                    # subclassed safely
-                    elif line.strip() == b"explicit Cleaner(Alignment *parent);":
-                        dst.write(line)
-                        dst.write(b"virtual ~Cleaner() {};\n")
-                    # expose all attributes as public by adding a `public`
-                    # qualifier right at the beginning of a class declaration
-                    elif re.match(rb'\W*class\W*.*\W*\{', line):
-                        dst.write(line)
-                        dst.write(b"public:\n")
-                    # expose all attributes as public by preventing any
-                    # `private` qualifier
-                    else:
-                        dst.write(line.replace(b"private:", b"public:"))
+    def _patch_header(self, input, output):
+        basename = os.path.basename(input)
+        patchname = os.path.realpath(os.path.join(__file__, os.pardir, "patches", "{}.patch".format(basename)))
+        if os.path.exists(patchname):
+            with open(patchname, "r") as patchfile:
+                patch = patchfile.read()
+            with open(input, "r") as src:
+                srcdata = src.read()
+            with open(output, "w") as dst:
+                dst.write(_apply_patch(srcdata, patch))
+        else:
+            self.copy_file(input, output)
 
     def _check_function(self, funcname, header, args="()"):
         _eprint('checking whether function', repr(funcname), 'is available', end="... ")
@@ -499,12 +515,11 @@ class build_clib(_build_clib):
             self.make_file(
                 [header],
                 output,
-                self._publicize,
+                self._patch_header,
                 (header, output)
             )
 
         # copy sources to build directory
-        # if library.name == "trimal":
         sources = [
             os.path.join(self.build_temp, os.path.basename(source))
             for source in library.sources
@@ -516,8 +531,6 @@ class build_clib(_build_clib):
                 self.copy_file,
                 (source, source_copy)
             )
-        # else:
-        #     sources = library.sources[:]
 
         # store compile args
         compile_args = (
