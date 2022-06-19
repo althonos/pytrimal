@@ -411,7 +411,7 @@ class build_clib(_build_clib):
 
     # --- Autotools-like helpers ---
 
-    def _patch_header(self, input, output):
+    def _patch_file(self, input, output):
         basename = os.path.basename(input)
         patchname = os.path.realpath(os.path.join(__file__, os.pardir, "patches", "{}.patch".format(basename)))
         if os.path.exists(patchname):
@@ -515,7 +515,7 @@ class build_clib(_build_clib):
             self.make_file(
                 [header],
                 output,
-                self._patch_header,
+                self._patch_file,
                 (header, output)
             )
 
@@ -528,7 +528,7 @@ class build_clib(_build_clib):
             self.make_file(
                 [source],
                 source_copy,
-                self.copy_file,
+                self._patch_file,
                 (source, source_copy)
             )
 
