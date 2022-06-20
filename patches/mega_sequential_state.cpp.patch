@@ -1,0 +1,5 @@
+@@ -87,0 +87,5 @@
++Alignment* mega_sequential_state::LoadAlignment(std::istream *input)
++{
++    return nullptr;
++}

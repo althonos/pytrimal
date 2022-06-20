@@ -1,0 +1,5 @@
+@@ -88,0 +88,5 @@
++Alignment* mega_interleaved_state::LoadAlignment(std::istream *input)
++{
++    return nullptr;
++}

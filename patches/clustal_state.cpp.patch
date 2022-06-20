@@ -1,0 +1,5 @@
+@@ -71,0 +71,5 @@
++Alignment* clustal_state::LoadAlignment(std::istream *input)
++{
++    return nullptr;
++}

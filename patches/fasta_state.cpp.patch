@@ -1,0 +1,5 @@
+@@ -147,0 +147,5 @@
++Alignment* fasta_state::LoadAlignment(std::istream *input)
++{
++    return nullptr;
++}

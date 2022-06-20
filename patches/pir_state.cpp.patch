@@ -1,0 +1,5 @@
+@@ -179,0 +179,5 @@
++Alignment* pir_state::LoadAlignment(std::istream *input)
++{
++    return nullptr;
++}

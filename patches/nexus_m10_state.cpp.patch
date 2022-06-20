@@ -1,0 +1,5 @@
+@@ -43,0 +43,5 @@
++Alignment* nexus_m10_state::LoadAlignment(std::istream *input)
++{
++    return nullptr;
++}

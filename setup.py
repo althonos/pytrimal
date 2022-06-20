@@ -8,7 +8,6 @@ import setuptools
 import setuptools.extension
 import subprocess
 import sys
-from distutils import log
 from distutils.command.clean import clean as _clean
 from distutils.errors import CompileError
 from setuptools.command.build_clib import build_clib as _build_clib
@@ -415,6 +414,7 @@ class build_clib(_build_clib):
         basename = os.path.basename(input)
         patchname = os.path.realpath(os.path.join(__file__, os.pardir, "patches", "{}.patch".format(basename)))
         if os.path.exists(patchname):
+            _eprint("patching", os.path.relpath(input), "with", os.path.relpath(patchname))
             with open(patchname, "r") as patchfile:
                 patch = patchfile.read()
             with open(input, "r") as src:
@@ -582,7 +582,7 @@ class clean(_clean):
 
         for pattern in patterns:
             for file in glob.glob(os.path.join(source_dir, pattern)):
-                log.info("removing {!r}".format(file))
+                _eprint("removing {!r}".format(file))
                 os.remove(file)
 
         _clean.run(self)
