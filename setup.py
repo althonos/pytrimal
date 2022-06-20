@@ -1,6 +1,8 @@
 import configparser
+import functools
 import glob
 import itertools
+import multiprocessing.pool
 import os
 import platform
 import re
@@ -160,6 +162,7 @@ class build_ext(_build_ext):
         self._clib_cmd.define = self.define
         self._clib_cmd.include_dirs = self.include_dirs
         self._clib_cmd.compiler = self.compiler
+        self._clib_cmd.parallel = self.parallel
 
     # --- Autotools-like helpers ---
 
@@ -408,6 +411,21 @@ class build_clib(_build_clib):
     """A custom `build_clib` that makes all C++ class attributes public.
     """
 
+    # --- Compatibility with `setuptools.Command`
+
+    user_options = _build_clib.user_options + [
+        ("parallel", "j", "number of parallel build jobs"),
+    ]
+
+    def initialize_options(self):
+        _build_clib.initialize_options(self)
+        self.parallel = None
+
+    def finalize_options(self):
+        _build_clib.finalize_options(self)
+        if self.parallel is not None:
+            self.parallel = int(self.parallel)
+
     # --- Autotools-like helpers ---
 
     def _patch_file(self, input, output):
@@ -534,6 +552,7 @@ class build_clib(_build_clib):
 
         # store compile args
         compile_args = (
+            None,
             library.define_macros,
             library.include_dirs + [self.build_clib],
             self.debug,
@@ -547,12 +566,10 @@ class build_clib(_build_clib):
             for s in sources
         ]
         # only compile outdated files
-        for source, object in zip(sources, objects):
-            self.make_file(
-                [source],
-                object,
-                self.compiler.compile,
-                ([source], None, *compile_args),
+        with multiprocessing.pool.ThreadPool(self.parallel) as pool:
+            pool.starmap(
+                functools.partial(self._compile_file, compile_args=compile_args),
+                zip(sources, objects)
             )
 
         # link into a static library
@@ -567,6 +584,13 @@ class build_clib(_build_clib):
             (objects, library.name, self.build_clib, None, self.debug)
         )
 
+    def _compile_file(self, source, object, compile_args):
+        self.make_file(
+            [source],
+            object,
+            self.compiler.compile,
+            ([source], *compile_args)
+        )
 
 class clean(_clean):
     """A `clean` that removes intermediate files created by Cython.
