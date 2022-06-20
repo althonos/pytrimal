@@ -1,5 +1,5 @@
 @@ -248,0 +248,5 @@
-+Alignment* phylip32_state::LoadAlignment(std::istream *input)
++Alignment* phylip32_state::LoadAlignment(std::istream &input)
 +{
 +    return nullptr;
 +}

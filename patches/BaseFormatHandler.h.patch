@@ -1,2 +1,2 @@
 @@ -94,0 +94,1 @@
-+    virtual Alignment *LoadAlignment(std::istream* input) = 0;
++    virtual Alignment *LoadAlignment(std::istream& input) = 0;

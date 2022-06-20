@@ -1,5 +1,5 @@
 @@ -68,0 +68,5 @@
-+Alignment* nexus_state::LoadAlignment(std::istream *input)
++Alignment* nexus_state::LoadAlignment(std::istream &input)
 +{
 +    return nullptr;
 +}

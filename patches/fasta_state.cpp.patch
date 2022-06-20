@@ -1,5 +1,25 @@
-@@ -147,0 +147,5 @@
-+Alignment* fasta_state::LoadAlignment(std::istream *input)
-+{
-+    return nullptr;
+@@ -49,6 +49,4 @@
+-    Alignment* alig = new Alignment();
+-    char *str, *line = nullptr;
++    Alignment* alig;
+     std::ifstream file;
+-    int i;
+@@ -59,2 +57,8 @@
++    /* load from the file */
++    alig = LoadAlignment(file);
++    if (alig == nullptr)
++        return nullptr;
++
++    file.close();
+@@ -63,2 +66,10 @@
++    return alig;
 +}
++
++Alignment* fasta_state::LoadAlignment(std::istream &file) {
++    /* FASTA file format parser */
++    char *str, *line = nullptr;
++    Alignment* alig = new Alignment();
++    int i;
+@@ -134,2 +134,0 @@
+- /* Close the input file */
+- file.close();
