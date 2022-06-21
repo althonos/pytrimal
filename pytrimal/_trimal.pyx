@@ -88,6 +88,19 @@ cdef int _check_positive(object value, str name) except *:
         raise ValueError(f"Invalid value for `{name}`: {value!r}")
     return value
 
+cdef int _check_fileobj_read(object fileobj) except 1:
+    cdef str ty = type(fileobj).__name__
+    if not hasattr(fileobj, "seek") or not fileobj.seekable():
+        raise TypeError(f"{ty!r} object is not seekable.")
+    if not hasattr(fileobj, "readinto"):
+        raise TypeError(f"{ty!r} object has no attribute 'readinto'.")
+    try:
+        b = bytearray(0)
+        fileobj.readinto(b)
+    except Exception as err:
+        raise TypeError(f"{ty!r} object is not open in binary mode.") from err
+    return 0
+
 cdef extern from *:
     """
     template <typename T>
@@ -293,6 +306,8 @@ cdef class Alignment:
             path_ = os.fsencode(file)
             alignment._ali = manager.loadAlignment(path_)
         else:
+            # check the file-like object has all the required features
+            _check_fileobj_read(file)
             # make sure a format was given
             if format is None:
                 raise ValueError("Format must be specified when loading from a file-like object")

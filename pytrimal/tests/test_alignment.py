@@ -2,6 +2,7 @@ import io
 import os
 import sys
 import unittest
+import textwrap
 
 try:
     try:
@@ -60,9 +61,31 @@ class TestAlignment(unittest.TestCase):
             [">seq1", "MVVK", ">seq2", "MVYK"]
         )
 
+    def test_load_fileobj(self):
+        data = io.BytesIO(textwrap.dedent(
+            """
+            >Sp8
+            -----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII
+            >Sp10
+            -------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII
+            >Sp26
+            AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI
+            >Sp6
+            -----ASGAILT-LGIYLFTLCAVIS--VSWYLAWLGLEINMMAII
+            >Sp17
+            --FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF
+            >Sp33
+            -------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL
+            """
+        ).strip().encode())
+        ali = Alignment.load(data, "fasta")
+        self.assertEqual(ali.names, self.alignment.names)
+        self.assertEqual(list(ali.sequences), list(self.alignment.sequences))
+
     def test_load_errors(self):
         self.assertRaises(FileNotFoundError, Alignment.load, "nothing")
         self.assertRaises(IsADirectoryError, Alignment.load, os.getcwd())
+        self.assertRaises(TypeError, Alignment.load, io.StringIO(), "fasta")
 
     def test_residues(self):
         self.assertEqual(len(self.alignment.residues), 46)
