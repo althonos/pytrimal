@@ -23,9 +23,6 @@ try:
 except ImportError as err:
     cythonize = err
 
-import patch
-from diff_match_patch import diff_match_patch
-
 # --- Constants -----------------------------------------------------------------
 
 SETUP_FOLDER = os.path.realpath(os.path.join(__file__, os.pardir))

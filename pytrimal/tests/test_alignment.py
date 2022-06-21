@@ -61,7 +61,23 @@ class TestAlignment(unittest.TestCase):
             [">seq1", "MVVK", ">seq2", "MVYK"]
         )
 
-    def test_load_fileobj(self):
+    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
+    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
+    def test_load_filename_fasta(self):
+        with importlib_resources.path("pytrimal.tests.data", "ENOG411BWBU.fasta") as path:
+            trimmed = Alignment.load(path)
+        self.assertEqual(len(trimmed.sequences), 209)
+        self.assertEqual(len(trimmed.residues), 1227)
+
+    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
+    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
+    def test_load_filename_clustal(self):
+        with importlib_resources.path("pytrimal.tests.data", "example.001.AA.clw") as path:
+            trimmed = Alignment.load(path)
+        self.assertEqual(len(trimmed.sequences), 6)
+        self.assertEqual(len(trimmed.residues), 46)
+
+    def test_load_fileobj_fasta(self):
         data = io.BytesIO(textwrap.dedent(
             """
             >Sp8
@@ -79,6 +95,27 @@ class TestAlignment(unittest.TestCase):
             """
         ).strip().encode())
         ali = Alignment.load(data, "fasta")
+        self.assertEqual(ali.names, self.alignment.names)
+        self.assertEqual(list(ali.sequences), list(self.alignment.sequences))
+
+        data2 = io.BytesIO()
+
+    def test_load_fileobj_clustal(self):
+        data = io.BytesIO(textwrap.dedent(
+            """
+            CLUSTAL 2.0.12 multiple sequence alignment
+
+
+            Sp8             -----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII
+            Sp10            -------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII
+            Sp26            AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI
+            Sp6             -----ASGAILT-LGIYLFTLCAVIS--VSWYLAWLGLEINMMAII
+            Sp17            --FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF
+            Sp33            -------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL
+                                      :    : : *    :.        * **:::    :
+            """
+        ).strip().encode())
+        ali = Alignment.load(data, "clustal")
         self.assertEqual(ali.names, self.alignment.names)
         self.assertEqual(list(ali.sequences), list(self.alignment.sequences))
 
@@ -133,7 +170,7 @@ class TestTrimmedAlignment(unittest.TestCase):
 
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(importlib_resources, "importlib.resources not available")
-    def test_load(self):
+    def test_load_filename_clustal(self):
         with importlib_resources.path("pytrimal.tests.data", "example.001.AA.clw") as path:
             trimmed = TrimmedAlignment.load(path)
         self.assertEqual(len(trimmed.sequences), 6)
