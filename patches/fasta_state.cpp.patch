@@ -20,6 +20,12 @@
 +    char *str, *line = nullptr;
 +    Alignment* alig = new Alignment();
 +    int i;
+@@ -75 +75 @@
+-            continue;
++            break;
+@@ -104 +104 @@
+-            continue;
++            break;
 @@ -134,2 +134,0 @@
 - /* Close the input file */
 - file.close();
