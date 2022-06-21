@@ -7,10 +7,10 @@
 @@ -59,2 +57,8 @@
 +    /* load from the file */
 +    alig = LoadAlignment(file);
++    file.close();
 +    if (alig == nullptr)
 +        return nullptr;
 +
-+    file.close();
 @@ -63,2 +66,10 @@
 +    return alig;
 +}
