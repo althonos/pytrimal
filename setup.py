@@ -63,6 +63,17 @@ _HEADER_PATTERN = re.compile("^@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@$")
 def _eprint(*args, **kwargs):
     print(*args, **kwargs, file=sys.stderr)
 
+def _patch_osx_compiler(compiler):
+    # On newer OSX, Python has been compiled as a universal binary, so
+    # it will attempt to pass universal binary flags when building the
+    # extension. This will not work because the code makes use of SSE2.
+    for tool in ("compiler", "compiler_so", "linker_so"):
+        flags = getattr(compiler, tool)
+        i = next((i for i in range(1, len(flags)) if flags[i-1] == "-arch" and flags[i] != platform.machine()), None)
+        if i is not None:
+            flags.pop(i)
+            flags.pop(i-1)
+
 def _apply_patch(s,patch,revert=False):
     # see https://stackoverflow.com/a/40967337
     s = s.splitlines(keepends=True)
@@ -331,6 +342,10 @@ class build_ext(_build_ext):
         if isinstance(cythonize, ImportError):
             raise RuntimeError("Cython is required to run `build_ext` command") from cythonize
 
+        # remove universal compilation flags for OSX
+        if platform.system() == "Darwin":
+            _patch_osx_compiler(self.compiler)
+
         # use debug directives with Cython if building in debug mode
         cython_args = {
             "include_path": ["include"],
@@ -494,6 +509,7 @@ class build_clib(_build_clib):
     def build_libraries(self, libraries):
         # check for functions required for libcpu_features on OSX
         if SYSTEM == "Darwin":
+            _patch_osx_compiler(self.compiler)
             if self._check_function("sysctlbyname", "sys/sysctl.h", args="(NULL, NULL, 0, NULL, 0)"):
                 self.compiler.define_macro("HAVE_SYSCTLBYNAME", 1)
 
@@ -591,6 +607,7 @@ class build_clib(_build_clib):
             self.compiler.compile,
             ([source], *compile_args)
         )
+
 
 class clean(_clean):
     """A `clean` that removes intermediate files created by Cython.
