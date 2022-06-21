@@ -31,9 +31,10 @@ from cpython.ref cimport Py_INCREF
 from libc.errno cimport errno
 from libc.math cimport NAN, isnan, sqrt
 from libc.stdio cimport printf
+from libc.string cimport memset
 from libcpp cimport bool
 from libcpp.string cimport string
-from iostream cimport ostream, stringbuf, filebuf, ios_base
+from iostream cimport istream, ostream, stringbuf, filebuf, ios_base
 
 cimport trimal
 cimport trimal.alignment
@@ -42,7 +43,7 @@ cimport trimal.manager
 cimport trimal.report_system
 cimport trimal.similarity_matrix
 
-from pytrimal.fileobj cimport pyfilebuf
+from pytrimal.fileobj cimport pyreadbuf, pywritebuf
 IF SSE2_BUILD_SUPPORT:
     from pytrimal.impl.sse cimport SSESimilarity, SSECleaner
 
@@ -103,9 +104,11 @@ cdef extern from *:
 
 cdef extern from "<ios>":
     """
-    std::ios_base::openmode OPENMODE = std::ios_base::out | std::ios_base::trunc;
+    std::ios_base::openmode READMODE = std::ios_base::in;
+    std::ios_base::openmode WRITEMODE = std::ios_base::out | std::ios_base::trunc;
     """
-    ios_base.openmode OPENMODE
+    ios_base.openmode READMODE
+    ios_base.openmode WRITEMODE
 
 
 # --- Alignment classes ------------------------------------------------------
@@ -243,14 +246,19 @@ cdef class Alignment:
     # --- Parser / Loader ----------------------------------------------------
 
     @classmethod
-    def load(cls, object path not None):
-        """load(cls, path)\n--
+    def load(cls, object file not None, str format = None):
+        """load(cls, file, format=None)\n--
 
         Load a multiple sequence alignment from a file.
 
         Arguments:
-            path (`str`, `bytes` or `os.PathLike`): The path to the file
-              containing the serialized alignment to load.
+            path (`str`, `bytes` or `os.PathLike`): The file from which to
+                write the alignment. If a file-like object is given, it must
+                be open in *binary* mode. Otherwise, ``file`` is treated as
+                a path.
+            format (`str`, *optional*): The file-format the alignment is
+                stored in. Must be given when loading from a file-like
+                object, will be autodetected when reading from a file.
 
         Returns:
             `~pytrimal.Alignment`: The deserialized alignment.
@@ -261,17 +269,52 @@ cdef class Alignment:
             [b'Sp8', b'Sp10', b'Sp26', b'Sp6', b'Sp17', b'Sp33']
 
         """
-        cdef trimal.format_handling.FormatManager manager
-        cdef Alignment alignment = Alignment.__new__(Alignment)
-        cdef string    path_ =  os.fsencode(path)
+        cdef trimal.format_handling.FormatManager      manager
+        cdef trimal.format_handling.BaseFormatHandler* handler
 
-        if not os.path.exists(path):
-            raise FileNotFoundError(path)
-        elif os.path.isdir(path):
-            raise IsADirectoryError(path)
+        cdef string     path_
+        cdef char       cbuffer[512]
+        cdef filebuf    fbuffer
+        cdef pyreadbuf* pbuffer   = NULL
+        cdef istream*   stream    = NULL
+        cdef Alignment  alignment = Alignment.__new__(Alignment)
 
-        alignment._ali = manager.loadAlignment(path_)
+        IF SYS_VERSION_INFO_MAJOR == 3 and SYS_VERSION_INFO_MINOR < 6:
+            TYPES = (str, bytes)
+        ELSE:
+            TYPES = (str, bytes, os.PathLike)
+        if isinstance(file, TYPES):
+            # check that file exists and is not a directory
+            if not os.path.exists(file):
+                raise FileNotFoundError(file)
+            elif os.path.isdir(file):
+                raise IsADirectoryError(file)
+            # load the alignment from the given path
+            path_ = os.fsencode(file)
+            alignment._ali = manager.loadAlignment(path_)
+        else:
+            # make sure a format was given
+            if format is None:
+                raise ValueError("Format must be specified when loading from a file-like object")
+            # get the right format handler
+            handler = manager.getFormatFromToken(format.lower().encode('ascii'))
+            if handler is NULL:
+                raise ValueError(f"Could not recognize alignment format: {format!r}")
+            # create a file-like object wrapper
+            pbuffer = new pyreadbuf(file)
+            pbuffer.pubsetbuf(cbuffer, 512)
+            # load the alignment from the
+            try:
+                stream = new istream(pbuffer)
+                alignment._ali = handler.LoadAlignment(stream[0])
+            finally:
+                del stream
+                del pbuffer
+
+        if alignment._ali is NULL:
+            raise RuntimeError(f"Failed to load alignment from {file!r}.")
         return alignment
+
 
     cpdef void dump(self, object file, str format="fasta") except *:
         """dump(self, file, format="fasta")\n--
@@ -343,7 +386,7 @@ cdef class Alignment:
         cdef trimal.format_handling.FormatManager      manager
         cdef trimal.format_handling.BaseFormatHandler* handler
         cdef filebuf                                   fbuffer
-        cdef pyfilebuf*                                pbuffer    = NULL
+        cdef pywritebuf*                               pbuffer    = NULL
         cdef ostream*                                  stream     = NULL
 
         handler = manager.getFormatFromToken(format.lower().encode('ascii'))
@@ -356,11 +399,11 @@ cdef class Alignment:
             TYPES = (str, bytes, os.PathLike)
         if isinstance(file, TYPES):
             path_ = os.fsencode(file)
-            if fbuffer.open(<const char*> path_, OPENMODE) is NULL:
+            if fbuffer.open(<const char*> path_, WRITEMODE) is NULL:
                 raise OSError(errno, f"Failed to open {file!r}")
             stream = new ostream(&fbuffer)
         else:
-            pbuffer = new pyfilebuf(file)
+            pbuffer = new pywritebuf(file)
             stream = new ostream(pbuffer)
 
         try:
@@ -369,6 +412,7 @@ cdef class Alignment:
             del stream
             if pbuffer is not NULL:
                 del pbuffer
+            fbuffer.close()
 
     cpdef str dumps(self, str format="fasta", str encoding="utf-8"):
         """dumps(self, format="fasta", encoding="utf-8")\n--
