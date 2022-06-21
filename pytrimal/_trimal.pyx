@@ -314,13 +314,16 @@ cdef class Alignment:
             # get the right format handler
             handler = manager.getFormatFromToken(format.lower().encode('ascii'))
             if handler is NULL:
-                raise ValueError(f"Could not recognize alignment format: {format!r}")
+                raise ValueError(f"Unknown alignment format: {format!r}")
             # create a file-like object wrapper
             pbuffer = new pyreadbuf(file)
             pbuffer.pubsetbuf(cbuffer, 512)
             # load the alignment from the istream
             try:
                 stream = new istream(pbuffer)
+                if handler.CheckAlignment(stream) == 0:
+                    raise RuntimeError(f"Failed to recognize format {format!r} in {file!r}")
+                stream.seekg(0)
                 alignment._ali = handler.LoadAlignment(stream[0])
             finally:
                 del stream
