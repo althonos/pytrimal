@@ -16,6 +16,8 @@ cdef extern from "<streambuf>" namespace "std" nogil:
         char* eback()
         char* egptr()
         streambuf* pubsetbuf(char* s, streamsize n);
+        streambuf* setbuf(char* s, streamsize n);
+        void setg(char* gbeg, char* gnext, char* gend);
 
 cdef extern from "<fstream>" namespace "std" nogil:
     cdef cppclass filebuf(streambuf):
