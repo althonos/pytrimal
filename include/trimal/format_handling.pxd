@@ -26,6 +26,7 @@ cdef extern from "FormatHandling/BaseFormatHandler.h" namespace "FormatHandling"
         string name
         string extension
 
+        int CheckAlignment(istream *origin)
         bool SaveAlignment(const Alignment& alignment, ostream* output) except? False
         Alignment* LoadAlignment(const string& inFile) except? NULL
         Alignment* LoadAlignment(istream& input) except? NULL

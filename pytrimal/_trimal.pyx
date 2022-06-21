@@ -318,7 +318,7 @@ cdef class Alignment:
             # create a file-like object wrapper
             pbuffer = new pyreadbuf(file)
             pbuffer.pubsetbuf(cbuffer, 512)
-            # load the alignment from the
+            # load the alignment from the istream
             try:
                 stream = new istream(pbuffer)
                 alignment._ali = handler.LoadAlignment(stream[0])

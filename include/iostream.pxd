@@ -3,6 +3,7 @@ from libcpp.string cimport string
 
 cdef extern from "<ios>" namespace "std" nogil:
     ctypedef ssize_t streamsize
+    ctypedef ssize_t streampos
     cdef cppclass ios_base:
         cppclass openmode:
             openmode operator|(openmode)
@@ -10,6 +11,7 @@ cdef extern from "<ios>" namespace "std" nogil:
 cdef extern from "<istream>" namespace "std" nogil:
     cdef cppclass istream:
         istream(streambuf* sb)
+        istream& seekg(streampos pos)
 
 cdef extern from "<streambuf>" namespace "std" nogil:
     cdef cppclass streambuf:
