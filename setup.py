@@ -2,6 +2,7 @@ import configparser
 import functools
 import glob
 import itertools
+import io
 import multiprocessing.pool
 import os
 import platform
@@ -358,6 +359,7 @@ class build_ext(_build_ext):
                 "SYS_VERSION_INFO_MAJOR": sys.version_info.major,
                 "SYS_VERSION_INFO_MINOR": sys.version_info.minor,
                 "SYS_VERSION_INFO_MICRO": sys.version_info.micro,
+                "DEFAULT_BUFFER_SIZE": io.DEFAULT_BUFFER_SIZE,
                 "TARGET_CPU": TARGET_CPU,
                 "TARGET_SYSTEM": TARGET_SYSTEM,
                 "AVX2_BUILD_SUPPORT": False,

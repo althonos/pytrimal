@@ -286,7 +286,7 @@ cdef class Alignment:
         cdef trimal.format_handling.BaseFormatHandler* handler
 
         cdef string     path_
-        cdef char       cbuffer[512]
+        cdef char       cbuffer[DEFAULT_BUFFER_SIZE]
         cdef filebuf    fbuffer
         cdef pyreadbuf* pbuffer   = NULL
         cdef istream*   stream    = NULL
@@ -329,7 +329,6 @@ cdef class Alignment:
         if alignment._ali is NULL:
             raise RuntimeError(f"Failed to load alignment from {file!r}.")
         return alignment
-
 
     cpdef void dump(self, object file, str format="fasta") except *:
         """dump(self, file, format="fasta")\n--
