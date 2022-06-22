@@ -1,12 +1,21 @@
 # --- Python imports ---------------------------------------------------------
 
 import os
+import typing
 from typing import BinaryIO, Sequence, List, Optional, Union, Sequence
 
 try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal  # type: ignore
+
+# --- Constants --------------------------------------------------------------
+
+TRIMMER_BACKEND = Literal["detect", "sse", None]
+AUTOMATIC_TRIMMER_METHODS = Literal["strict", "strictplus", "gappyout", "nogaps", "noallgaps", "automated1"]
+
+FORMATS_LOAD = Literal["clustal", "fasta", "phylip", "pir"]
+FORMATS_DUMP = Literal["clustal", "fasta", "html", "mega", "nexus", "phylip", "phylip32", "phylip40", "phylippaml", "nbrf", "pir", "fasta_m10", "nexus_m10", "phylippaml_m10", "phylip32_m10", "phylip_m10", "phylip40_m10"]
 
 # --- Alignment classes ------------------------------------------------------
 
@@ -23,9 +32,13 @@ class AlignmentResidues:
 
 
 class Alignment:
+    @typing.overload
     @classmethod
-    def load(cls, path: Union[str, bytes, os.PathLike[str]]) -> Alignment: ...
-    def dump(self, file: Union[str, bytes, os.PathLike[str], BinaryIO], format: str = "fasta") -> None: ...
+    def load(cls, file: Union[str, bytes, os.PathLike[str]], format: Optional[FORMATS_LOAD] = None) -> Alignment: ...
+    @typing.overload
+    @classmethod
+    def load(cls, file: BinaryIO, format: FORMATS_LOAD) -> Alignment: ...
+    def dump(self, file: Union[str, bytes, os.PathLike[str], BinaryIO], format: FORMATS_DUMP = "fasta") -> None: ...
     def dumps(self, format: str = "fasta", encoding: str = "utf-8") -> str: ...
     def __init__(self, names: Sequence[bytes], sequences: Sequence[str]) -> None: ...
     def __repr__(self) -> str: ...
@@ -40,8 +53,12 @@ class Alignment:
 
 
 class TrimmedAlignment(Alignment):
+    @typing.overload
     @classmethod
-    def load(cls, path: Union[str, bytes, os.PathLike[str]]) -> TrimmedAlignment: ...
+    def load(cls, file: Union[str, bytes, os.PathLike[str]], format: Optional[FORMATS_LOAD] = None) -> TrimmedAlignment: ...
+    @typing.overload
+    @classmethod
+    def load(cls, file: BinaryIO, format: FORMATS_LOAD) -> TrimmedAlignment: ...
     def __init__(
         self,
         names: Sequence[bytes],
@@ -60,13 +77,11 @@ class TrimmedAlignment(Alignment):
 
 # -- Trimmer classes ---------------------------------------------------------
 
-TRIMMER_BACKEND = Literal["detect", "sse", None]
 class BaseTrimmer:
     def __init__(self, *, backend: TRIMMER_BACKEND = "detect") -> None: ...
     def trim(self, alignment: Alignment, matrix: Optional[SimilarityMatrix] = None) -> TrimmedAlignment: ...
 
 
-AUTOMATIC_TRIMMER_METHODS = Literal["strict", "strictplus", "gappyout", "nogaps", "noallgaps", "automated1"]
 class AutomaticTrimmer(BaseTrimmer):
     def __init__(self, method: AUTOMATIC_TRIMMER_METHODS = "strict", *, backend: TRIMMER_BACKEND = "detect") -> None: ...
 
@@ -86,6 +101,7 @@ class ManualTrimmer(BaseTrimmer):
         consistency_window: Optional[int] = None,
         backend: TRIMMER_BACKEND = "detect",
     ) -> None: ...
+
 
 # -- Misc classes ------------------------------------------------------------
 
