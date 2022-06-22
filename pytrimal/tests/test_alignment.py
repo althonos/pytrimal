@@ -106,6 +106,23 @@ DATA = {
 
         """
     ),
+    "phylip32": textwrap.dedent(
+        """
+         6 46
+        Sp8          -----GLGKV IV-YGIVLGT KSDQFSNWVV WLFPWNGLQI HMMGII
+
+        Sp10         -------DPA VL-FVIMLGT IT-KFS--SE WFFAWLGLEI NMMVII
+
+        Sp26         AAAAAAAAAL LTYLGLFLGT DYENFA--AA AANAWLGLEI NMMAQI
+
+        Sp6          -----ASGAI LT-LGIYLFT LCAVIS--VS WYLAWLGLEI NMMAII
+
+        Sp17         --FAYTAPDL L-LIGFLLKT VA-TFG--DT WFQLWQGLDL NKMPVF
+
+        Sp33         -------PTI LNIAGLHMET DI-NFS--LA WFQAWGGLEI NKQAIL
+
+        """
+    ),
 }
 
 
@@ -159,14 +176,14 @@ class TestAlignment(unittest.TestCase):
 
     def _test_load_filename(self, format):
         with tempfile.NamedTemporaryFile(suffix=format, mode="wb") as tmp:
-            tmp.write(DATA[format].strip().encode())
+            tmp.write(DATA[format].lstrip().encode())
             tmp.flush()
             ali = self.type.load(tmp.name)
         self.assertEqual(ali.names, self.alignment.names)
         self.assertEqual(list(ali.sequences), list(self.alignment.sequences))
 
     def _test_load_fileobj(self, format):
-        data = io.BytesIO(DATA[format].strip().encode())
+        data = io.BytesIO(DATA[format].lstrip().encode())
         ali = self.type.load(data, format)
         self.assertEqual(ali.names, self.alignment.names)
         self.assertEqual(list(ali.sequences), list(self.alignment.sequences))
@@ -179,6 +196,9 @@ class TestAlignment(unittest.TestCase):
 
     def test_load_filename_phylip(self):
         self._test_load_filename("phylip")
+
+    def test_load_filename_phylip32(self):
+        self._test_load_filename("phylip32")
 
     def test_load_filename_nexus(self):
         self._test_load_filename("nexus")
