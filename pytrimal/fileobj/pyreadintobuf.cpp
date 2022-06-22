@@ -1,48 +1,21 @@
-#include <Python.h>
+#include "pyreadintobuf.h"
 
-#include "pyfilebuf.h"
-
-pywritebuf::pywritebuf(PyObject* handle): std::streambuf(), handle(handle) {
-    Py_INCREF(handle);
-    method = PyUnicode_FromString("write");
-    mview = PyMemoryView_FromMemory(buffer, 1, PyBUF_READ);
-}
-
-pywritebuf::~pywritebuf() {
-    Py_DECREF(handle);
-    Py_DECREF(method);
-    Py_DECREF(mview);
-}
-
-int pywritebuf::overflow(int c) {
-    PyObject* result;
-    if (c != EOF) {
-        buffer[0] = c;
-        result = PyObject_CallMethodObjArgs(handle, method, mview, NULL);
-        if (result == nullptr)
-            return EOF;
-        Py_DECREF(result);
-    }
-    return c;
-}
-
-pyreadbuf::pyreadbuf(PyObject* handle):
+pyreadintobuf::pyreadintobuf(PyObject* handle):
     std::streambuf(),
     handle(handle)
 {
-    Py_INCREF(handle);
     method = PyUnicode_FromString("readinto");
     mview = PyMemoryView_FromMemory(buffer, 1, PyBUF_READ);
     setbuf(buffer, 1);
 }
 
-pyreadbuf::~pyreadbuf() {
+pyreadintobuf::~pyreadintobuf() {
     Py_DECREF(handle);
     Py_DECREF(method);
     Py_DECREF(mview);
 }
 
-std::streampos pyreadbuf::seekpos(std::streampos sp, std::ios_base::openmode which) {
+std::streampos pyreadintobuf::seekpos(std::streampos sp, std::ios_base::openmode which) {
     PyObject* n = PyObject_CallMethod(handle, "seek", "i", sp);
     if (n == nullptr)
         return std::streampos(std::streamoff(-1));
@@ -54,13 +27,13 @@ std::streampos pyreadbuf::seekpos(std::streampos sp, std::ios_base::openmode whi
     return std::streampos(std::streamoff(l));
 }
 
-pyreadbuf* pyreadbuf::setbuf(char* s, std::streamsize n) {
+pyreadintobuf* pyreadintobuf::setbuf(char* s, std::streamsize n) {
     setg(s, &s[n], &s[n]);
     bufsize = n;
     return this;
 }
 
-int pyreadbuf::underflow() {
+int pyreadintobuf::underflow() {
     PyObject* mview = PyMemoryView_FromMemory(eback(), bufsize, PyBUF_WRITE);
     if (mview == nullptr) {
         return EOF;
