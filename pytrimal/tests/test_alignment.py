@@ -3,22 +3,92 @@ import os
 import sys
 import unittest
 import textwrap
-
-try:
-    try:
-        import importlib.resources as importlib_resources
-    except ImportError:
-        import importlib_resources
-except ImportError:
-    importlib_resources = None
+import tempfile
 
 from .. import Alignment, TrimmedAlignment
 
 
+DATA = {
+    "clustal": textwrap.dedent(
+        """
+        CLUSTAL 2.0.12 multiple sequence alignment
+
+
+        Sp8             -----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII
+        Sp10            -------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII
+        Sp26            AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI
+        Sp6             -----ASGAILT-LGIYLFTLCAVIS--VSWYLAWLGLEINMMAII
+        Sp17            --FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF
+        Sp33            -------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL
+                                  :    : : *    :.        * **:::    :
+        """
+    ),
+    "fasta": textwrap.dedent(
+        """
+        >Sp8
+        -----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII
+        >Sp10
+        -------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII
+        >Sp26
+        AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI
+        >Sp6
+        -----ASGAILT-LGIYLFTLCAVIS--VSWYLAWLGLEINMMAII
+        >Sp17
+        --FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF
+        >Sp33
+        -------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL
+        """
+    ),
+    "pir": textwrap.dedent(
+        """
+        >P1;Sp8
+        TEST SEQUENCE SP8
+          -----GLGKV IV-YGIVLGT KSDQFSNWVV WLFPWNGLQI HMMGII*
+
+        >P1;Sp10
+        TEST SEQUENCE SP10
+          -------DPA VL-FVIMLGT IT-KFS--SE WFFAWLGLEI NMMVII*
+
+        >P1;Sp26
+        TEST SEQUENCE SP26
+          AAAAAAAAAL LTYLGLFLGT DYENFA--AA AANAWLGLEI NMMAQI*
+
+        >P1;Sp6
+        TEST SEQUENCE SP6
+          -----ASGAI LT-LGIYLFT LCAVIS--VS WYLAWLGLEI NMMAII*
+
+        >P1;Sp17
+        TEST SEQUENCE SP17
+          --FAYTAPDL L-LIGFLLKT VA-TFG--DT WFQLWQGLDL NKMPVF*
+
+        >P1;Sp33
+        TEST SEQUENCE SP33
+          -------PTI LNIAGLHMET DI-NFS--LA WFQAWGGLEI NKQAIL*
+
+        """
+    ),
+    "phylip": textwrap.dedent(
+        """
+         6 46
+        Sp8          -----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII
+        Sp10         -------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII
+        Sp26         AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI
+        Sp6          -----ASGAILT-LGIYLFTLCAVIS--VSWYLAWLGLEINMMAII
+        Sp17         --FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF
+        Sp33         -------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL
+
+
+        """
+    ),
+}
+
+
 class TestAlignment(unittest.TestCase):
 
+    type = Alignment
+
     def setUp(self):
-        self.alignment = Alignment(
+        self.alignment = self.type(
             names=[b"Sp8", b"Sp10", b"Sp26", b"Sp6", b"Sp17", b"Sp33"],
             sequences=[
                 "-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII",
@@ -61,94 +131,45 @@ class TestAlignment(unittest.TestCase):
             [">seq1", "MVVK", ">seq2", "MVYK"]
         )
 
-    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
-    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
+    def _test_load_filename(self, format):
+        with tempfile.NamedTemporaryFile(suffix=format, mode="wb") as tmp:
+            tmp.write(DATA[format].strip().encode())
+            tmp.flush()
+            ali = self.type.load(tmp.name)
+        self.assertEqual(ali.names, self.alignment.names)
+        self.assertEqual(list(ali.sequences), list(self.alignment.sequences))
+
+    def _test_load_fileobj(self, format):
+        data = io.BytesIO(DATA[format].strip().encode())
+        ali = self.type.load(data, format)
+        self.assertEqual(ali.names, self.alignment.names)
+        self.assertEqual(list(ali.sequences), list(self.alignment.sequences))
+
     def test_load_filename_fasta(self):
-        with importlib_resources.path("pytrimal.tests.data", "ENOG411BWBU.fasta") as path:
-            trimmed = Alignment.load(path)
-        self.assertEqual(len(trimmed.sequences), 209)
-        self.assertEqual(len(trimmed.residues), 1227)
+        self._test_load_filename("fasta")
 
-    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
-    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
     def test_load_filename_clustal(self):
-        with importlib_resources.path("pytrimal.tests.data", "example.001.AA.clw") as path:
-            trimmed = Alignment.load(path)
-        self.assertEqual(len(trimmed.sequences), 6)
-        self.assertEqual(len(trimmed.residues), 46)
+        self._test_load_filename("clustal")
 
-    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
-    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
     def test_load_filename_phylip(self):
-        with importlib_resources.path("pytrimal.tests.data", "example.001.AA.phy") as path:
-            trimmed = Alignment.load(path)
-        self.assertEqual(len(trimmed.sequences), 6)
-        self.assertEqual(len(trimmed.residues), 46)
+        self._test_load_filename("phylip")
 
     def test_load_fileobj_fasta(self):
-        data = io.BytesIO(textwrap.dedent(
-            """
-            >Sp8
-            -----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII
-            >Sp10
-            -------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII
-            >Sp26
-            AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI
-            >Sp6
-            -----ASGAILT-LGIYLFTLCAVIS--VSWYLAWLGLEINMMAII
-            >Sp17
-            --FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF
-            >Sp33
-            -------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL
-            """
-        ).strip().encode())
-        ali = Alignment.load(data, "fasta")
-        self.assertEqual(ali.names, self.alignment.names)
-        self.assertEqual(list(ali.sequences), list(self.alignment.sequences))
-
-        data2 = io.BytesIO()
+        self._test_load_fileobj("fasta")
 
     def test_load_fileobj_clustal(self):
-        data = io.BytesIO(textwrap.dedent(
-            """
-            CLUSTAL 2.0.12 multiple sequence alignment
-
-
-            Sp8             -----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII
-            Sp10            -------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII
-            Sp26            AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI
-            Sp6             -----ASGAILT-LGIYLFTLCAVIS--VSWYLAWLGLEINMMAII
-            Sp17            --FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF
-            Sp33            -------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL
-                                      :    : : *    :.        * **:::    :
-            """
-        ).strip().encode())
-        ali = Alignment.load(data, "clustal")
-        self.assertEqual(ali.names, self.alignment.names)
-        self.assertEqual(list(ali.sequences), list(self.alignment.sequences))
+        self._test_load_fileobj("clustal")
 
     def test_load_fileobj_phylip(self):
-        data = io.BytesIO(textwrap.dedent(
-            """
-             6 46
-            Sp8          -----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII
-            Sp10         -------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII
-            Sp26         AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI
-            Sp6          -----ASGAILT-LGIYLFTLCAVIS--VSWYLAWLGLEINMMAII
-            Sp17         --FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF
-            Sp33         -------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL
+        self._test_load_fileobj("phylip")
 
-
-            """
-        ).strip().encode())
-        ali = Alignment.load(data, "phylip")
-        self.assertEqual(ali.names, self.alignment.names)
-        self.assertEqual(list(ali.sequences), list(self.alignment.sequences))
+    def test_load_fileobj_pir(self):
+        self._test_load_fileobj("pir")
 
     def test_load_errors(self):
-        self.assertRaises(FileNotFoundError, Alignment.load, "nothing")
-        self.assertRaises(IsADirectoryError, Alignment.load, os.getcwd())
-        self.assertRaises(TypeError, Alignment.load, io.StringIO(), "fasta")
+        self.assertRaises(FileNotFoundError, self.type.load, "nothing")
+        self.assertRaises(IsADirectoryError, self.type.load, os.getcwd())
+        self.assertRaises(TypeError, self.type.load, io.StringIO(), "fasta")
 
     def test_residues(self):
         self.assertEqual(len(self.alignment.residues), 46)
@@ -173,9 +194,11 @@ class TestAlignment(unittest.TestCase):
         with self.assertRaises(IndexError):
             self.alignment.sequences[-100]
 
-class TestTrimmedAlignment(unittest.TestCase):
+
+class TestTrimmedAlignment(TestAlignment):
 
     def setUp(self):
+        super().setUp()
         residues_mask = [True] * 46
         residues_mask[:5] = [False]*5
         residues_mask[26:28] = [False]*2
@@ -194,22 +217,10 @@ class TestTrimmedAlignment(unittest.TestCase):
             residues_mask=residues_mask,
         )
 
-    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
-    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
-    def test_load_filename_clustal(self):
-        with importlib_resources.path("pytrimal.tests.data", "example.001.AA.clw") as path:
-            trimmed = TrimmedAlignment.load(path)
-        self.assertEqual(len(trimmed.sequences), 6)
-        self.assertEqual(len(trimmed.residues), 46)
-        self.assertEqual(len(trimmed.sequences_mask), 6)
-        self.assertEqual(len(trimmed.residues_mask), 46)
-        self.assertTrue(all(trimmed.sequences_mask))
-        self.assertTrue(all(trimmed.residues_mask))
-
     def test_original_alignment(self):
         original = self.trimmed.original_alignment()
-        self.assertEqual(len(original.sequences), 6)
-        self.assertEqual(len(original.residues), 46)
+        self.assertEqual(original.names, self.alignment.names)
+        self.assertEqual(list(original.sequences), list(self.alignment.sequences))
 
     def test_residues(self):
         self.assertEqual(len(self.trimmed.residues), 39)
