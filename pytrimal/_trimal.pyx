@@ -267,8 +267,8 @@ cdef class Alignment:
         Arguments:
             path (`str`, `bytes` or `os.PathLike`): The file from which to
                 write the alignment. If a file-like object is given, it must
-                be open in *binary* mode. Otherwise, ``file`` is treated as
-                a path.
+                be open in *binary* mode and support random access with the
+                ``seek`` method. Otherwise, ``file`` is treated as a path.
             format (`str`, *optional*): The file-format the alignment is
                 stored in. Must be given when loading from a file-like
                 object, will be autodetected when reading from a file.
@@ -661,10 +661,10 @@ cdef class TrimmedAlignment(Alignment):
     """
 
     @classmethod
-    def load(cls, object path not None):
+    def load(cls, object file not None, str format = None):
         # For compatibility, allow loading a trimmed alignment from a file
         # even though it makes it effectively not trimmed
-        cdef Alignment alignment = Alignment.load(path)
+        cdef Alignment alignment = Alignment.load(file, format)
         cdef TrimmedAlignment trimmed = TrimmedAlignment.__new__(TrimmedAlignment)
         trimmed._ali = alignment._ali
         alignment._ali = NULL

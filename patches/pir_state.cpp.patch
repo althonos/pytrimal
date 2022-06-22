@@ -1,5 +1,37 @@
-@@ -179,0 +179,5 @@
-+Alignment* pir_state::LoadAlignment(std::istream &input)
-+{
-+    return nullptr;
+@@ -56,8 +56,4 @@
+
+-    Alignment *alig = new Alignment();
+-
+-    bool seqIdLine, seqLines;
+-    char *str, *line = nullptr;
++    Alignment *alig;
+     std::ifstream file;
+-    int i;
+
+@@ -68,6 +64,19 @@
+
+-    /* Store input file name for posterior uses in other formats */
+-    // alig->filename.append("!Title ");
+-    alig->filename.append(filename);
+-    alig->filename.append(";");
++    alig = LoadAlignment(file);
++    if (alig != nullptr) {
++        /* Store input file name for posterior uses in other formats */
++        // alig->filename.append("!Title ");
++        alig->filename.append(filename);
++        alig->filename.append(";");
++    }
++
++    file.close();
++    return alig;
 +}
++
++Alignment* pir_state::LoadAlignment(std::istream& file) {
++    Alignment *alig = new Alignment();
++    bool seqIdLine, seqLines;
++    char *str, *line = nullptr;
++    int i;
+
+@@ -165,3 +174,2 @@
+     /* Close the input file */
+-    file.close();
