@@ -1,4 +1,21 @@
-@@ -49,6 +49,4 @@
+@@ -41,10 +41,16 @@
+-    origin->get(c);
+-    if (c == '>')
+-        return 1;
+-    return 0;
++
++    do {
++        origin->get(c);
++    } while (std::isspace(c));
++
++    switch (c) {
++        case '>': return 2;
++        case EOF: return 1;
++        default: return 0;
++    }
++ }
+
+@@ -50,6 +50,4 @@
 -    Alignment* alig = new Alignment();
 -    char *str, *line = nullptr;
 +    Alignment* alig;
