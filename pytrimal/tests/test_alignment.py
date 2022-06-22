@@ -39,6 +39,32 @@ DATA = {
         -------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL
         """
     ),
+    "nexus": textwrap.dedent(
+        """
+        #NEXUS
+        BEGIN DATA;
+         DIMENSIONS NTAX=6 NCHAR=46;
+        FORMAT DATATYPE=PROTEIN INTERLEAVE=yes GAP=-;
+        [Name: Sp8     Len: 46]
+        [Name: Sp10    Len: 46]
+        [Name: Sp26    Len: 46]
+        [Name: Sp6     Len: 46]
+        [Name: Sp17    Len: 46]
+        [Name: Sp33    Len: 46]
+
+        MATRIX
+        Sp8      -----GLGKV IV-YGIVLGT KSDQFSNWVV WLFPWNGLQI HMMGII
+        Sp10     -------DPA VL-FVIMLGT IT-KFS--SE WFFAWLGLEI NMMVII
+        Sp26     AAAAAAAAAL LTYLGLFLGT DYENFA--AA AANAWLGLEI NMMAQI
+        Sp6      -----ASGAI LT-LGIYLFT LCAVIS--VS WYLAWLGLEI NMMAII
+        Sp17     --FAYTAPDL L-LIGFLLKT VA-TFG--DT WFQLWQGLDL NKMPVF
+        Sp33     -------PTI LNIAGLHMET DI-NFS--LA WFQAWGGLEI NKQAIL
+
+        ;
+        END;
+
+        """
+    ),
     "pir": textwrap.dedent(
         """
         >P1;Sp8
@@ -154,6 +180,9 @@ class TestAlignment(unittest.TestCase):
     def test_load_filename_phylip(self):
         self._test_load_filename("phylip")
 
+    def test_load_filename_nexus(self):
+        self._test_load_filename("nexus")
+
     def test_load_fileobj_fasta(self):
         self._test_load_fileobj("fasta")
 
@@ -165,6 +194,9 @@ class TestAlignment(unittest.TestCase):
 
     def test_load_fileobj_pir(self):
         self._test_load_fileobj("pir")
+
+    def test_load_fileobj_nexus(self):
+        self._test_load_fileobj("nexus")
 
     def test_load_errors(self):
         self.assertRaises(FileNotFoundError, self.type.load, "nothing")

@@ -1,5 +1,41 @@
-@@ -68,0 +68,5 @@
-+Alignment* nexus_state::LoadAlignment(std::istream &input)
-+{
-+    return nullptr;
+@@ -70,6 +70,4 @@
+ {
+-    Alignment* alig = new Alignment();
++    Alignment* alig;
+     /* NEXUS file format parser */
+-    char *frag = nullptr, *str = nullptr, *line = nullptr;
+-    int i, pos, state, firstBlock;
+     std::ifstream file;
+@@ -81,7 +79,21 @@
+
+-    /* Store input file name for posterior uses in other formats */
+-    /* We store the file name */
+-    // alig->filename.append("!Title ");
+-    alig->filename.append(filename);
+-    alig->filename.append(";");
++    alig = LoadAlignment(file);
++    if (alig != nullptr) {
++        /* Store input file name for posterior uses in other formats */
++        /* We store the file name */
++        // alig->filename.append("!Title ");
++        alig->filename.append(filename);
++        alig->filename.append(";");
++    }
++
++    /* Close the input file */
++    file.close();
++    return alig;
 +}
++
++Alignment* nexus_state::LoadAlignment(std::istream &file)
++{
++    Alignment* alig = new Alignment();
++    char *frag = nullptr, *str = nullptr, *line = nullptr;
++    int i, pos, state, firstBlock;
+
+@@ -202,5 +214,2 @@
+
+-    /* Close the input file */
+-    file.close();
+-
+     /* Check the matrix's content */
