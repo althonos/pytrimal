@@ -43,7 +43,7 @@ cimport trimal.manager
 cimport trimal.report_system
 cimport trimal.similarity_matrix
 
-from pytrimal.fileobj cimport pyreadbuf, pywritebuf
+from pytrimal.fileobj cimport pyreadbuf, pyreadintobuf, pywritebuf
 IF SSE2_BUILD_SUPPORT:
     from pytrimal.impl.sse cimport SSESimilarity, SSECleaner
 
@@ -92,8 +92,8 @@ cdef int _check_fileobj_read(object fileobj) except 1:
     cdef str ty = type(fileobj).__name__
     if not hasattr(fileobj, "seek") or not fileobj.seekable():
         raise TypeError(f"{ty!r} object is not seekable.")
-    if not hasattr(fileobj, "readinto"):
-        raise TypeError(f"{ty!r} object has no attribute 'readinto'.")
+    if not hasattr(fileobj, "readinto") and not hasattr(fileobj, "read"):
+        raise TypeError(f"{ty!r} object has no attribute 'read'.")
     try:
         b = bytearray(0)
         fileobj.readinto(b)
@@ -285,12 +285,13 @@ cdef class Alignment:
         cdef trimal.format_handling.FormatManager      manager
         cdef trimal.format_handling.BaseFormatHandler* handler
 
-        cdef string     path_
-        cdef char       cbuffer[DEFAULT_BUFFER_SIZE]
-        cdef filebuf    fbuffer
-        cdef pyreadbuf* pbuffer   = NULL
-        cdef istream*   stream    = NULL
-        cdef Alignment  alignment = Alignment.__new__(Alignment)
+        cdef string         path_
+        cdef char           cbuffer[DEFAULT_BUFFER_SIZE]
+        cdef filebuf        fbuffer
+        cdef pyreadbuf*     rbuffer   = NULL
+        cdef pyreadintobuf* r2buffer  = NULL
+        cdef istream*       stream    = NULL
+        cdef Alignment      alignment = Alignment.__new__(Alignment)
 
         IF SYS_VERSION_INFO_MAJOR == 3 and SYS_VERSION_INFO_MINOR < 6:
             TYPES = (str, bytes)
@@ -316,18 +317,25 @@ cdef class Alignment:
             if handler is NULL:
                 raise ValueError(f"Unknown alignment format: {format!r}")
             # create a file-like object wrapper
-            pbuffer = new pyreadbuf(file)
-            pbuffer.pubsetbuf(cbuffer, 512)
+            # attempt to use `readinto` if available and not on PyPy
+            if SYS_IMPLEMENTATION_NAME == "cpython" and hasattr(file, "readinto"):
+                r2buffer = new pyreadintobuf(file)
+                r2buffer.pubsetbuf(cbuffer, 512)
+                stream = new istream(r2buffer)
+            else:
+                rbuffer = new pyreadbuf(file)
+                rbuffer.pubsetbuf(cbuffer, 512)
+                stream = new istream(rbuffer)
             # load the alignment from the istream
             try:
-                stream = new istream(pbuffer)
                 if handler.CheckAlignment(stream) == 0:
                     raise RuntimeError(f"Failed to recognize format {format!r} in {file!r}")
                 stream.seekg(0)
                 alignment._ali = handler.LoadAlignment(stream[0])
             finally:
                 del stream
-                del pbuffer
+                del rbuffer
+                del r2buffer
 
         if alignment._ali is NULL:
             raise RuntimeError(f"Failed to load alignment from {file!r}.")
