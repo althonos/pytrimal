@@ -30,15 +30,12 @@ std::streampos pyreadintobuf::seekpos(std::streampos sp, std::ios_base::openmode
 pyreadintobuf* pyreadintobuf::setbuf(char* s, std::streamsize n) {
     setg(s, &s[n], &s[n]);
     bufsize = n;
+    Py_DECREF(mview);
+    mview = PyMemoryView_FromMemory(s, bufsize, PyBUF_WRITE);
     return this;
 }
 
 int pyreadintobuf::underflow() {
-    PyObject* mview = PyMemoryView_FromMemory(eback(), bufsize, PyBUF_WRITE);
-    if (mview == nullptr) {
-        return EOF;
-    }
-
     PyObject* nread = PyObject_CallMethodObjArgs(handle, method, mview, NULL);
     if (nread == nullptr) {
         Py_DECREF(mview);
@@ -48,7 +45,6 @@ int pyreadintobuf::underflow() {
     long n = PyLong_AsLong(nread);
     char c = (n == 0) ? EOF : *eback();
 
-    Py_DECREF(mview);
     Py_DECREF(nread);
 
     setg(eback(), eback(), eback() + n);
