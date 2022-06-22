@@ -77,6 +77,14 @@ class TestAlignment(unittest.TestCase):
         self.assertEqual(len(trimmed.sequences), 6)
         self.assertEqual(len(trimmed.residues), 46)
 
+    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
+    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
+    def test_load_filename_phylip(self):
+        with importlib_resources.path("pytrimal.tests.data", "example.001.AA.phy") as path:
+            trimmed = Alignment.load(path)
+        self.assertEqual(len(trimmed.sequences), 6)
+        self.assertEqual(len(trimmed.residues), 46)
+
     def test_load_fileobj_fasta(self):
         data = io.BytesIO(textwrap.dedent(
             """
@@ -116,6 +124,24 @@ class TestAlignment(unittest.TestCase):
             """
         ).strip().encode())
         ali = Alignment.load(data, "clustal")
+        self.assertEqual(ali.names, self.alignment.names)
+        self.assertEqual(list(ali.sequences), list(self.alignment.sequences))
+
+    def test_load_fileobj_phylip(self):
+        data = io.BytesIO(textwrap.dedent(
+            """
+             6 46
+            Sp8          -----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII
+            Sp10         -------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII
+            Sp26         AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI
+            Sp6          -----ASGAILT-LGIYLFTLCAVIS--VSWYLAWLGLEINMMAII
+            Sp17         --FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF
+            Sp33         -------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL
+
+
+            """
+        ).strip().encode())
+        ali = Alignment.load(data, "phylip")
         self.assertEqual(ali.names, self.alignment.names)
         self.assertEqual(list(ali.sequences), list(self.alignment.sequences))
 
