@@ -707,6 +707,7 @@ setuptools.setup(
                 os.path.join("pytrimal", "fileobj", "pyreadbuf.cpp"),
                 os.path.join("pytrimal", "fileobj", "pyreadintobuf.cpp"),
                 os.path.join("pytrimal", "patch", "reportsystem.cpp"),
+                os.path.join("pytrimal", "impl", "generic.cpp"),
                 os.path.join("pytrimal", "_trimal.pyx"),
             ],
             platform_sources={

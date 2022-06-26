@@ -44,6 +44,7 @@ cimport trimal.report_system
 cimport trimal.similarity_matrix
 
 from pytrimal.fileobj cimport pyreadbuf, pyreadintobuf, pywritebuf
+from pytrimal.impl.generic cimport GenericSimilarity
 IF SSE2_BUILD_SUPPORT:
     from pytrimal.impl.sse cimport SSESimilarity, SSECleaner
 
@@ -848,7 +849,8 @@ cdef class TrimmedAlignment(Alignment):
 
 cdef enum simd_backend:
     NONE = 0
-    SSE2 = 1
+    GENERIC = 1
+    SSE2 = 2
 
 
 cdef class BaseTrimmer:
@@ -874,7 +876,7 @@ cdef class BaseTrimmer:
         """
         IF TARGET_CPU == "x86":
             if backend =="detect":
-                self._backend = simd_backend.NONE
+                self._backend = simd_backend.GENERIC
                 IF SSE2_BUILD_SUPPORT:
                     if _SSE2_RUNTIME_SUPPORT:
                         self._backend = simd_backend.SSE2
@@ -884,19 +886,27 @@ cdef class BaseTrimmer:
                 if not _SSE2_RUNTIME_SUPPORT:
                     raise RuntimeError("Cannot run SSE2 instructions on this machine")
                 self._backend = simd_backend.SSE2
+            elif backend == "generic":
+                self._backend = simd_backend.GENERIC
             elif backend is None:
                 self._backend = simd_backend.NONE
             else:
                 raise ValueError(f"Unsupported backend on this architecture: {backend}")
         ELSE:
-            if backend == "detect" or backend is None:
+            if backend == "detect" or backend == "generic":
+                self._backend = simd_backend.GENERIC
+            elif backend is None:
                 self._backend = simd_backend.NONE
             else:
                 raise ValueError(f"Unsupported backend on this architecture: {backend}")
 
     cdef void _setup_simd_code(self, trimal.manager.trimAlManager* manager):
+        if self._backend == simd_backend.GENERIC:
+            del manager.origAlig.Statistics.similarity
+            manager.origAlig.Statistics.similarity = new GenericSimilarity(manager.origAlig)
         IF SSE2_BUILD_SUPPORT:
             if self._backend == simd_backend.SSE2:
+                del manager.origAlig.Statistics.similarity
                 manager.origAlig.Statistics.similarity = new SSESimilarity(manager.origAlig)
                 del manager.origAlig.Cleaning
                 manager.origAlig.Cleaning = new SSECleaner(manager.origAlig)
