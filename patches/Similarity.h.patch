@@ -1,6 +1,9 @@
 @@ -79 +79 @@
 -        void calculateMatrixIdentity();
 +        virtual void calculateMatrixIdentity();
+@@ -85 +85 @@
+-        ~Similarity();
++        virtual ~Similarity();
 @@ -91 +91 @@
 -        bool calculateVectors(bool cutByGap = true);
 +        virtual bool calculateVectors(bool cutByGap = true);
