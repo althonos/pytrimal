@@ -72,8 +72,8 @@ IF TARGET_CPU == "x86" and TARGET_SYSTEM in ("freebsd", "linux_or_android", "mac
     cdef X86Info cpu_info = GetX86Info()
     _SSE2_BUILD_SUPPORT   = SSE2_BUILD_SUPPORT
     _AVX2_BUILD_SUPPORT   = AVX2_BUILD_SUPPORT
-    _SSE2_RUNTIME_SUPPORT = cpu_info.features.sse2 != 0
-    _AVX2_RUNTIME_SUPPORT = cpu_info.features.avx2 != 0
+    _SSE2_RUNTIME_SUPPORT = SSE2_BUILD_SUPPORT and cpu_info.features.sse2 != 0
+    _AVX2_RUNTIME_SUPPORT = AVX2_BUILD_SUPPORT and cpu_info.features.avx2 != 0
 
 
 # --- Utilities --------------------------------------------------------------
