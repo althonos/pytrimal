@@ -21,17 +21,18 @@ one is available, or from source after compiling the Cython code :
 
    $ pip install --user pytrimal
 
-.. Conda
-.. ^^^^^
-..
-.. Pronto is also available as a `recipe <https://anaconda.org/bioconda/pytrimal>`_
-.. in the `bioconda <https://bioconda.github.io/>`_ channel. To install, simply
-.. use the ``conda`` installer:
-..
-.. .. code:: console
-..
-..    $ conda install -c bioconda pytrimal
-..
+
+Conda
+^^^^^
+
+`pytrimal` is also available as a `recipe <https://anaconda.org/bioconda/pytrimal>`_
+in the `bioconda <https://bioconda.github.io/>`_ channel. To install, simply
+use the ``conda`` installer:
+
+.. code:: console
+
+   $ conda install -c bioconda pytrimal
+
 
 Arch User Repository
 ^^^^^^^^^^^^^^^^^^^^

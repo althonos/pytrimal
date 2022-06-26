@@ -282,6 +282,9 @@ cdef class Alignment:
             >>> msa.names
             [b'Sp8', b'Sp10', b'Sp26', b'Sp6', b'Sp17', b'Sp33']
 
+        .. versionchanged:: 0.3.0
+           Add support for reading code from a file-like object.
+
         """
         cdef trimal.format_handling.FormatManager      manager
         cdef trimal.format_handling.BaseFormatHandler* handler

@@ -179,7 +179,7 @@ jobs:
         shell: bash
         run: |
           ${{ matrix.pyo3-python }} -m pip install pytrimal --no-index --find-links=/io/dist
-          ${{ matrix.pyo3-python }} -m unittest pytrimal.tests -vv
+          ${{ matrix.pyo3-python }} -m unittest pytrimal.tests.test_doctest -vv
 
   wheel-osx:
     runs-on: macos-latest

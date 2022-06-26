@@ -59,8 +59,9 @@ The following features are available or considered for implementation:
   overlaps to exclude regions with minimal conservation.
 - [x] **alignment loading from disk**: Load an alignment from disk given
   a filename.
-- [ ] **alignment loading from a file-like object**: Load an alignment from
-  disk given a [file object](https://docs.python.org/3/glossary.html#term-file-object).
+- [x] **alignment loading from a file-like object**: Load an alignment from
+  a Python [file object](https://docs.python.org/3/glossary.html#term-file-object)
+  instead of a file on the local filesystem.
 - [x] **aligment creation from Python**: Create an alignment from a collection
   of sequences stored in Python strings.
 - [x] **alignment formatting to disk**: Write an alignment to a file given
@@ -86,11 +87,11 @@ from source with Cython:
 $ pip install pytrimal
 ```
 
-<!-- Otherwise, pytrimal is also available as a [Bioconda](https://bioconda.github.io/)
+Otherwise, pytrimal is also available as a [Bioconda](https://bioconda.github.io/)
 package:
 ```console
 $ conda install -c bioconda pytrimal
-``` -->
+```
 
 ## 💡 Example
 
@@ -144,6 +145,20 @@ alignments = map(Alignment.load, glob.iglob("pytrimal/tests/data/*.fasta"))
 with multiprocessing.pool.ThreadPool() as pool:
     trimmed_alignments = pool.map(trimmer.trim, alignments)
 ```
+
+## ⏱️ Benchmarks
+
+Benchmarks were run on a [i7-8550U CPU](https://ark.intel.com/content/www/us/en/ark/products/122589/intel-core-i78550u-processor-8m-cache-up-to-4-00-ghz.html),
+using a single core to time the execution of a `strict` trimming on a variable
+number of sequences from [`example.014.AA.EggNOG.COG0591.fasta`](https://github.com/inab/trimal/blob/trimAl/dataset/example.014.AA.EggNOG.COG0591.fasta), an alignment
+of 3583 sequences and 7287 columns:
+
+![Benchmarks](https://raw.githubusercontent.com/althonos/pytrimal/main/bench/v0.2.2.svg)
+
+The `None` curve shows the time using the internal trimAl 2.0 code, and the
+`SSE` curve shows the time spent using a dedicated class with
+[SIMD](https://en.wikipedia.org/wiki/Single_instruction,_multiple_data)
+implementations of the statistics computation.
 
 ## 💭 Feedback
 

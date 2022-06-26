@@ -6,7 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.3.0...HEAD
+
+
+## [v0.3.0] - 2022-06-26
+[v0.3.0]: https://github.com/althonos/pytrimal/compare/v0.2.2...v0.3.0
+
+### Added
+- Support for loading an `Alignment` from a file-like object for certain formats.
+- Generic optimized backend using caching optimizations from [inab/trimal#66](https://github.com/inab/trimal/pull/66).
+
+### Fixed
+- Compilation of code for OSX platforms in Python 3.10.
+- File not being closed on error when loading a FASTA alignment.
+
+### Changed
+- Add tests for loading an `Alignment` without requiring `importlib.resources`.
 
 
 ## [v0.2.2] - 2022-06-08
