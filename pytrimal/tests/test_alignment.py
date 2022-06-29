@@ -294,3 +294,17 @@ class TestTrimmedAlignment(TestAlignment):
             self.trimmed.sequences[100]
         with self.assertRaises(IndexError):
             self.trimmed.sequences[-100]
+
+    def test_residues_mask(self):
+        mask = self.trimmed.residues_mask
+        original = self.trimmed.original_alignment()
+        self.assertEqual(len(mask), len(original.residues))
+        self.assertEqual(
+            self.trimmed.sequences[0],
+            "".join([x for x,c in zip(original.sequences[0], mask) if c])
+        )
+
+    def test_sequences_mask(self):
+        mask = self.trimmed.sequences_mask
+        original = self.trimmed.original_alignment()
+        self.assertEqual(len(mask), len(original.sequences))
