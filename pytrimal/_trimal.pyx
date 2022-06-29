@@ -903,6 +903,17 @@ cdef class BaseTrimmer:
             else:
                 raise ValueError(f"Unsupported backend on this architecture: {backend}")
 
+    @property
+    def backend(self):
+        """`str` or `None`: The computation backend for this trimmer.
+        """
+        if self._backend == simd_backend.SSE2:
+            return "sse"
+        elif self._backend == simd_backend.GENERIC:
+            return "generic"
+        else:
+            return None
+
     cdef void _setup_simd_code(self, trimal.manager.trimAlManager* manager):
         if self._backend == simd_backend.GENERIC:
             del manager.origAlig.Statistics.similarity
