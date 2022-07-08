@@ -266,10 +266,11 @@ cdef class Alignment:
         Load a multiple sequence alignment from a file.
 
         Arguments:
-            path (`str`, `bytes` or `os.PathLike`): The file from which to
-                write the alignment. If a file-like object is given, it must
-                be open in *binary* mode and support random access with the
-                ``seek`` method. Otherwise, ``file`` is treated as a path.
+            path (`str`, `bytes`, `os.PathLike` or file-like object): The
+                file from which to read the alignment. If a file-like object
+                is given, it must be open in *binary* mode and support random
+                access with the ``seek`` method. Otherwise, ``file`` is
+                treated as a path.
             format (`str`, *optional*): The file-format the alignment is
                 stored in. Must be given when loading from a file-like
                 object, will be autodetected when reading from a file.
