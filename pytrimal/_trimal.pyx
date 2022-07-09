@@ -264,6 +264,10 @@ cdef class AlignmentResidues:
         self._length = alignment._ali.numberOfResidues
         self._free_mapping = False
 
+    def __dealloc__(self):
+        if self._free_mapping:
+            PyMem_Free(self._index_mapping)
+
     def __len__(self):
         return self._length
 
