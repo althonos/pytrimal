@@ -143,26 +143,76 @@ cdef class AlignmentSequences:
         >>> sum(letter == '-' for seq in msa.sequences for letter in seq)
         43
 
+    A slice over a subset of the sequences can be obtained as well without
+    having to copy the internal data, allowing to create a new `Alignment`
+    with only some sequences from the original one::
+
+        >>> msa2 = Alignment(msa.names[:4:2], msa.sequences[:4:2])
+        >>> len(msa2.sequences)
+        2
+        >>> msa2.sequences[1] == msa.sequences[2]
+        True
+
     """
 
     def __cinit__(self, Alignment alignment):
         self._owner = alignment
         self._ali = alignment._ali
         self._index_mapping = alignment._sequences_mapping
+        self._length = alignment._ali.numberOfSequences
+        self._free_mapping = False
+
+    def __dealloc__(self):
+        if self._free_mapping:
+            PyMem_Free(self._index_mapping)
 
     def __len__(self):
         assert self._ali is not NULL
-        return self._ali.numberOfSequences
+        return self._length
 
-    def __getitem__(self, int index):
+    def __getitem__(self, object index):
         assert self._ali is not NULL
+        if isinstance(index, slice):
+            start, stop, stride = index.indices(self._length)
+            return self._slice(start, stop, stride)
+        else:
+            return self._sequence(index)
 
+    cdef AlignmentSequences _slice(self, int start, int stop, int stride):
+        """_slice(self, start, stop, stride)\n--
+
+        Return a view of a subset of the alignment sequences, without copy.
+
+        """
+        cdef object             indices = range(start, stop, stride)
+        cdef int                newlen  = len(indices)
+        cdef AlignmentSequences view    = AlignmentSequences.__new__(AlignmentSequences, self._owner)
+
+        view._length = newlen
+        view._free_mapping = True
+        view._index_mapping = <int*> PyMem_Malloc(self._ali.numberOfSequences * sizeof(int))
+        if view._index_mapping is NULL:
+            raise MemoryError()
+
+        for i, x in enumerate(indices):
+            assert i < newlen
+            if self._index_mapping is not NULL:
+                assert x < self._length
+                x = self._index_mapping[x]
+            view._index_mapping[i] = x
+
+        return view
+
+    cdef str _sequence(self, int index):
+        """_sequence(self, index)\n--
+
+        Return a single sequence in the alignment, creating a new string.
+
+        """
         cdef int index_ = index
-        cdef int length = self._ali.numberOfSequences
-
         if index_ < 0:
-            index_ += length
-        if index_ < 0 or index_ >= length:
+            index_ += self._length
+        if index_ < 0 or index_ >= self._length:
             raise IndexError(index)
         if self._index_mapping is not NULL:
             index_ = self._index_mapping[index_]

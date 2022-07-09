@@ -19,10 +19,13 @@ FORMATS_DUMP = Literal["clustal", "fasta", "html", "mega", "nexus", "phylip", "p
 
 # --- Alignment classes ------------------------------------------------------
 
-class AlignmentSequences:
+class AlignmentSequences(Sequence[str]):
     def __init__(self, alignment: Alignment) -> None: ...
     def __len__(self) -> int: ...
+    @typing.overload
     def __getitem__(self, index: int) -> str: ...
+    @typing.overload
+    def __getitem__(self, index: slice) -> AlignmentSequences: ...
 
 
 class AlignmentResidues:

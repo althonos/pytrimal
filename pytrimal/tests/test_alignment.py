@@ -246,6 +246,16 @@ class TestAlignment(unittest.TestCase):
         with self.assertRaises(IndexError):
             self.alignment.sequences[-100]
 
+    def test_sequences_slice(self):
+        seqs = self.alignment.sequences
+        self.assertEqual(list(seqs[:5:2]), list(seqs)[:5:2])
+        self.assertEqual(list(seqs[:-1:2]), list(seqs)[:-1:2])
+
+        empty = self.type([], [])
+        self.assertFalse(empty.sequences[:])
+        self.assertFalse(empty.sequences[:][:2])
+
+
 
 class TestTrimmedAlignment(TestAlignment):
 

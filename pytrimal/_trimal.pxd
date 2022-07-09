@@ -3,6 +3,8 @@
 
 # --- C imports --------------------------------------------------------------
 
+from libcpp cimport bool
+
 cimport trimal
 cimport trimal.alignment
 cimport trimal.manager
@@ -15,7 +17,11 @@ cdef class AlignmentSequences:
     cdef trimal.alignment.Alignment* _ali
     cdef Alignment                   _owner
     cdef int*                        _index_mapping
+    cdef ssize_t                     _length
+    cdef bool                        _free_mapping
 
+    cdef str _sequence(self, int index)
+    cdef AlignmentSequences _slice(self, int start, int stop, int stride)
 
 cdef class AlignmentResidues:
     cdef trimal.alignment.Alignment* _ali
