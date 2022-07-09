@@ -616,7 +616,7 @@ cdef class Alignment:
             self._ali.seqsName[i]  = name
             self._ali.sequences[i] = sequence.encode('ascii') # FIXME: no decoding
 
-        self._ali.fillMatrices(True, True)
+        self._ali.fillMatrices(self._ali.numberOfSequences > 1, True)
         self._ali.originalNumberOfSequences = self._ali.numberOfSequences
         self._ali.originalNumberOfResidues = self._ali.numberOfResidues
 
