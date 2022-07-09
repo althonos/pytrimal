@@ -14,19 +14,25 @@ cimport trimal.similarity_matrix
 # --- Alignment classes ------------------------------------------------------
 
 cdef class AlignmentSequences:
-    cdef trimal.alignment.Alignment* _ali
-    cdef Alignment                   _owner
-    cdef int*                        _index_mapping
-    cdef ssize_t                     _length
-    cdef bool                        _free_mapping
+    cdef trimal.alignment.Alignment* _ali            # pointer to raw alignment
+    cdef Alignment                   _owner          # reference to owner
+    cdef int*                        _index_mapping  # old-to-new index mapping, or NULL
+    cdef ssize_t                     _length         # number of sequences
+    cdef bool                        _free_mapping   # whether to free the _index_mapping
 
     cdef str _sequence(self, int index)
     cdef AlignmentSequences _slice(self, int start, int stop, int stride)
 
+
 cdef class AlignmentResidues:
-    cdef trimal.alignment.Alignment* _ali
-    cdef Alignment                   _owner
-    cdef int*                        _index_mapping
+    cdef trimal.alignment.Alignment* _ali           # pointer to raw alignment
+    cdef Alignment                   _owner         # reference to owner
+    cdef int*                        _index_mapping # old-to-new index mapping, or NULL
+    cdef ssize_t                     _length        # number of residues
+    cdef bool                        _free_mapping  # whether to free the _index_mapping
+
+    cdef str _column(self, int index)
+    cdef AlignmentResidues _slice(self, int start, int stop, int stride)
 
 
 cdef class Alignment:

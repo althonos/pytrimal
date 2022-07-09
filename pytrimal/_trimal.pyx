@@ -167,7 +167,6 @@ cdef class AlignmentSequences:
             PyMem_Free(self._index_mapping)
 
     def __len__(self):
-        assert self._ali is not NULL
         return self._length
 
     def __getitem__(self, object index):
@@ -190,7 +189,7 @@ cdef class AlignmentSequences:
 
         view._length = newlen
         view._free_mapping = True
-        view._index_mapping = <int*> PyMem_Malloc(self._ali.numberOfSequences * sizeof(int))
+        view._index_mapping = <int*> PyMem_Malloc(newlen * sizeof(int))
         if view._index_mapping is NULL:
             raise MemoryError()
 
@@ -262,20 +261,57 @@ cdef class AlignmentResidues:
         self._owner = alignment
         self._ali = alignment._ali
         self._index_mapping = alignment._residues_mapping
+        self._length = alignment._ali.numberOfResidues
+        self._free_mapping = False
 
     def __len__(self):
-        assert self._ali is not NULL
-        return self._ali.numberOfResidues
+        return self._length
 
-    def __getitem__(self, int index):
+    def __getitem__(self, object index):
         assert self._ali is not NULL
+        if isinstance(index, slice):
+            start, stop, stride = index.indices(self._length)
+            return self._slice(start, stop, stride)
+        else:
+            return self._column(index)
 
+    cdef AlignmentResidues _slice(self, int start, int stop, int stride):
+        """_slice(self, start, stop, stride)\n--
+
+        Return a view of a subset of the alignment residues, without copy.
+
+        """
+        cdef object            indices = range(start, stop, stride)
+        cdef int               newlen  = len(indices)
+        cdef AlignmentResidues view    = AlignmentResidues.__new__(AlignmentResidues, self._owner)
+
+        view._length = newlen
+        view._free_mapping = True
+        view._index_mapping = <int*> PyMem_Malloc(newlen * sizeof(int))
+        if view._index_mapping is NULL:
+            raise MemoryError()
+
+        for i, x in enumerate(indices):
+            assert i < newlen
+            if self._index_mapping is not NULL:
+                assert x < self._length
+                x = self._index_mapping[x]
+            view._index_mapping[i] = x
+
+        return view
+
+    cdef str _column(self, int index):
+        """_column(self, index)\n--
+
+        Return a single residue column in the alignment, creating a new string.
+
+        """
         cdef int index_ = index
         cdef int length = self._ali.numberOfResidues
 
         if index_ < 0:
             index_ += length
-        if index_ < 0 or index_ >= length:
+        if index_ < 0 or index_ >= self._length:
             raise IndexError(index)
         if self._index_mapping is not NULL:
             index_ = self._index_mapping[index_]
@@ -619,6 +655,9 @@ cdef class Alignment:
         self._ali.fillMatrices(self._ali.numberOfSequences > 1, True)
         self._ali.originalNumberOfSequences = self._ali.numberOfSequences
         self._ali.originalNumberOfResidues = self._ali.numberOfResidues
+
+        if self._ali.numberOfSequences == 0:
+            self._ali.numberOfResidues = 0
 
     def __repr__(self):
         cdef str ty = type(self).__name__

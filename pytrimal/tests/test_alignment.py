@@ -234,6 +234,16 @@ class TestAlignment(unittest.TestCase):
         with self.assertRaises(IndexError):
             self.alignment.residues[-100]
 
+    def test_residues_slice(self):
+        res = self.alignment.residues
+        self.assertEqual(list(res[:30:3]), list(res)[:30:3])
+        self.assertEqual(list(res[:-1:7]), list(res)[:-1:7])
+        self.assertTrue(res[:][:2])
+
+        empty = self.type([], [])
+        self.assertFalse(empty.residues[:])
+        self.assertFalse(empty.residues[:][:2])
+
     def test_sequences(self):
         self.assertEqual(len(self.alignment.sequences), 6)
         self.assertEqual(self.alignment.sequences[0], "-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII")
@@ -250,6 +260,7 @@ class TestAlignment(unittest.TestCase):
         seqs = self.alignment.sequences
         self.assertEqual(list(seqs[:5:2]), list(seqs)[:5:2])
         self.assertEqual(list(seqs[:-1:2]), list(seqs)[:-1:2])
+        self.assertTrue(seqs[:][:2])
 
         empty = self.type([], [])
         self.assertFalse(empty.sequences[:])
