@@ -11,7 +11,7 @@ except ImportError:
 
 # --- Constants --------------------------------------------------------------
 
-TRIMMER_BACKEND = Literal["detect", "sse", None]
+TRIMMER_BACKEND = Literal["detect", "sse", "generic", None]
 AUTOMATIC_TRIMMER_METHODS = Literal["strict", "strictplus", "gappyout", "nogaps", "noallgaps", "automated1"]
 
 FORMATS_LOAD = Literal["clustal", "fasta", "nexus", "phylip", "phylip32", "phylip40", "pir"]
