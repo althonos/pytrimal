@@ -32,9 +32,9 @@ with rich.progress.Progress(transient=True) as progress:
 
     task = progress.add_task(total=len(subsets), description="Working...")
     for subset in progress.track(subsets, task_id=task):
-        alignment = Alignment(list(islice(example.names, subset)), list(islice(example.sequences, subset)))
+        alignment = Alignment(example.names[:subset], example.sequences[:subset])
         task2 = progress.add_task(total=2, description="Backends...")
-        for backend in progress.track(("sse", None), task_id=task2):
+        for backend in progress.track(("sse", "generic", None), task_id=task2):
             times = []
             task3 = progress.add_task(total=args.runs, description="Repeat...")
             for run in progress.track(range(args.runs), task_id=task3):
