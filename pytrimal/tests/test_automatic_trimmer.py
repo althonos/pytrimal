@@ -64,6 +64,11 @@ class TestAutomaticTrimmer(unittest.TestCase):
 
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(importlib_resources, "importlib.resources not available")
+    def test_noduplicateseqs_method(self):
+        self._test_method("noduplicateseqs")
+
+    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
+    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
     def test_custom_similarity_matrix(self):
         alignment = self._load_alignment("ENOG411BWBU.fasta")
         with importlib_resources.open_binary("pytrimal.tests.data", "pam70.json") as f:

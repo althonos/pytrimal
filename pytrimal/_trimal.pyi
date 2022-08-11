@@ -12,7 +12,7 @@ except ImportError:
 # --- Constants --------------------------------------------------------------
 
 TRIMMER_BACKEND = Literal["detect", "sse", "generic", None]
-AUTOMATIC_TRIMMER_METHODS = Literal["strict", "strictplus", "gappyout", "nogaps", "noallgaps", "automated1"]
+AUTOMATIC_TRIMMER_METHODS = Literal["strict", "strictplus", "gappyout", "nogaps", "noallgaps", "automated1", "noduplicateseqs"]
 
 FORMATS_LOAD = Literal["clustal", "fasta", "nexus", "phylip", "phylip32", "phylip40", "pir"]
 FORMATS_DUMP = Literal["clustal", "fasta", "html", "mega", "nexus", "phylip", "phylip32", "phylip40", "phylippaml", "nbrf", "pir", "fasta_m10", "nexus_m10", "phylippaml_m10", "phylip32_m10", "phylip_m10", "phylip40_m10"]

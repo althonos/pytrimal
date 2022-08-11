@@ -62,6 +62,7 @@ cdef set AUTOMATED_TRIMMER_METHODS = {
     "nogaps",
     "noallgaps",
     "automated1",
+    "noduplicateseqs",
 }
 
 _TARGET_CPU           = TARGET_CPU
@@ -140,7 +141,7 @@ cdef class AlignmentSequences:
         6
         >>> msa.sequences[0]
         '-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII'
-        >>> sum(letter == '-' for seq in msa.sequences for letter in seq)
+        >>> sum(seq.count('-') for seq in msa.sequences)
         43
 
     A slice over a subset of the sequences can be obtained as well without
@@ -1111,6 +1112,8 @@ cdef class AutomaticTrimmer(BaseTrimmer):
       least one gap.
     - ``noallgaps``: A naive method that removes every column containing
       only gaps.
+    - ``noduplicateseqs``: A naive method that removes sequences that are
+      equal on the alignment, keeping the latest occurence.
 
     """
 
@@ -1157,6 +1160,8 @@ cdef class AutomaticTrimmer(BaseTrimmer):
             manager.noallgaps = True
         elif self.method == "automated1":
             manager.automated1 = True
+        elif self.method == "noduplicateseqs":
+            manager.removeDuplicates = True
 
 
 cdef class ManualTrimmer(BaseTrimmer):
