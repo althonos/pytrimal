@@ -678,18 +678,16 @@ cdef class Alignment:
         """sequence of `bytes`: The names of the sequences in the alignment.
         """
         assert self._ali is not NULL
+        assert self._ali.seqsName is not NULL
 
-        cdef int    i
-        cdef int    x     = 0
+        cdef size_t i
         cdef bytes  name
-        cdef object names = PyList_New(self._ali.numberOfSequences)
+        cdef object names = []
 
         for i in range(self._ali.originalNumberOfSequences):
             if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
                 name = PyBytes_FromStringAndSize( self._ali.seqsName[i].data(), self._ali.seqsName[i].size() )
-                PyList_SET_ITEM(names, x, name)
-                Py_INCREF(name)  # manually increase reference count because `PyList_SET_ITEM` doesn't
-                x += 1
+                names.append(name)
 
         return names
 
