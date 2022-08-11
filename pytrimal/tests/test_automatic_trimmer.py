@@ -29,6 +29,8 @@ class TestAutomaticTrimmer(unittest.TestCase):
         trimmer = AutomaticTrimmer(method=name)
         trimmed = trimmer.trim(ali)
 
+        self.assertEqual(len(trimmed.names), len(expected.names))
+        self.assertEqual(len(trimmed.sequences), len(expected.sequences))
         self.assertEqual(trimmed.names, expected.names)
         for seq1, seq2 in zip(trimmed.sequences, expected.sequences):
             self.assertEqual(seq1, seq2)

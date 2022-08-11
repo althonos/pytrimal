@@ -1,0 +1,8 @@
+@@ -1637,6 +1637,7 @@
+                     alig->seqsName[i],
+                     alig->seqsName[x]
+                 });
++                alig->numberOfSequences--;
+                 break;
+             }
+         }

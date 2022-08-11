@@ -217,6 +217,7 @@ cdef class AlignmentSequences:
         if self._index_mapping is not NULL:
             index_ = self._index_mapping[index_]
 
+        assert index_ < self._ali.originalNumberOfSequences
         IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MAJOR <= 7 and SYS_IMPLEMENTATION_NAME == "pypy":
             cdef bytes    seq  = PyBytes_FromStringAndSize(NULL, self._ali.numberOfResidues)
             cdef char*    data = PyBytes_AsString(seq)
@@ -321,6 +322,7 @@ cdef class AlignmentResidues:
         if self._index_mapping is not NULL:
             index_ = self._index_mapping[index_]
 
+        assert index_ < self._ali.originalNumberOfResidues
         IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MAJOR <= 7 and SYS_IMPLEMENTATION_NAME == "pypy":
             cdef bytes    col  = PyBytes_FromStringAndSize(NULL, self._ali.numberOfSequences)
             cdef char*    data = PyBytes_AsString(col)
