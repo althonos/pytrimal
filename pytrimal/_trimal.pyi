@@ -36,6 +36,7 @@ class AlignmentResidues(Sequence[str]):
     @typing.overload
     def __getitem__(self, index: slice) -> AlignmentResidues: ...
 
+
 class Alignment:
     @typing.overload
     @classmethod
@@ -107,6 +108,16 @@ class ManualTrimmer(BaseTrimmer):
         similarity_window: Optional[int] = None,
         consistency_window: Optional[int] = None,
         backend: TRIMMER_BACKEND = "detect",
+    ) -> None: ...
+
+
+class OverlapTrimmer(BaseTrimmer):
+    def __init__(
+        self,
+        sequence_overlap: float,
+        residue_overlap: float,
+        *,
+        backend: TRIMMER_BACKEND = "detect"
     ) -> None: ...
 
 

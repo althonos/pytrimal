@@ -55,7 +55,7 @@ The following features are available or considered for implementation:
   automatic heuristics implemented in trimAl.
 - [x] **manual trimming**: Support for trimming alignments using manually
   defined conservation and gap thresholds for each residue position.
-- [ ] **overlap trimming**: Trimming sequences using residue and sequence
+- [x] **overlap trimming**: Trimming sequences using residue and sequence
   overlaps to exclude regions with minimal conservation.
 - [x] **alignment loading from disk**: Load an alignment from disk given
   a filename.

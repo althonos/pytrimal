@@ -680,7 +680,7 @@ cdef class Alignment:
         assert self._ali is not NULL
         assert self._ali.seqsName is not NULL
 
-        cdef size_t i
+        cdef int    i
         cdef bytes  name
         cdef object names = []
 
@@ -1286,6 +1286,81 @@ cdef class ManualTrimmer(BaseTrimmer):
         manager.similarityWindow      = self._similarity_window
         manager.consistencyWindow     = self._consistency_window
 
+
+cdef class OverlapTrimmer(BaseTrimmer):
+    """A sequence alignment trimmer for overlap blocks.
+
+    Overlap trimming works by defining "good" positions, i.e. a position
+    where most sequences agree (given a certain threshold) that the
+    alignment contains a gap or a residue (independently of their agreement
+    on that given residue). Sequences not containing enough "good" positions
+    are then removed.
+
+    Example:
+        Consider the following alignment, where the last three sequences
+        align decently, while the first sequence doesn't. In particular, it
+        creates a large gap in the rest of the alignment::
+
+            >>> ali = Alignment(
+            ...     names=[b"Sp8", b"Sp17", b"Sp10", b"Sp26"],
+            ...     sequences=[
+            ...         "LG-----------TKSD---NNNNNNNNNNNNNNNNWV----------",
+            ...         "APDLLL-IGFLLKTV-ATFG-----------------DTWFQLWQGLD",
+            ...         "DPAVL--FVIMLGTI-TKFS-----------------SEWFFAWLGLE",
+            ...         "AAALLTYLGLFLGTDYENFA-----------------AAAANAWLGLE",
+            ...     ]
+            ... )
+
+        Let's create an overlap trimmer so that "good" positions correspond
+        to an agreement between at least half of the sequences, and make it
+        remove sequences with less than 40% of good positions::
+
+            >>> trimmer = OverlapTrimmer(40.0, 0.5)
+
+        Trimming will remove the first sequence because it doesn't contain
+        enough good positions; then, the block containing only gaps will be
+        removed (this is the default behaviour of all trimmer objects)::
+
+            >>> trimmed = trimmer.trim(ali)
+            >>> for name, seq in zip(trimmed.names, trimmed.sequences):
+            ...     print(name.decode().ljust(5), seq)
+            Sp17  APDLLL-IGFLLKTV-ATFGDTWFQLWQGLD
+            Sp10  DPAVL--FVIMLGTI-TKFSSEWFFAWLGLE
+            Sp26  AAALLTYLGLFLGTDYENFAAAAANAWLGLE
+
+    """
+
+    def __init__(
+        self,
+        float sequence_overlap,
+        float residue_overlap,
+        *,
+        str backend="detect"
+    ):
+        """__init__(self, sequence_overlap, residue_overlap, *, backend="detect")\n--
+
+        Create a new overlap trimmer with the given thresholds.
+
+        Arguments:
+            sequence_overlap (`float`): The minimum percentage of "good"
+                positions a sequence must contain to be kept in the
+                alignment.
+            residue_overlap (`float`): The fraction of matching residues
+                a column must contain to be considered a "good" position.
+
+        Keyword Arguments:
+            backend (`str`): The SIMD extension backend to use to accelerate
+                computation of pairwise similarity statistics.
+
+        """
+        super().__init__(backend=backend)
+        self._sequence_overlap = _check_range(sequence_overlap, "sequence_overlap", 0, 100)
+        self._residue_overlap = _check_range(residue_overlap, "residue_overlap", 0, 1)
+
+    cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
+        manager.automatedMethodCount  = 0
+        manager.residuesOverlap       = self._residue_overlap
+        manager.sequenceOverlap       = self._sequence_overlap
 
 # -- Misc classes ------------------------------------------------------------
 

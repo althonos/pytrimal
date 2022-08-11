@@ -9,6 +9,7 @@ from ._trimal import (
     AutomaticTrimmer,
     BaseTrimmer,
     ManualTrimmer,
+    OverlapTrimmer,
     SimilarityMatrix,
     TrimmedAlignment,
 )
@@ -22,6 +23,7 @@ __all__ = [
     "BaseTrimmer",
     "AutomaticTrimmer",
     "ManualTrimmer",
+    "OverlapTrimmer",
     "SimilarityMatrix"
 ]
 

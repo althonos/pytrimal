@@ -82,6 +82,13 @@ cdef class ManualTrimmer(BaseTrimmer):
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager)
 
 
+cdef class OverlapTrimmer(BaseTrimmer):
+    cdef float _sequence_overlap
+    cdef float _residue_overlap
+
+    cdef void _configure_manager(self, trimal.manager.trimAlManager* manager)
+
+
 # -- Misc classes ------------------------------------------------------------
 
 
