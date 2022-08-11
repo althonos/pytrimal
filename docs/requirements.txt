@@ -14,8 +14,9 @@ ipykernel ~=6.0
 
 # example notebook requirements
 pyhmmer ~=0.6
-rich
 matplotlib
+rich
+rich-msa
 
 # sphinx-bootstrap-theme ~=0.7 with patched admonition
 https://github.com/althonos/sphinx-bootstrap-theme/archive/master.zip
