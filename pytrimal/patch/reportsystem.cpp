@@ -174,51 +174,11 @@ void reporting::reportManager::report(InfoCode message, std::string *vars) {
     // Create a timer that will report times upon its destruction
     //	which means the end of the current scope.
     StartTiming("void reporting::reportManager::report(InfoCode message, std::string *vars) ");
-    if (Level > VerboseLevel::INFO) {
-            delete[] vars;
-    } else {
-        if (vars == nullptr) {
-            std::cout << "[INFO " << std::setw(3) << std::setfill('0') << message << "] " << InfoMessages.at(message) << std::endl << std::setfill(' ');
-            return;
-        }
-
-        std::string s(InfoMessages.at(message));
-
-        std::string FindWord = "[tag]";
-
-        int counter = 0;
-
-        std::size_t index;
-        while ((index = s.find(FindWord)) != std::string::npos)
-            s.replace(index, FindWord.length(), vars[counter++]);
-
-        std::cout << "[INFO " << std::setw(3) << std::setfill('0') << message << "] " << s << std::endl << std::setfill(' ');
-
-        delete[] vars;
-    }
+    delete[] vars;
 }
 
 void reporting::reportManager::report(InfoCode message, const char *vars) {
     // Create a timer that will report times upon its destruction
     //	which means the end of the current scope.
     StartTiming("void reporting::reportManager::report(InfoCode message, char *vars) ");
-    if (Level > VerboseLevel::INFO) return;
-
-    if (vars == nullptr) {
-        std::cout << "[INFO " << std::setw(3) << std::setfill('0') << message << "] " << InfoMessages.at(message) << std::endl << std::setfill(' ');
-        return;
-    }
-
-    std::string s(InfoMessages.at(message));
-
-    std::string FindWord = "[tag]";
-
-    std::string Vars = vars;
-
-    std::size_t index;
-    while ((index = s.find(FindWord)) != std::string::npos)
-        s.replace(index, FindWord.length(), Vars);
-
-    std::cout << "[INFO " << std::setw(3) << std::setfill('0') << message << "] " << s << std::endl << std::setfill(' ');
-
 }
