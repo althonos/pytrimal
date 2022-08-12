@@ -1,6 +1,6 @@
 #include <immintrin.h>
-#include <limits.h>
-#include <stdint.h>
+#include <climits>
+#include <cstdint>
 
 #include "Alignment/Alignment.h"
 #include "Statistics/Manager.h"
@@ -96,7 +96,7 @@ namespace statistics {
                 }
 
                 // run remaining iterations in SIMD while possible
-                for (; ((int) k + NLANES_8) < alig->originalNumberOfResidues; k += NLANES_8) {
+                for (; ((int) (k + NLANES_8)) < alig->originalNumberOfResidues; k += NLANES_8) {
                     // load data for the sequences; load is unaligned because
                     // string data is not guaranteed to be aligned.
                     seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
@@ -281,15 +281,25 @@ namespace statistics {
 }
 
 SSECleaner::SSECleaner(Alignment* parent): Cleaner(parent) {
+    // allocate aligned memory for faster SIMD loads
+    hits_unaligned         = (uint32_t*)      malloc(sizeof(uint32_t) * alig->originalNumberOfResidues + 0xF);
+    hits_u8_unaligned      = (uint8_t*)       malloc(sizeof(uint8_t)  * alig->originalNumberOfResidues + 0xF);
+    skipResidues_unaligned = (unsigned char*) malloc(sizeof(char)     * alig->originalNumberOfResidues + 0xF);
+
+    hits         = (uint32_t*)      (((uintptr_t) hits_unaligned         + 15) & (~0xF));
+    hits_u8      = (uint8_t*)       (((uintptr_t) hits_u8_unaligned      + 15) & (~0xF));
+    skipResidues = (unsigned char*) (((uintptr_t) skipResidues_unaligned + 15) & (~0xF));
+
     // create an index for residues to skip
-    skipResidues = (unsigned char*) new unsigned char[alig->originalNumberOfResidues];
     for(int i = 0; i < alig->originalNumberOfResidues; i++) {
         skipResidues[i] = alig->saveResidues[i] == -1 ? 0xFF : 0;
     }
 }
 
 SSECleaner::~SSECleaner() {
-    delete[] skipResidues;
+    free(hits_u8_unaligned);
+    free(hits_unaligned);
+    free(skipResidues_unaligned);
 }
 
 void SSECleaner::calculateSeqIdentity() {
@@ -341,12 +351,12 @@ void SSECleaner::calculateSeqIdentity() {
           int dst = 0;
 
           // run with unrolled loops of UCHAR_MAX iterations first
-          for (k = 0; ((int) k + NLANES_8*UCHAR_MAX) < alig->originalNumberOfResidues;) {
+          for (k = 0; ((int) (k + NLANES_8*UCHAR_MAX)) < alig->originalNumberOfResidues;) {
               for (l = 0; l < UCHAR_MAX; l++, k += NLANES_8) {
                   // load data for the sequences
                   seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
                   seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
-                  skip = _mm_loadu_si128( (const __m128i*) (&skipResidues[k]));
+                  skip = _mm_load_si128(  (const __m128i*) (&skipResidues[k]));
                   eq = _mm_cmpeq_epi8(seqi, seqj);
                   // find which sequence characters are gap or indet
                   gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
@@ -365,12 +375,12 @@ void SSECleaner::calculateSeqIdentity() {
           }
 
           // run remaining iterations in SIMD while possible
-          for (; ((int) k + NLANES_8) < alig->originalNumberOfResidues; k += NLANES_8) {
+          for (; ((int) (k + NLANES_8)) < alig->originalNumberOfResidues; k += NLANES_8) {
               // load data for the sequences; load is unaligned because
               // string data is not guaranteed to be aligned.
               seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
               seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
-              skip = _mm_loadu_si128( (const __m128i*) (&skipResidues[k]));
+              skip = _mm_load_si128(  (const __m128i*) (&skipResidues[k]));
               eq = _mm_cmpeq_epi8(seqi, seqj);
               // find which sequence characters are either a gap or
               // an indeterminate character
@@ -426,9 +436,7 @@ bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
     if (spuriousVector == nullptr)
         return false;
 
-    // allocate tables (FIXME)
-    uint8_t*  hits_u8 = new uint8_t[alig->originalNumberOfResidues];
-    uint32_t* hits    = new uint32_t[alig->originalNumberOfResidues];
+    // compute number of sequences from overlap threshold
     uint32_t  ovrlap  = uint32_t(ceil(overlap * float(alig->originalNumberOfSequences - 1)));
 
     // Depending on alignment type, indetermination symbol will be one or other
@@ -439,7 +447,7 @@ bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
     const __m128i allgap    = _mm_set1_epi8('-');
     const __m128i ONES      = _mm_set1_epi8(1);
 
-    // For each Alignment's sequence, computes its overlap
+    // for each sequence in the alignment, computes its overlap
     for (int i = 0; i < alig->originalNumberOfSequences; i++) {
 
         // reset hits count
@@ -468,7 +476,7 @@ bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
             int k = 0;
 
             // run iterations in SIMD while possible
-            for (; k + ((int) NLANES_8) <= alig->originalNumberOfResidues; k += NLANES_8) {
+            for (; ((int) (k + NLANES_8)) <= alig->originalNumberOfResidues; k += NLANES_8) {
                 // load data for the sequences
                 seqi = _mm_loadu_si128((const __m128i*) (&datai[k]));
                 seqj = _mm_loadu_si128((const __m128i*) (&dataj[k]));
@@ -481,7 +489,7 @@ bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
                 // find position where either not both characters are gap, or they are equal
                 n = _mm_and_si128(_mm_or_si128(eq, gaps), ONES);
                 // update counters
-                hit = _mm_loadu_si128((const __m128i*) (&hits_u8[k]));
+                hit = _mm_load_si128((const __m128i*) (&hits_u8[k]));
                 hit = _mm_add_epi8(hit, n);
                 _mm_store_si128((__m128i*) (&hits_u8[k]), hit);
             }
@@ -516,9 +524,6 @@ bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
         // above overlap threshold
         spuriousVector[i] = ((float) seqValue / alig->originalNumberOfResidues);
     }
-
-    delete[] hits;
-    delete[] hits_u8;
 
     // If there is not problem in the method, return true
     return true;
