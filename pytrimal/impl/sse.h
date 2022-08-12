@@ -25,6 +25,7 @@ public:
     SSECleaner(Alignment* parent);
     ~SSECleaner();
     void calculateSeqIdentity() override;
+    bool calculateSpuriousVector(float overlap, float *spuriousVector);
 };
 
 #endif

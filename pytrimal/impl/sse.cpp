@@ -12,6 +12,9 @@
 
 #include "sse.h"
 
+#define NLANES_8  sizeof(__m128i) / sizeof(uint8_t)   // number of 8-bit lanes in __m128i
+#define NLANES_32 sizeof(__m128i) / sizeof(uint32_t)  // number of 32-bit lanes in __m128i
+
 static inline uint32_t _mm_hsum_epi8(__m128i a) {
     __m128i vsum = _mm_sad_epu8(a, _mm_setzero_si128());
     return _mm_extract_epi16(vsum, 0) + _mm_extract_epi16(vsum, 4);
@@ -70,9 +73,9 @@ namespace statistics {
                 int length = 0;
 
                 // run with unrolled loops of UCHAR_MAX iterations first
-                for (k = 0; k + ((int) sizeof(__m128i))*UCHAR_MAX < alig->originalNumberOfResidues;) {
+                for (k = 0; ((int) (k + NLANES_8*UCHAR_MAX)) < alig->originalNumberOfResidues;) {
                     // unroll the internal loop
-                    for (l = 0; l < UCHAR_MAX; l++, k += sizeof(__m128i)) {
+                    for (l = 0; l < UCHAR_MAX; l++, k += NLANES_8) {
                         // load data for the sequences
                         seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
                         seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
@@ -93,7 +96,7 @@ namespace statistics {
                 }
 
                 // run remaining iterations in SIMD while possible
-                for (; k + ((int) sizeof(__m128i)) < alig->originalNumberOfResidues; k += sizeof(__m128i)) {
+                for (; ((int) k + NLANES_8) < alig->originalNumberOfResidues; k += NLANES_8) {
                     // load data for the sequences; load is unaligned because
                     // string data is not guaranteed to be aligned.
                     seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
@@ -338,8 +341,8 @@ void SSECleaner::calculateSeqIdentity() {
           int dst = 0;
 
           // run with unrolled loops of UCHAR_MAX iterations first
-          for (k = 0; k + ((int) sizeof(__m128i))*UCHAR_MAX < alig->originalNumberOfResidues;) {
-              for (l = 0; l < UCHAR_MAX; l++, k += sizeof(__m128i)) {
+          for (k = 0; ((int) k + NLANES_8*UCHAR_MAX) < alig->originalNumberOfResidues;) {
+              for (l = 0; l < UCHAR_MAX; l++, k += NLANES_8) {
                   // load data for the sequences
                   seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
                   seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
@@ -362,7 +365,7 @@ void SSECleaner::calculateSeqIdentity() {
           }
 
           // run remaining iterations in SIMD while possible
-          for (; k + ((int) sizeof(__m128i)) < alig->originalNumberOfResidues; k += sizeof(__m128i)) {
+          for (; ((int) k + NLANES_8) < alig->originalNumberOfResidues; k += NLANES_8) {
               // load data for the sequences; load is unaligned because
               // string data is not guaranteed to be aligned.
               seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
@@ -412,4 +415,111 @@ void SSECleaner::calculateSeqIdentity() {
           alig->identities[j][i] = alig->identities[i][j];
       }
   }
+}
+
+bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
+    // Create a timer that will report times upon its destruction
+    //	which means the end of the current scope.
+    StartTiming("bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) ");
+
+    // abort if there is not output vector to write to
+    if (spuriousVector == nullptr)
+        return false;
+
+    // allocate tables (FIXME)
+    uint8_t*  hits_u8 = new uint8_t[alig->originalNumberOfResidues];
+    uint32_t* hits    = new uint32_t[alig->originalNumberOfResidues];
+    uint32_t  ovrlap  = uint32_t(ceil(overlap * float(alig->originalNumberOfSequences - 1)));
+
+    // Depending on alignment type, indetermination symbol will be one or other
+    char indet = (alig->getAlignmentType() & SequenceTypes::AA) ? 'X' : 'N';
+
+    // prepare constant SIMD vectors
+    const __m128i allindet  = _mm_set1_epi8(indet);
+    const __m128i allgap    = _mm_set1_epi8('-');
+    const __m128i ONES      = _mm_set1_epi8(1);
+
+    // For each Alignment's sequence, computes its overlap
+    for (int i = 0; i < alig->originalNumberOfSequences; i++) {
+
+        // reset hits count
+        memset(&hits[0],    0, alig->originalNumberOfResidues*sizeof(uint32_t));
+        memset(&hits_u8[0], 0, alig->originalNumberOfResidues*sizeof(uint8_t));
+
+        // compare sequence to other sequences for every position
+        for (int j = 0; j < alig->originalNumberOfSequences; j++) {
+
+            // don't compare sequence to itself
+            if (j == i)
+                continue;
+
+            const char* datai = alig->sequences[i].data();
+            const char* dataj = alig->sequences[j].data();
+
+            __m128i seqi;
+            __m128i seqj;
+            __m128i eq;
+            __m128i gapsi;
+            __m128i gapsj;
+            __m128i gaps;
+            __m128i n;
+            __m128i hit;
+
+            int k = 0;
+
+            // run iterations in SIMD while possible
+            for (; k + ((int) NLANES_8) <= alig->originalNumberOfResidues; k += NLANES_8) {
+                // load data for the sequences
+                seqi = _mm_loadu_si128((const __m128i*) (&datai[k]));
+                seqj = _mm_loadu_si128((const __m128i*) (&dataj[k]));
+                // find which sequence characters are gap or indet
+                gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
+                gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
+                gaps  = _mm_andnot_si128( _mm_or_si128(gapsi, gapsj), _mm_set1_epi8(0xFF));
+                // find which sequence characters match
+                eq = _mm_cmpeq_epi8(seqi, seqj);
+                // find position where either not both characters are gap, or they are equal
+                n = _mm_and_si128(_mm_or_si128(eq, gaps), ONES);
+                // update counters
+                hit = _mm_loadu_si128((const __m128i*) (&hits_u8[k]));
+                hit = _mm_add_epi8(hit, n);
+                _mm_store_si128((__m128i*) (&hits_u8[k]), hit);
+            }
+
+            // process the tail elements when there remain less than
+            // can be fitted in a SIMD vector
+            for (; k < alig->originalNumberOfResidues; k++) {
+                int nongapi = (datai[k] != indet) && (datai[k] != '-');
+                int nongapj = (dataj[k] != indet) && (dataj[k] != '-');
+                hits_u8[k] += ((nongapi && nongapj) || (datai[k] == dataj[k]));
+            }
+
+            // we can process up to UCHAR_MAX sequences, otherwise hits_u8[k]
+            // may overflow, so every UCHAR_MAX iterations we transfer the
+            // partial hit counts from `hits_u8` to `hits`
+            if ((j % UCHAR_MAX) == 0) {
+                for (k = 0; k < alig->originalNumberOfResidues; k++) hits[k] += hits_u8[k];
+                memset(hits_u8, 0, alig->originalNumberOfResidues*sizeof(uint8_t));
+            }
+        }
+
+        // update counters after last loop
+        for (int k = 0; k < alig->originalNumberOfResidues; k++) hits[k] += hits_u8[k];
+
+        // compute number of good positions in for sequence i
+        uint32_t seqValue = 0;
+        for (int k = 0; k < alig->originalNumberOfResidues; k++)
+            if (hits[k] >= ovrlap)
+                seqValue++;
+
+        // compute overlap of current sequence as the fraction of columns
+        // above overlap threshold
+        spuriousVector[i] = ((float) seqValue / alig->originalNumberOfResidues);
+    }
+
+    delete[] hits;
+    delete[] hits_u8;
+
+    // If there is not problem in the method, return true
+    return true;
 }

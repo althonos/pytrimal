@@ -1,3 +1,6 @@
+@@ -274 +274 @@
+-    bool calculateSpuriousVector(float overlap, float *spuriousVector);
++    virtual bool calculateSpuriousVector(float overlap, float *spuriousVector);
 @@ -428 +428 @@
 -    void calculateSeqIdentity();
 +    virtual void calculateSeqIdentity();
