@@ -311,6 +311,7 @@ class build_ext(_build_ext):
         # add C++11 flags
         if self.compiler.compiler_type in {"unix", "cygwin", "mingw32"}:
             ext.extra_compile_args.append("-std=c++11")
+            ext.extra_compile_args.append("-funroll-loops")
             ext.extra_link_args.append("-Wno-alloc-size-larger-than")
         elif self.compiler.compiler_type == "msvc":
             ext.extra_compile_args.append("/std:c11")
