@@ -639,7 +639,8 @@ cdef class Alignment:
         """
         cdef bytes name
         cdef str   sequence
-        cdef int   nresidues = -1
+        cdef int   nresidues     = -1
+        cdef bool  validate_seqs = not isinstance(sequences, AlignmentSequences)
 
         if len(names) != len(sequences):
             raise ValueError(f"`Alignment` given {len(names)!r} names but {len(sequences)!r} sequences")
@@ -659,7 +660,7 @@ cdef class Alignment:
             self._ali.seqsName[i]  = name
             self._ali.sequences[i] = sequence.encode('ascii') # FIXME: no decoding
 
-        self._ali.fillMatrices(self._ali.numberOfSequences > 1, True)
+        self._ali.fillMatrices(self._ali.numberOfSequences > 1, validate_seqs)
         self._ali.originalNumberOfSequences = self._ali.numberOfSequences
         self._ali.originalNumberOfResidues = self._ali.numberOfResidues
 
