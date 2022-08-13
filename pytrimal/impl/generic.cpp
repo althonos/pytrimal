@@ -158,3 +158,67 @@ namespace statistics {
         return true;
     }
 }
+
+GenericCleaner::GenericCleaner(Alignment* parent): Cleaner(parent) {
+    hits = new uint32_t[alig->originalNumberOfResidues];
+}
+
+GenericCleaner::~GenericCleaner() {
+    delete[] hits;
+}
+
+
+bool GenericCleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
+    // Create a timer that will report times upon its destruction
+    //	which means the end of the current scope.
+    StartTiming("bool GenericCleaner::calculateSpuriousVector(float overlap, float *spuriousVector) ");
+
+    // abort if there is not output vector to write to
+    if (spuriousVector == nullptr)
+        return false;
+
+    // compute number of sequences from overlap threshold
+    uint32_t ovrlap  = uint32_t(ceil(overlap * float(alig->originalNumberOfSequences - 1)));
+
+    // Depending on alignment type, indetermination symbol will be one or other
+    char indet = (alig->getAlignmentType() & SequenceTypes::AA) ? 'X' : 'N';
+
+    // for each sequence in the alignment, computes its overlap
+    for (int i = 0; i < alig->originalNumberOfSequences; i++) {
+
+        // reset hits count
+        memset(&hits[0], 0, alig->originalNumberOfResidues*sizeof(uint32_t));
+
+        // compare sequence to other sequences for every position
+        for (int j = 0; j < alig->originalNumberOfSequences; j++) {
+
+            // don't compare sequence to itself
+            if (j == i)
+                continue;
+
+            const char* datai = alig->sequences[i].data();
+            const char* dataj = alig->sequences[j].data();
+
+            // process the tail elements when there remain less than
+            // can be fitted in a SIMD vector
+            for (int k = 0; k < alig->originalNumberOfResidues; k++) {
+                int nongapi = (datai[k] != indet) && (datai[k] != '-');
+                int nongapj = (dataj[k] != indet) && (dataj[k] != '-');
+                hits[k] += ((nongapi && nongapj) || (datai[k] == dataj[k]));
+            }
+        }
+
+        // compute number of good positions in for sequence i
+        uint32_t seqValue = 0;
+        for (int k = 0; k < alig->originalNumberOfResidues; k++)
+            if (hits[k] >= ovrlap)
+                seqValue++;
+
+        // compute overlap of current sequence as the fraction of columns
+        // above overlap threshold
+        spuriousVector[i] = ((float) seqValue / alig->originalNumberOfResidues);
+    }
+
+    // If there is not problem in the method, return true
+    return true;
+}

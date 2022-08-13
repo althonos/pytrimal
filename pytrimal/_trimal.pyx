@@ -44,7 +44,7 @@ cimport trimal.report_system
 cimport trimal.similarity_matrix
 
 from pytrimal.fileobj cimport pyreadbuf, pyreadintobuf, pywritebuf
-from pytrimal.impl.generic cimport GenericSimilarity
+from pytrimal.impl.generic cimport GenericSimilarity, GenericCleaner
 IF SSE2_BUILD_SUPPORT:
     from pytrimal.impl.sse cimport SSESimilarity, SSECleaner
 
@@ -1014,6 +1014,8 @@ cdef class BaseTrimmer:
         if self._backend == simd_backend.GENERIC:
             del manager.origAlig.Statistics.similarity
             manager.origAlig.Statistics.similarity = new GenericSimilarity(manager.origAlig)
+            del manager.origAlig.Cleaning
+            manager.origAlig.Cleaning = new GenericCleaner(manager.origAlig)
         IF SSE2_BUILD_SUPPORT:
             if self._backend == simd_backend.SSE2:
                 del manager.origAlig.Statistics.similarity
