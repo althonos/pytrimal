@@ -65,6 +65,16 @@ IF TARGET_CPU == "x86" and TARGET_SYSTEM in ("freebsd", "linux_or_android", "mac
     _SSE2_BUILD_SUPPORT   = SSE2_BUILD_SUPPORT
     _SSE2_RUNTIME_SUPPORT = SSE2_BUILD_SUPPORT and cpu_info.features.sse2 != 0
 
+if _SSE2_RUNTIME_SUPPORT:
+    _BEST_BACKEND = simd_backend.SSE2
+else:
+    _BEST_BACKEND = simd_backend.GENERIC
+
+cdef enum simd_backend:
+    NONE = 0
+    GENERIC = 1
+    SSE2 = 2
+
 
 # --- Utilities --------------------------------------------------------------
 
@@ -934,12 +944,6 @@ cdef class TrimmedAlignment(Alignment):
 
 # -- Trimmer classes ---------------------------------------------------------
 
-cdef enum simd_backend:
-    NONE = 0
-    GENERIC = 1
-    SSE2 = 2
-
-
 cdef class BaseTrimmer:
     """A sequence alignment trimmer.
 
@@ -953,9 +957,10 @@ cdef class BaseTrimmer:
 
         Create a new base trimmer.
 
-        Arguments:
-            backend (`str`): The SIMD extension backend to use to accelerate
-                computation of pairwise similarity statistics.
+        Keyword Arguments:
+            backend (`str`, *optional*): The SIMD extension backend to use
+                to accelerate computation of pairwise similarity statistics.
+                If `None` given, use the original code from trimAl.
 
         .. versionadded:: 0.2.0
            The ``backend`` keyword argument.
@@ -986,6 +991,13 @@ cdef class BaseTrimmer:
                 self._backend = simd_backend.NONE
             else:
                 raise ValueError(f"Unsupported backend on this architecture: {backend}")
+
+    def __repr__(self):
+        cdef str ty  = type(self).__name__
+        cdef str arg = ""
+        if self._backend != _BEST_BACKEND:
+            arg = f"backend={self.backend!r}"
+        return f"{ty}({arg})"
 
     @property
     def backend(self):
@@ -1133,8 +1145,9 @@ cdef class AutomaticTrimmer(BaseTrimmer):
                 supported values.
 
         Keyword Arguments:
-            backend (`str`): The SIMD extension backend to use to accelerate
-                computation of pairwise similarity statistics.
+            backend (`str`, *optional*): The SIMD extension backend to use
+                to accelerate computation of pairwise similarity statistics.
+                If `None` given, use the original code from trimAl.
 
         Raises:
             `ValueError`: When ``method`` is not one of the automatic
@@ -1149,6 +1162,13 @@ cdef class AutomaticTrimmer(BaseTrimmer):
         if method not in self.METHODS:
             raise ValueError(f"Invalid value for `method`: {method!r}")
         self.method = method
+
+    def __repr__(self):
+        cdef str ty    = type(self).__name__
+        cdef list args = [repr(self.method)]
+        if self._backend != _BEST_BACKEND:
+            args.append(f"backend={self.backend!r}")
+        return f"{ty}({', '.join(args)})"
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         BaseTrimmer._configure_manager(self, manager)
@@ -1232,19 +1252,20 @@ cdef class ManualTrimmer(BaseTrimmer):
             conservation_percentage (`float`, *optional*): The minimum
                 percentage of positions in the original alignment to
                 conserve.
-            window (`float`, *optional*): The size of the half-window to use
+            window (`int`, *optional*): The size of the half-window to use
                 when computing statistics for an alignment.
-            gap_window (`float`, *optional*): The size of the half-window to
+            gap_window (`int`, *optional*): The size of the half-window to
                 use when computing the *gap* statistic for an alignment.
                 Incompatible with ``window``.
-            similarity_window (`float`, *optional*): The size of the
+            similarity_window (`int`, *optional*): The size of the
                 half-window to use when computing the *similarity* statistic
                 for an alignment. Incompatible with ``window``.
-            consistency_window (`float`, *optional*): The size of the
+            consistency_window (`int`, *optional*): The size of the
                 half-window to use when computing the *consistency*
                 statistic for an alignment. Incompatible with ``window``.
-            backend (`str`): The SIMD extension backend to use to accelerate
-                computation of pairwise similarity statistics.
+            backend (`str`, *optional*): The SIMD extension backend to use
+                to accelerate computation of pairwise similarity statistics.
+                If `None` given, use the original code from trimAl.
 
         .. versionadded:: 0.2.0
            The ``backend`` keyword argument.
@@ -1280,6 +1301,31 @@ cdef class ManualTrimmer(BaseTrimmer):
             self._similarity_window = _check_positive(similarity_window, "similarity_window")
         if consistency_window is not None:
             self._consistency_window = _check_positive(consistency_window, "consistency_window")
+
+    def __repr__(self):
+        cdef str ty    = type(self).__name__
+        cdef list args = []
+        if self._gap_threshold != -1:
+            args.append(f"gap_threshold={1-self._gap_threshold!r}")
+        if self._gap_absolute_threshold != -1:
+            args.append(f"gap_absolute_threshold={self._gap_absolute_threshold!r}")
+        if self._similarity_threshold != -1:
+            args.append(f"similarity_threshold={self._similarity_threshold!r}")
+        if self._consistency_threshold != -1:
+            args.append(f"consistency_threshold={self._consistency_threshold!r}")
+        if self._conservation_percentage != -1:
+            args.append(f"conservation_percentage={self._conservation_percentage!r}")
+        if self._window != -1:
+            args.append(f"window={self._window!r}")
+        if self._gap_window != -1:
+            args.append(f"gap_window={self._gap_window!r}")
+        if self._similarity_window != -1:
+            args.append(f"similarity_window={self._similarity_window!r}")
+        if self._consistency_window != -1:
+            args.append(f"consistency_window={self._consistency_window!r}")
+        if self._backend != _BEST_BACKEND:
+            args.append(f"backend={self.backend!r}")
+        return f"{ty}({', '.join(args)})"
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         manager.automatedMethodCount  = 0
@@ -1356,13 +1402,21 @@ cdef class OverlapTrimmer(BaseTrimmer):
                 a column must contain to be considered a "good" position.
 
         Keyword Arguments:
-            backend (`str`): The SIMD extension backend to use to accelerate
-                computation of pairwise similarity statistics.
+            backend (`str`, *optional*): The SIMD extension backend to use
+                to accelerate computation of pairwise similarity statistics.
+                If `None` given, use the original code from trimAl.
 
         """
         super().__init__(backend=backend)
         self._sequence_overlap = _check_range(sequence_overlap, "sequence_overlap", 0, 100)
         self._residue_overlap = _check_range(residue_overlap, "residue_overlap", 0, 1)
+
+    def __repr__(self):
+        cdef str ty    = type(self).__name__
+        cdef list args = [repr(self._sequence_overlap), repr(self._residue_overlap)]
+        if self._backend != _BEST_BACKEND:
+            args.append(f"backend={self.backend!r}")
+        return f"{ty}({', '.join(args)})"
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         manager.automatedMethodCount  = 0

@@ -38,6 +38,8 @@ class TestManualTrimmer(unittest.TestCase):
         self.assertRaises(ValueError, ManualTrimmer, gap_absolute_threshold=-1)
         self.assertRaises(ValueError, ManualTrimmer, conservation_percentage=1000)
         self.assertRaises(ValueError, ManualTrimmer, conservation_percentage=-2)
+        self.assertRaises(ValueError, ManualTrimmer, gap_threshold=0.5, gap_absolute_threshold=0.5)
+        self.assertRaises(ValueError, ManualTrimmer, window=5, gap_window=5)
 
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(importlib_resources, "importlib.resources not available")
@@ -66,3 +68,11 @@ class TestManualTrimmer(unittest.TestCase):
     def test_duplicate_window(self):
         self.assertRaises(ValueError, ManualTrimmer, window=3, gap_window=3)
         self.assertRaises(ValueError, ManualTrimmer, window=3, gap_window=3, similarity_window=3)
+
+    def test_repr(self):
+        trimmer = ManualTrimmer(gap_threshold=0.5)
+        self.assertEqual(repr(trimmer), "ManualTrimmer(gap_threshold=0.5)")
+        trimmer = ManualTrimmer(window=5, backend=None)
+        self.assertEqual(repr(trimmer), "ManualTrimmer(window=5, backend=None)")
+        trimmer = ManualTrimmer(gap_absolute_threshold=10, similarity_threshold=0.5, consistency_threshold=0.5, conservation_percentage=50.0, gap_window=5, similarity_window=5, consistency_window=3, backend=None)
+        self.assertEqual(repr(trimmer), "ManualTrimmer(gap_absolute_threshold=10, similarity_threshold=0.5, consistency_threshold=0.5, conservation_percentage=50.0, gap_window=5, similarity_window=5, consistency_window=3, backend=None)")

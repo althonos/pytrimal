@@ -11,7 +11,7 @@ try:
 except ImportError:
     importlib_resources = None
 
-from .. import Alignment, OverlapTrimmer, SimilarityMatrix
+from .. import Alignment, OverlapTrimmer
 from .._trimal import _SSE2_RUNTIME_SUPPORT
 
 
@@ -44,3 +44,11 @@ class TestOverlapTrimmer(unittest.TestCase):
     @unittest.skipUnless(importlib_resources, "importlib.resources not available")
     def test_seqoverlap40_resoverlap60(self):
         self._test_overlap(40, 60)
+
+    def test_repr(self):
+        trimmer = OverlapTrimmer(80, 0.5)
+        self.assertEqual(repr(trimmer), "OverlapTrimmer(80.0, 0.5)")
+        trimmer = OverlapTrimmer(50, 1.0)
+        self.assertEqual(repr(trimmer), "OverlapTrimmer(50.0, 1.0)")
+        trimmer = OverlapTrimmer(30, 0.25, backend=None)
+        self.assertEqual(repr(trimmer), "OverlapTrimmer(30.0, 0.25, backend=None)")

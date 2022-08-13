@@ -39,6 +39,14 @@ class TestAutomaticTrimmer(unittest.TestCase):
         self.assertRaises(ValueError, AutomaticTrimmer, method="nonsense")
         self.assertRaises(TypeError, AutomaticTrimmer, method=1)
 
+    def test_repr(self):
+        trimmer = AutomaticTrimmer("strict")
+        self.assertEqual(repr(trimmer), "AutomaticTrimmer('strict')")
+        trimmer = AutomaticTrimmer("automated1")
+        self.assertEqual(repr(trimmer), "AutomaticTrimmer('automated1')")
+        trimmer = AutomaticTrimmer("noduplicateseqs", backend=None)
+        self.assertEqual(repr(trimmer), "AutomaticTrimmer('noduplicateseqs', backend=None)")
+
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(importlib_resources, "importlib.resources not available")
     def test_strict_method(self):
