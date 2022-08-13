@@ -55,16 +55,6 @@ import threading
 
 # --- Constants --------------------------------------------------------------
 
-cdef set AUTOMATED_TRIMMER_METHODS = {
-    "strict",
-    "strictplus",
-    "gappyout",
-    "nogaps",
-    "noallgaps",
-    "automated1",
-    "noduplicateseqs",
-}
-
 _TARGET_CPU           = TARGET_CPU
 _SSE2_RUNTIME_SUPPORT = False
 _SSE2_BUILD_SUPPORT   = False
@@ -73,9 +63,7 @@ IF TARGET_CPU == "x86" and TARGET_SYSTEM in ("freebsd", "linux_or_android", "mac
     from cpu_features.x86 cimport GetX86Info, X86Info
     cdef X86Info cpu_info = GetX86Info()
     _SSE2_BUILD_SUPPORT   = SSE2_BUILD_SUPPORT
-    _AVX2_BUILD_SUPPORT   = AVX2_BUILD_SUPPORT
     _SSE2_RUNTIME_SUPPORT = SSE2_BUILD_SUPPORT and cpu_info.features.sse2 != 0
-    _AVX2_RUNTIME_SUPPORT = AVX2_BUILD_SUPPORT and cpu_info.features.avx2 != 0
 
 
 # --- Utilities --------------------------------------------------------------
@@ -1116,7 +1104,23 @@ cdef class AutomaticTrimmer(BaseTrimmer):
     - ``noduplicateseqs``: A naive method that removes sequences that are
       equal on the alignment, keeping the latest occurence.
 
+    Hint:
+        A Python `frozenset` containing all valid automatic trimming methods
+        can be obtained with the `AutomaticTrimmer.METHODS` attribute. This
+        can be useful for listing or validating methods beforehand, e.g. to
+        build a CLI with `argparse`.
+
     """
+
+    METHODS = frozenset({
+        "strict",
+        "strictplus",
+        "gappyout",
+        "nogaps",
+        "noallgaps",
+        "automated1",
+        "noduplicateseqs",
+    })
 
     def __init__(self, str method="strict", *, str backend="detect"):
         """__init__(self, method="strict", *, backend="detect")\n--
@@ -1142,7 +1146,7 @@ cdef class AutomaticTrimmer(BaseTrimmer):
         """
         super().__init__(backend=backend)
 
-        if method not in AUTOMATED_TRIMMER_METHODS:
+        if method not in self.METHODS:
             raise ValueError(f"Invalid value for `method`: {method!r}")
         self.method = method
 

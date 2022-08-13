@@ -2,7 +2,7 @@
 
 import os
 import typing
-from typing import BinaryIO, Sequence, List, Optional, Union, Sequence
+from typing import BinaryIO, Sequence, List, Optional, Union, Sequence, FrozenSet
 
 try:
     from typing import Literal
@@ -91,6 +91,7 @@ class BaseTrimmer:
 
 
 class AutomaticTrimmer(BaseTrimmer):
+    METHODS: typing.ClassVar[FrozenSet[AUTOMATIC_TRIMMER_METHODS]]
     def __init__(self, method: AUTOMATIC_TRIMMER_METHODS = "strict", *, backend: TRIMMER_BACKEND = "detect") -> None: ...
 
 
