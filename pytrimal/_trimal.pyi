@@ -102,12 +102,10 @@ class ManualTrimmer(BaseTrimmer):
         gap_threshold: Optional[float] = None,
         gap_absolute_threshold: Optional[int] = None,
         similarity_threshold: Optional[float] = None,
-        consistency_threshold: Optional[float] = None,
         conservation_percentage: Optional[float] = None,
         window: Optional[int] = None,
         gap_window: Optional[int] = None,
         similarity_window: Optional[int] = None,
-        consistency_window: Optional[int] = None,
         backend: TRIMMER_BACKEND = "detect",
     ) -> None: ...
 

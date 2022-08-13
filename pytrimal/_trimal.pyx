@@ -1193,10 +1193,8 @@ cdef class ManualTrimmer(BaseTrimmer):
     """A sequence alignment trimmer with manually defined thresholds.
 
     Manual trimming allows the user to specify independent thresholds for
-    four different statistics:
+    two different statistics:
 
-    - *Consistency threshold*: Remove columns with a consistency ratio
-      lower than the provided threshold.
     - *Gap threshold*: Remove columns where the gap ratio (or the absolute
       gap count) is higher than the provided threshold.
     - *Similarity threshold*: Remove columns with a similarity ratio lower
@@ -1213,12 +1211,10 @@ cdef class ManualTrimmer(BaseTrimmer):
         self._gap_threshold           = -1
         self._gap_absolute_threshold  = -1
         self._similarity_threshold    = -1
-        self._consistency_threshold   = -1
         self._conservation_percentage = -1
         self._window                  = -1
         self._gap_window              = -1
         self._similarity_window       = -1
-        self._consistency_window      = -1
 
     def __init__(
         self,
@@ -1226,15 +1222,13 @@ cdef class ManualTrimmer(BaseTrimmer):
         object gap_threshold           = None,
         object gap_absolute_threshold  = None,
         object similarity_threshold    = None,
-        object consistency_threshold   = None,
         object conservation_percentage = None,
         object window                  = None,
         object gap_window              = None,
         object similarity_window       = None,
-        object consistency_window      = None,
         str    backend                 = "detect",
     ):
-        """__init__(self, *, gap_threshold=None, gap_absolute_threshold=None, similarity_threshold=None, consistency_threshold=None, conservation_percentage=None, window=None, gap_window=None, similarity_window=None, consistency_window=None, backend="detect")\n--
+        """__init__(self, *, gap_threshold=None, gap_absolute_threshold=None, similarity_threshold=None, conservation_percentage=None, window=None, gap_window=None, similarity_window=None, backend="detect")\n--
 
         Create a new manual alignment trimmer with the given parameters.
 
@@ -1247,8 +1241,6 @@ cdef class ManualTrimmer(BaseTrimmer):
                 Incompatible with ``gap_threshold``.
             similarity_threshold (`float`, *optional*): The minimum average
                 similarity required.
-            consistency_threshold (`float`, *optional*): The minimum
-                consistency value required.
             conservation_percentage (`float`, *optional*): The minimum
                 percentage of positions in the original alignment to
                 conserve.
@@ -1260,9 +1252,6 @@ cdef class ManualTrimmer(BaseTrimmer):
             similarity_window (`int`, *optional*): The size of the
                 half-window to use when computing the *similarity* statistic
                 for an alignment. Incompatible with ``window``.
-            consistency_window (`int`, *optional*): The size of the
-                half-window to use when computing the *consistency*
-                statistic for an alignment. Incompatible with ``window``.
             backend (`str`, *optional*): The SIMD extension backend to use
                 to accelerate computation of pairwise similarity statistics.
                 If `None` given, use the original code from trimAl.
@@ -1278,7 +1267,7 @@ cdef class ManualTrimmer(BaseTrimmer):
 
         if gap_threshold is not None and gap_absolute_threshold is not None:
             raise ValueError("Cannot specify both `gap_threshold` and `gap_absolute_threshold`")
-        if window is not None and any(w is not None for w in (gap_window, similarity_window, consistency_window)):
+        if window is not None and (gap_window is not None or similarity_window is not None):
             raise ValueError("Cannot specify both `window` and a specific window argument")
 
         if gap_threshold is not None:
@@ -1289,8 +1278,6 @@ cdef class ManualTrimmer(BaseTrimmer):
             self._gap_absolute_threshold = gap_absolute_threshold
         if similarity_threshold is not None:
             self._similarity_threshold = _check_range(similarity_threshold, "similarity_threshold", 0, 1)
-        if consistency_threshold is not None:
-            self._consistency_threshold = _check_range(consistency_threshold, "consistency_threshold", 0, 1)
         if conservation_percentage is not None:
             self._conservation_percentage = _check_range(conservation_percentage, "conservation_percentage", 0, 100)
         if window is not None:
@@ -1299,8 +1286,6 @@ cdef class ManualTrimmer(BaseTrimmer):
             self._gap_window = _check_positive(gap_window, "gap_window")
         if similarity_window is not None:
             self._similarity_window = _check_positive(similarity_window, "similarity_window")
-        if consistency_window is not None:
-            self._consistency_window = _check_positive(consistency_window, "consistency_window")
 
     def __repr__(self):
         cdef str ty    = type(self).__name__
@@ -1311,8 +1296,6 @@ cdef class ManualTrimmer(BaseTrimmer):
             args.append(f"gap_absolute_threshold={self._gap_absolute_threshold!r}")
         if self._similarity_threshold != -1:
             args.append(f"similarity_threshold={self._similarity_threshold!r}")
-        if self._consistency_threshold != -1:
-            args.append(f"consistency_threshold={self._consistency_threshold!r}")
         if self._conservation_percentage != -1:
             args.append(f"conservation_percentage={self._conservation_percentage!r}")
         if self._window != -1:
@@ -1321,8 +1304,6 @@ cdef class ManualTrimmer(BaseTrimmer):
             args.append(f"gap_window={self._gap_window!r}")
         if self._similarity_window != -1:
             args.append(f"similarity_window={self._similarity_window!r}")
-        if self._consistency_window != -1:
-            args.append(f"consistency_window={self._consistency_window!r}")
         if self._backend != _BEST_BACKEND:
             args.append(f"backend={self.backend!r}")
         return f"{ty}({', '.join(args)})"
@@ -1332,12 +1313,10 @@ cdef class ManualTrimmer(BaseTrimmer):
         manager.gapThreshold          = self._gap_threshold
         manager.gapAbsoluteThreshold  = self._gap_absolute_threshold
         manager.similarityThreshold   = self._similarity_threshold
-        manager.consistencyThreshold  = self._consistency_threshold
         manager.conservationThreshold = self._conservation_percentage
         manager.windowSize            = self._window
         manager.gapWindow             = self._gap_window
         manager.similarityWindow      = self._similarity_window
-        manager.consistencyWindow     = self._consistency_window
 
 
 cdef class OverlapTrimmer(BaseTrimmer):

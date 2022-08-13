@@ -74,5 +74,5 @@ class TestManualTrimmer(unittest.TestCase):
         self.assertEqual(repr(trimmer), "ManualTrimmer(gap_threshold=0.5)")
         trimmer = ManualTrimmer(window=5, backend=None)
         self.assertEqual(repr(trimmer), "ManualTrimmer(window=5, backend=None)")
-        trimmer = ManualTrimmer(gap_absolute_threshold=10, similarity_threshold=0.5, consistency_threshold=0.5, conservation_percentage=50.0, gap_window=5, similarity_window=5, consistency_window=3, backend=None)
-        self.assertEqual(repr(trimmer), "ManualTrimmer(gap_absolute_threshold=10, similarity_threshold=0.5, consistency_threshold=0.5, conservation_percentage=50.0, gap_window=5, similarity_window=5, consistency_window=3, backend=None)")
+        trimmer = ManualTrimmer(gap_absolute_threshold=10, similarity_threshold=0.5, conservation_percentage=50.0, gap_window=5, similarity_window=5, backend=None)
+        self.assertEqual(repr(trimmer), "ManualTrimmer(gap_absolute_threshold=10, similarity_threshold=0.5, conservation_percentage=50.0, gap_window=5, similarity_window=5, backend=None)")
