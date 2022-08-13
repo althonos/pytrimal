@@ -91,6 +91,7 @@ Library
    :maxdepth: 2
 
    Installation <install>
+   Statistics <statistics>
    Examples <examples/index>
    Contributing <contributing>
    API Reference <api/index>
