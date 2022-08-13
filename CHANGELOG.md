@@ -6,7 +6,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.4.0...HEAD
+
+
+## [v0.4.0] - 2022-08-14
+[v0.4.0]: https://github.com/althonos/pytrimal/compare/v0.3.0...v0.4.0
+
+### Added
+- `BaseTrimmer.backend` property to get the backend used by a trimmer object.
+- Zero-copy slicing for `AlignmentSequences` and `AlignmentResidues` objects.
+- `noduplicateseqs` method for `AutomaticTrimmer` objects.
+- `OverlapTrimmer` class to perform overlap trimming with SSE-accelerated implementation.
+- `AutomaticTrimmer.METHODS` attribute to expose all supported automatic trimming methods.
+- `__repr__` implementation to all trimmer classes.
+
+### Fixed
+- Missing deallocation code for standalone `AlignmentResidues` objects.
+- `Alignment.load` not working properly in PyPy environments.
+- `Alignment` constructor sometimes crashing when not given any sequence.
+
+### Changed
+- Use aligned memory for some temporary buffers used in SIMD code.
+- Enable loop unrolling when supported by the compiler.
+- Skip letter validation when creating an `Alignment` object with sequences from an `AlignmentSequences` object.
+
+### Removed
+- `consistency_threshold` and `consistency_window` arguments of `ManualTrimmer`.
 
 
 ## [v0.3.0] - 2022-06-26
