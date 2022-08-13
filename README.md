@@ -148,17 +148,24 @@ with multiprocessing.pool.ThreadPool() as pool:
 
 ## ⏱️ Benchmarks
 
-Benchmarks were run on a [i7-8550U CPU](https://ark.intel.com/content/www/us/en/ark/products/122589/intel-core-i78550u-processor-8m-cache-up-to-4-00-ghz.html),
-using a single core to time the execution of a `strict` trimming on a variable
-number of sequences from [`example.014.AA.EggNOG.COG0591.fasta`](https://github.com/inab/trimal/blob/trimAl/dataset/example.014.AA.EggNOG.COG0591.fasta), an alignment
-of 3583 sequences and 7287 columns:
+Benchmarks were run on a [i7-10710U CPU](https://ark.intel.com/content/www/us/en/ark/products/196448/intel-core-i710710u-processor-12m-cache-up-to-4-70-ghz.html)
+@ 1.10GHz, using a single core to time the computation of several statistics,
+on a variable number of sequences from
+[`example.014.AA.EggNOG.COG0591.fasta`](https://github.com/inab/trimal/blob/trimAl/dataset/example.014.AA.EggNOG.COG0591.fasta),
+an alignment of 3583 sequences and 7287 columns.
 
-![Benchmarks](https://raw.githubusercontent.com/althonos/pytrimal/main/bench/v0.2.2.svg)
+![Benchmarks](https://raw.githubusercontent.com/althonos/pytrimal/main/bench/v0.4.0.svg)
 
-The `None` curve shows the time using the internal trimAl 2.0 code, and the
-`SSE` curve shows the time spent using a dedicated class with
-[SIMD](https://en.wikipedia.org/wiki/Single_instruction,_multiple_data)
-implementations of the statistics computation.
+Each graph measures the computation time of a single trimAl statistic
+(see the [Statistics page](https://pytrimal.readthedocs.io/en/stable/statistics.html)
+of the [online documentation](https://pytrimal.readthedocs.io/) for more
+information.)
+
+The `None` curve shows the time using the internal trimAl 2.0 code,
+the `Generic` curve shows a generic C implementation with some more
+optimizations, and the `SSE` curve shows the time spent using a dedicated
+class with [SIMD](https://en.wikipedia.org/wiki/Single_instruction,_multiple_data)
+implementations of the statistic computation.
 
 ## 💭 Feedback
 
