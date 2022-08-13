@@ -411,6 +411,8 @@ cdef class Alignment:
         else:
             # check the file-like object has all the required features
             _check_fileobj_read(file)
+            # clear buffer (crash on PyPI otherwise)
+            memset(cbuffer, 0, DEFAULT_BUFFER_SIZE*sizeof(char))
             # make sure a format was given
             if format is None:
                 raise ValueError("Format must be specified when loading from a file-like object")
