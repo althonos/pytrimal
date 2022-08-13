@@ -152,6 +152,9 @@ cdef class AlignmentSequences:
         >>> msa2.sequences[1] == msa.sequences[2]
         True
 
+    .. versionadded:: 0.4.0
+       Support for zero-copy slicing.
+
     """
 
     def __cinit__(self, Alignment alignment):
@@ -254,6 +257,9 @@ cdef class AlignmentResidues:
         '--A---'
         >>> msa.residues[-1]
         'IIIIFL'
+
+    .. versionadded:: 0.4.0
+       Support for zero-copy slicing.
 
     """
 
@@ -1002,6 +1008,9 @@ cdef class BaseTrimmer:
     @property
     def backend(self):
         """`str` or `None`: The computation backend for this trimmer.
+
+        .. versionadded:: 0.4.0
+
         """
         if self._backend == simd_backend.SSE2:
             return "sse"
@@ -1124,6 +1133,9 @@ cdef class AutomaticTrimmer(BaseTrimmer):
         can be useful for listing or validating methods beforehand, e.g. to
         build a CLI with `argparse`.
 
+    .. versionadded:: 0.4.0
+       The `AutomaticTrimmer.METHODS` class attribute.
+
     """
 
     METHODS = frozenset({
@@ -1157,6 +1169,9 @@ cdef class AutomaticTrimmer(BaseTrimmer):
 
         .. versionadded:: 0.2.0
            The ``backend`` keyword argument.
+
+        .. versionadded:: 0.4.0
+           The ``noduplicateseqs`` method.
 
         """
         super().__init__(backend=backend)
@@ -1264,6 +1279,9 @@ cdef class ManualTrimmer(BaseTrimmer):
         .. versionadded:: 0.2.2
            The keyword arguments for controling the half-window sizes.
 
+        .. versionchanged:: 0.4.0
+           Removed ``consistency_threshold`` and ``consistency_window``.
+
         """
         super().__init__(backend=backend)
 
@@ -1361,6 +1379,8 @@ cdef class OverlapTrimmer(BaseTrimmer):
             Sp17  APDLLL-IGFLLKTV-ATFGDTWFQLWQGLD
             Sp10  DPAVL--FVIMLGTI-TKFSSEWFFAWLGLE
             Sp26  AAALLTYLGLFLGTDYENFAAAAANAWLGLE
+
+    .. versionadded:: 0.4.0
 
     """
 
