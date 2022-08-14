@@ -595,7 +595,7 @@ cdef class Alignment:
         if self._residues_mapping is not NULL:
             PyMem_Free(self._residues_mapping)
 
-    def __init__(self, object names, object sequences):
+    def __init__(self, object names not None, object sequences not None):
         """__init__(self, names, sequences)\n--
 
         Create a new alignment with the given names and sequences.
@@ -666,12 +666,13 @@ cdef class Alignment:
             self._ali.seqsName[i]  = name
             self._ali.sequences[i] = sequence.encode('ascii') # FIXME: no decoding
 
-        self._ali.fillMatrices(self._ali.numberOfSequences > 1, validate_seqs)
-        self._ali.originalNumberOfSequences = self._ali.numberOfSequences
-        self._ali.originalNumberOfResidues = self._ali.numberOfResidues
-
         if self._ali.numberOfSequences == 0:
             self._ali.numberOfResidues = 0
+        if self._ali.numberOfResidues > 0:
+            self._ali.fillMatrices(self._ali.numberOfSequences > 1, validate_seqs)
+
+        self._ali.originalNumberOfSequences = self._ali.numberOfSequences
+        self._ali.originalNumberOfResidues = self._ali.numberOfResidues
 
     def __repr__(self):
         cdef str ty = type(self).__name__
@@ -780,7 +781,7 @@ cdef class TrimmedAlignment(Alignment):
     def __init__(
         self,
         object names,
-        object sequences,
+        object sequences not None,
         object sequences_mask = None,
         object residues_mask = None,
     ):
@@ -960,7 +961,7 @@ cdef class BaseTrimmer:
 
     """
 
-    def __init__(self, *, backend="detect"):
+    def __init__(self, *, str backend = "detect"):
         """__init__(self, *, backend="detect")\n--
 
         Create a new base trimmer.
