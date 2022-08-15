@@ -27,8 +27,8 @@ Gap
 Definition
 ^^^^^^^^^^
 
-The *Gap* statistic is defined for each column $j$ as the fraction of sequences
-without a gap character in column $j$:
+The *Gap* statistic is defined for each column $k$ as the fraction of sequences
+without a gap character in column $k$:
 
 .. math::
 
@@ -59,7 +59,7 @@ two symbols :math:`x` and :math:`y` is computed as the euclidean distance:
 
 .. math::
 
-    D_S(x,y) = \sqrt { \sum_{z \in V}{(S(z, y) - S( z, i ))^2} }
+    D_S(x,y) = \sqrt { \sum_{z \in V}{(S(z, y) - S(z, x))^2} }
 
 .. rubric:: Mismatch
 
@@ -92,8 +92,8 @@ both sequences have residue:
 .. math::
 
     Q_{S,k}(A) = \frac
-      { \sum_{i=1}^{m}{ \mathbb{1}_{V}(a_{i,k}) \sum_{j=i+1}^{m}{ \mathbb{1}_{V}(a_{j,k}) W_{i,j}(A) D_S(a_{i,k}, a_{j,k})}}}
-      { \sum_{i=1}^{m}{ \mathbb{1}_{V}(a_{i,k}) \sum_{j=i+1}^{m}{ \mathbb{1}_{V}(a_{j,k}) W_{i,j}(A) }}}
+      { \sum_{i=1}^{m}{ \sum_{j=i+1}^{m}{ \mathbb{1}_{V}(a_{i,k}) \mathbb{1}_{V}(a_{j,k}) W_{i,j}(A) D_S(a_{i,k}, a_{j,k})}}}
+      { \sum_{i=1}^{m}{ \sum_{j=i+1}^{m}{ \mathbb{1}_{V}(a_{i,k}) \mathbb{1}_{V}(a_{j,k}) W_{i,j}(A) }}}
 
 Finally, the similarity score for a column is only computed if a column contains
 gaps in 80% of the sequences or more. This can be obtained from the Gap statistic:
@@ -102,7 +102,7 @@ gaps in 80% of the sequences or more. This can be obtained from the Gap statisti
 
     Sim_{S,k}(A) = \begin{cases}
     0 & \text{if $Gap_k(A) < 0.2$} \\
-    e^{-Q} & \text{otherwise}
+    e^{-Q_{S,k}(A)} & \text{otherwise}
     \end{cases}
 
 
