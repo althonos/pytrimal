@@ -9,8 +9,13 @@ try:
     import Bio.Align
     import Bio.SeqRecord
     import Bio.Seq
-except ImportError as err:
+except ImportError:
     Bio = None
+
+try:
+    import pyhmmer.easel
+except ImportError:
+    pyhmmer = None
 
 from .. import Alignment, TrimmedAlignment
 
@@ -290,6 +295,33 @@ class TestAlignment(unittest.TestCase):
         alignment = Alignment.from_biopython(records)
         self.assertEqual(list(alignment.sequences), list(self.alignment.sequences))
         self.assertEqual(list(alignment.names), list(self.alignment.names))
+
+    @unittest.skipUnless(Bio, "Biopython is required for this test")
+    def test_to_biopython(self):
+        msa = self.alignment.to_biopython()
+        self.assertEqual([str(r.seq) for r in msa], list(self.alignment.sequences))
+        self.assertEqual([r.id for r in msa], [name.decode() for name in self.alignment.names])
+
+    @unittest.skipUnless(pyhmmer, "PyHMMER is required for this test")
+    def test_from_pyhmmer(self):
+        TextSequence = pyhmmer.easel.TextSequence
+        sequences = [
+            TextSequence(sequence="-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII", name=b"Sp8"),
+            TextSequence(sequence="-------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII", name=b"Sp10"),
+            TextSequence(sequence="AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI", name=b"Sp26"),
+            TextSequence(sequence="-----ASGAILT-LGIYLFTLCAVIS--VSWYLAWLGLEINMMAII", name=b"Sp6"),
+            TextSequence(sequence="--FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF", name=b"Sp17"),
+            TextSequence(sequence="-------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL", name=b"Sp33"),
+        ]
+        alignment = Alignment.from_pyhmmer(pyhmmer.easel.TextMSA(sequences=sequences))
+        self.assertEqual(list(alignment.sequences), list(self.alignment.sequences))
+        self.assertEqual(list(alignment.names), list(self.alignment.names))
+
+    @unittest.skipUnless(pyhmmer, "PyHMMER is required for this test")
+    def test_to_pyhmmer(self):
+        msa = self.alignment.to_pyhmmer()
+        self.assertEqual(list(msa.alignment), list(self.alignment.sequences))
+        self.assertEqual(list(msa.names), list(self.alignment.names))
 
 
 class TestTrimmedAlignment(TestAlignment):

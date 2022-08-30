@@ -11,6 +11,7 @@ except ImportError:
 
 from Bio.SeqRecord import SeqRecord
 from Bio.Align import MultipleSeqAlignment
+from pyhmmer.easel import TextMSA
 
 # --- Constants --------------------------------------------------------------
 
@@ -70,6 +71,9 @@ class Alignment:
     @classmethod
     def from_biopython(cls, alignment: Iterable[SeqRecord]) -> Alignment: ...
     def to_biopython(self) -> MultipleSeqAlignment: ...
+    @classmethod
+    def from_pyhmmer(cls, alignment: TextMSA) -> TrimmedAlignment: ...
+    def to_pyhmmer(self) -> TextMSA: ...
     @typing.overload
     @classmethod
     def load(
@@ -100,6 +104,8 @@ class Alignment:
 class TrimmedAlignment(Alignment):
     @classmethod
     def from_biopython(cls, alignment: Iterable[SeqRecord]) -> TrimmedAlignment: ...
+    @classmethod
+    def from_pyhmmer(cls, alignment: TextMSA) -> TrimmedAlignment: ...
     @typing.overload
     @classmethod
     def load(

@@ -181,6 +181,8 @@ cdef class AlignmentSequences:
         else:
             return self._sequence(index)
 
+    # --- Utils --------------------------------------------------------------
+
     cdef AlignmentSequences _slice(self, int start, int stop, int stride):
         """_slice(self, start, stop, stride)\n--
 
@@ -288,6 +290,8 @@ cdef class AlignmentResidues:
             return self._slice(start, stop, stride)
         else:
             return self._column(index)
+
+    # --- Utils --------------------------------------------------------------
 
     cdef AlignmentResidues _slice(self, int start, int stop, int stride):
         """_slice(self, start, stop, stride)\n--
@@ -397,7 +401,9 @@ cdef class Alignment:
             object as implemented in Biopython.
 
         Raises:
-            `ImportError`: When the `Bio` cannot be imported.
+            `ImportError`: When the `Bio` module cannot be imported.
+
+        .. versionadded:: 0.5.0
 
         """
         import Bio.Align
@@ -408,9 +414,51 @@ cdef class Alignment:
             raise Bio
         records = []
         for name, seq in zip(self.names, self.sequences):
-            record = Bio.SeqRecord.SeqRecord(Bio.Seq.Seq(seq), name)
+            record = Bio.SeqRecord.SeqRecord(Bio.Seq.Seq(seq), name.decode("utf-8"))
             records.append(record)
         return Bio.Align.MultipleSeqAlignment(records)
+
+    @classmethod
+    def from_pyhmmer(cls, object alignment not None):
+        """from_pyhmmer(cls, alignment)\n--
+
+        Create a new `Alignment` from a `pyhmmer.easel.TextMSA`.
+
+        Arguments:
+            alignment (`~pyhmmer.easel.TextMSA`): A PyHMMER object storing
+                a multiple sequence alignment in text format.
+
+        Returns:
+            `~pytrimal.Alignment`: A new alignment object ready for trimming.
+
+        .. versionadded:: 0.5.0
+
+        """
+        return cls(names=alignment.names, sequences=alignment.alignment)
+
+    def to_pyhmmer(self):
+        """to_pyhmmer(self)\n--
+
+        Create a new `~pyhmmer.easel.TextMSA` from this `Alignment`.
+
+        Returns:
+            `~pyhmmer.easel.TextMSA`: A PyHMMER multiple sequence alignment
+            in text mode.
+
+        Raises:
+            `ImportError`: When the `pyhmmer` module cannot be imported.
+
+        .. versionadded:: 0.5.0
+
+        """
+        import pyhmmer.easel
+
+        return pyhmmer.easel.TextMSA(
+            sequences=[
+                pyhmmer.easel.TextSequence(name=name, sequence=seq)
+                for name, seq in zip(self.names, self.sequences)
+            ]
+        )
 
     # --- Parser / Loader ----------------------------------------------------
 
