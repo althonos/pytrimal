@@ -569,6 +569,12 @@ class build_clib(_build_clib):
             "building", library.name, "with", self.compiler.compiler_type, "compiler"
         )
 
+        # detect functions and headers
+        if self._check_function("getauxval", "sys/auxv.h", "(0)"):
+            library.define_macros.append(("HAVE_STRONG_GETAUXVAL", 1))
+        if self._check_function("dlclose", "dlfcn.h", "(0)"):
+            library.define_macros.append(("HAVE_DLFCN_H", 1))
+
         # add debug flags if we are building in debug mode
         if self.debug:
             if self.compiler.compiler_type in {"unix", "cygwin", "mingw32"}:
@@ -666,104 +672,109 @@ class clean(_clean):
 
 # --- Setup ---------------------------------------------------------------------
 
-setuptools.setup(
-    libraries=[
-        Library(
-            "cpu_features",
-            language="c",
-            sources=[
-                os.path.join("vendor", "cpu_features", "src", base)
-                for base in [
-                    "impl_{}_{}.c".format(TARGET_CPU, TARGET_SYSTEM),
-                    "filesystem.c",
-                    "stack_line_reader.c",
-                    "string_view.c",
-                    "copy.inl",
-                    "define_introspection.inl",
-                    "define_introspection_and_hwcaps.inl",
-                    "equals.inl",
-                    "impl_x86__base_implementation.inl",
-                ]
-            ],
-            include_dirs=[os.path.join("vendor", "cpu_features", "include")],
-            define_macros=[("STACK_LINE_READER_BUFFER_SIZE", 1024)],
+TRIMAL = Library(
+    "trimal",
+    language="c++",
+    libraries=["m"],
+    sources=[
+        # commonFiles
+        os.path.join("vendor", "trimal", "source", "Cleaner.cpp"),
+        os.path.join(
+            "vendor", "trimal", "source", "Alignment", "Alignment.cpp"
         ),
-        Library(
+        os.path.join(
+            "vendor", "trimal", "source", "Alignment", "sequencesMatrix.cpp"
+        ),
+        os.path.join(
+            "vendor", "trimal", "source", "Statistics", "similarityMatrix.cpp"
+        ),
+        # statisticsFiles
+        os.path.join("vendor", "trimal", "source", "Statistics", "Mold.cpp"),
+        os.path.join("vendor", "trimal", "source", "Statistics", "Gaps.cpp"),
+        os.path.join("vendor", "trimal", "source", "Statistics", "Manager.cpp"),
+        os.path.join(
+            "vendor", "trimal", "source", "Statistics", "Similarity.cpp"
+        ),
+        os.path.join(
+            "vendor", "trimal", "source", "Statistics", "Consistency.cpp"
+        ),
+        # reportSystemFiles
+        # os.path.join("vendor", "trimal", "source", "reportsystem"),
+        os.path.join(
+            "vendor", "trimal", "source", "reportMessages", "errorMessages.cpp"
+        ),
+        os.path.join(
+            "vendor", "trimal", "source", "reportMessages", "infoMessages.cpp"
+        ),
+        os.path.join(
+            "vendor",
             "trimal",
-            language="c++",
-            libraries=["m"],
-            sources=[
-                # commonFiles
-                os.path.join("vendor", "trimal", "source", "Cleaner.cpp"),
-                os.path.join(
-                    "vendor", "trimal", "source", "Alignment", "Alignment.cpp"
-                ),
-                os.path.join(
-                    "vendor", "trimal", "source", "Alignment", "sequencesMatrix.cpp"
-                ),
-                os.path.join(
-                    "vendor", "trimal", "source", "Statistics", "similarityMatrix.cpp"
-                ),
-                # statisticsFiles
-                os.path.join("vendor", "trimal", "source", "Statistics", "Mold.cpp"),
-                os.path.join("vendor", "trimal", "source", "Statistics", "Gaps.cpp"),
-                os.path.join("vendor", "trimal", "source", "Statistics", "Manager.cpp"),
-                os.path.join(
-                    "vendor", "trimal", "source", "Statistics", "Similarity.cpp"
-                ),
-                os.path.join(
-                    "vendor", "trimal", "source", "Statistics", "Consistency.cpp"
-                ),
-                # reportSystemFiles
-                # os.path.join("vendor", "trimal", "source", "reportsystem"),
-                os.path.join(
-                    "vendor", "trimal", "source", "reportMessages", "errorMessages.cpp"
-                ),
-                os.path.join(
-                    "vendor", "trimal", "source", "reportMessages", "infoMessages.cpp"
-                ),
-                os.path.join(
-                    "vendor",
-                    "trimal",
-                    "source",
-                    "reportMessages",
-                    "warningMessages.cpp",
-                ),
-                # formatHandlerFiles
-                *glob.iglob(
-                    os.path.join(
-                        "vendor", "trimal", "source", "FormatHandling", "*_state.cpp"
-                    )
-                ),
-                # formatHandler
-                os.path.join(
-                    "vendor",
-                    "trimal",
-                    "source",
-                    "FormatHandling",
-                    "BaseFormatHandler.cpp",
-                ),
-                # utils
-                os.path.join("vendor", "trimal", "source", "utils.cpp"),
-                # Internal Benchmarker
-                os.path.join("vendor", "trimal", "source", "InternalBenchmarker.cpp"),
-                # trimAl manager
-                os.path.join("vendor", "trimal", "source", "trimalManager.cpp"),
-                os.path.join("vendor", "trimal", "source", "VCFHandler.cpp"),
-            ],
-            depends=[
-                os.path.join(d, file)
-                for d, dirs, files in os.walk(INCLUDE_FOLDER)
-                for file in files
-                if file.endswith((".h", ".txt"))
-            ],
-            include_dirs=[
-                os.path.join("pytrimal", "patch"),
-                "pytrimal",
-                "include",
-            ],
+            "source",
+            "reportMessages",
+            "warningMessages.cpp",
         ),
+        # formatHandlerFiles
+        *glob.iglob(
+            os.path.join(
+                "vendor", "trimal", "source", "FormatHandling", "*_state.cpp"
+            )
+        ),
+        # formatHandler
+        os.path.join(
+            "vendor",
+            "trimal",
+            "source",
+            "FormatHandling",
+            "BaseFormatHandler.cpp",
+        ),
+        # utils
+        os.path.join("vendor", "trimal", "source", "utils.cpp"),
+        # Internal Benchmarker
+        os.path.join("vendor", "trimal", "source", "InternalBenchmarker.cpp"),
+        # trimAl manager
+        os.path.join("vendor", "trimal", "source", "trimalManager.cpp"),
+        os.path.join("vendor", "trimal", "source", "VCFHandler.cpp"),
     ],
+    depends=[
+        os.path.join(d, file)
+        for d, dirs, files in os.walk(INCLUDE_FOLDER)
+        for file in files
+        if file.endswith((".h", ".txt"))
+    ],
+    include_dirs=[
+        os.path.join("pytrimal", "patch"),
+        "pytrimal",
+        "include",
+    ],
+)
+
+CPU_FEATURES = Library(
+    "cpu_features",
+    language="c",
+    sources=[
+        os.path.join("vendor", "cpu_features", "src", base)
+        for base in [
+            "impl_{}_{}.c".format(TARGET_CPU, TARGET_SYSTEM),
+            "filesystem.c",
+            "stack_line_reader.c",
+            "string_view.c",
+            "copy.inl",
+            "define_introspection.inl",
+            "define_introspection_and_hwcaps.inl",
+            "equals.inl",
+            "impl_x86__base_implementation.inl",
+        ]
+    ],
+    include_dirs=[os.path.join("vendor", "cpu_features", "include")],
+    define_macros=[("STACK_LINE_READER_BUFFER_SIZE", 1024)],
+)
+
+if TARGET_SYSTEM in ("linux_or_android", "freebsd", "macos"):
+    CPU_FEATURES.sources.append(os.path.join("vendor", "cpu_features", "src", "hwcaps.c"))
+
+
+setuptools.setup(
+    libraries=[CPU_FEATURES, TRIMAL],
     ext_modules=[
         Extension(
             "pytrimal._trimal",
