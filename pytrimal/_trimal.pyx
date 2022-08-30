@@ -372,8 +372,9 @@ cdef class Alignment:
 
         Arguments:
             alignment (iterable of `~Bio.SeqRecord.SeqRecord`): An iterable
-                of `SeqRecord` objects to build the alignment from. Passing
-                a `Bio.Align.MultipleSeqAlignment` object is supported.
+                of Biopython records objects to build the alignment from.
+                Passing a `Bio.Align.MultipleSeqAlignment` object is also
+                supported.
 
         Returns:
             `~pytrimal.Alignment`: A new alignment object ready for trimming.
