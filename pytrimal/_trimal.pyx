@@ -1,5 +1,5 @@
 # distutils: language = c++
-# cython: language_level=3, linetrace=True
+# cython: language_level=3, linetrace=True, embedsignature=True, binding=True
 """Bindings to trimAl, a tool for automated alignment trimming.
 
 References:
@@ -1130,12 +1130,12 @@ cdef class BaseTrimmer:
             arg = f"backend={self.backend!r}"
         return f"{ty}({arg})"
 
-    cpdef dict __getstate__(self):
+    def __getstate__(self):
         return {
             "backend": self.backend,
         }
 
-    cpdef object __setstate__(self, dict state):
+    def __setstate__(self, dict state):
         try:
             self.__init__(backend=state["backend"])
         except (ValueError, RuntimeError):
@@ -1334,13 +1334,13 @@ cdef class AutomaticTrimmer(BaseTrimmer):
             args.append(f"backend={self.backend!r}")
         return f"{ty}({', '.join(args)})"
 
-    cpdef dict __getstate__(self):
+    def __getstate__(self):
         return {
             "method":  self.method,
             "backend": self.backend,
         }
 
-    cpdef object __setstate__(self, dict state):
+    def __setstate__(self, dict state):
         try:
             BaseTrimmer.__init__(self, backend=state["backend"])
         except (ValueError, RuntimeError):
@@ -1492,7 +1492,7 @@ cdef class ManualTrimmer(BaseTrimmer):
             args.append(f"backend={self.backend!r}")
         return f"{ty}({', '.join(args)})"
 
-    cpdef dict __getstate__(self):
+    def __getstate__(self):
         return {
             "backend":                 self.backend,
             "gap_threshold":           self._gap_threshold,
@@ -1504,7 +1504,7 @@ cdef class ManualTrimmer(BaseTrimmer):
             "similarity_window":       self._similarity_window,
         }
 
-    cpdef object __setstate__(self, dict state):
+    def __setstate__(self, dict state):
         try:
             BaseTrimmer.__init__(self, backend=state["backend"])
         except (ValueError, RuntimeError):
@@ -1615,14 +1615,14 @@ cdef class OverlapTrimmer(BaseTrimmer):
             args.append(f"backend={self.backend!r}")
         return f"{ty}({', '.join(args)})"
 
-    cpdef dict __getstate__(self):
+    def __getstate__(self):
         return {
             "backend":          self.backend,
             "sequence_overlap": self._sequence_overlap,
             "residue_overlap":  self._residue_overlap,
         }
 
-    cpdef object __setstate__(self, dict state):
+    def __setstate__(self, dict state):
         try:
             BaseTrimmer.__init__(self, backend=state["backend"])
         except (ValueError, RuntimeError):
@@ -1706,14 +1706,14 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
             args.append(f"backend={self.backend!r}")
         return f"{ty}({', '.join(args)})"
 
-    cpdef dict __getstate__(self):
+    def __getstate__(self):
         return {
             "backend":            self.backend,
             "clusters":           self._clusters,
             "identity_threshold": self._identity_threshold,
         }
 
-    cpdef object __setstate__(self, dict state):
+    def __setstate__(self, dict state):
         try:
             BaseTrimmer.__init__(self, backend=state["backend"])
         except (ValueError, RuntimeError):
