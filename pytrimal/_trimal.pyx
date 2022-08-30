@@ -1427,6 +1427,79 @@ cdef class OverlapTrimmer(BaseTrimmer):
         manager.residuesOverlap       = self._residue_overlap
         manager.sequenceOverlap       = self._sequence_overlap
 
+
+cdef class RepresentativeTrimmer(BaseTrimmer):
+    """A sequence alignment trimmer for selecting representative sequences.
+
+    Representative sequences on an alignment can be selected using a specific
+    identity threshold, or a fixed number of representative sequences to keep.
+    Representative trimming can be useful to reduce the weight of certain
+    very similar sequences in an alignment, for instance to build a less
+    conservative HMM.
+
+    .. versionadded:: 0.5.0
+
+    """
+
+    def __cinit__(self):
+        self._clusters = -1
+        self._identity_threshold = -1
+
+    def __init__(
+        self,
+        object clusters = None,
+        object identity_threshold = None,
+        *,
+        str backend="detect"
+    ):
+        """__init__(self, clusters=None, identity_threshold=None, *, backend="detect")\n--
+
+        Create a new representative alignment trimmer.
+
+        Arguments:
+            clusters (`int`, *optional*): The number of cluster
+                representatives to keep in the trimmed alignment. Must be
+                strictly positive. If the trimmer receives an alignment with
+                less sequences than this, it will not perform any trimming.
+            identity_threshold (`float`, *optional*): The identity threshold
+                for which to get representative sequences.
+
+        Keyword Arguments:
+            backend (`str`, *optional*): The SIMD extension backend to use
+                to accelerate computation of pairwise similarity statistics.
+                If `None` given, use the original code from trimAl.
+
+        Raises:
+            `ValueError`: When both ``clusters`` and ``identity_threshold``
+                are provided at the same time, or when they don't fall in
+                a valid range.
+
+        """
+        super().__init__(backend=backend)
+        if clusters is not None and identity_threshold is not None:
+            raise ValueError("Cannot specify both `clusters` and `identity_threshold`")
+        if clusters is not None:
+            self._clusters = _check_positive(clusters, "clusters")
+        if identity_threshold is not None:
+            self._identity_threshold = _check_range(identity_threshold, "identity_threshold", 0, 1)
+
+    def __repr__(self):
+        cdef str ty    = type(self).__name__
+        cdef list args = []
+        if self._clusters != -1:
+            args.append(f"clusters={self._clusters!r}")
+        elif self._identity_threshold != -1:
+            args.append(f"identity_threshold={self._identity_threshold!r}")
+        if self._backend != _BEST_BACKEND:
+            args.append(f"backend={self.backend!r}")
+        return f"{ty}({', '.join(args)})"
+
+    cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
+        manager.automatedMethodCount  = 0
+        manager.clusters              = self._clusters
+        manager.maxIdentity           = self._identity_threshold
+
+
 # -- Misc classes ------------------------------------------------------------
 
 
@@ -1498,6 +1571,7 @@ cdef class SimilarityMatrix:
         """
         cdef int    i
         cdef int    j
+        cdef int    k
         cdef object row
         cdef float  value
         cdef float  sum

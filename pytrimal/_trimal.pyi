@@ -120,6 +120,24 @@ class OverlapTrimmer(BaseTrimmer):
     ) -> None: ...
 
 
+class RepresentativeTrimmer(BaseTrimmer):
+    @typing.overload
+    def __init__(
+        self,
+        *,
+        clusters: Literal[None] = None,
+        identity_threshold: float,
+        backend: TRIMMER_BACKEND = "detect"
+    ) -> None: ...
+    @typing.overload
+    def __init__(
+        self,
+        *,
+        clusters: int,
+        identity_threshold: Literal[None] = None,
+        backend: TRIMMER_BACKEND = "detect"
+    ) -> None: ...
+
 # -- Misc classes ------------------------------------------------------------
 
 

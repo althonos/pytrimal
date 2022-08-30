@@ -10,6 +10,7 @@ from ._trimal import (
     BaseTrimmer,
     ManualTrimmer,
     OverlapTrimmer,
+    RepresentativeTrimmer,
     SimilarityMatrix,
     TrimmedAlignment,
 )

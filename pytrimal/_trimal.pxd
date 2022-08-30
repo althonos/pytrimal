@@ -89,6 +89,13 @@ cdef class OverlapTrimmer(BaseTrimmer):
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager)
 
 
+cdef class RepresentativeTrimmer(BaseTrimmer):
+    cdef int    _clusters
+    cdef float  _identity_threshold
+
+    cdef void _configure_manager(self, trimal.manager.trimAlManager* manager)
+
+
 # -- Misc classes ------------------------------------------------------------
 
 
