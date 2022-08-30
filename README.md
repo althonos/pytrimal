@@ -57,6 +57,9 @@ The following features are available or considered for implementation:
   defined conservation and gap thresholds for each residue position.
 - [x] **overlap trimming**: Trimming sequences using residue and sequence
   overlaps to exclude regions with minimal conservation.
+- [x] **representative trimming**: Select only representative sequences
+  from the alignment, either using a fixed number, or a maximum identity
+  threshold.
 - [x] **alignment loading from disk**: Load an alignment from disk given
   a filename.
 - [x] **alignment loading from a file-like object**: Load an alignment from
