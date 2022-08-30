@@ -1,4 +1,5 @@
 import os
+import pickle
 import sys
 import unittest
 
@@ -15,6 +16,13 @@ from .. import Alignment, ManualTrimmer
 
 class TestManualTrimmer(unittest.TestCase):
 
+    def assertTrimmedAlignmentEqual(self, trimmed, expected):
+        self.assertEqual(len(trimmed.names), len(expected.names))
+        self.assertEqual(len(trimmed.sequences), len(expected.sequences))
+        self.assertEqual(trimmed.names, expected.names)
+        for seq1, seq2 in zip(trimmed.sequences, expected.sequences):
+            self.assertEqual(seq1, seq2)
+
     @staticmethod
     def _load_alignment(name):
         with importlib_resources.path("pytrimal.tests.data", name) as path:
@@ -24,13 +32,9 @@ class TestManualTrimmer(unittest.TestCase):
         ali = self._load_alignment("ENOG411BWBU.fasta")
         filename = "ENOG411BWBU.cons{:02}.gt{:02}.fasta".format(cons, int(gt*100))
         expected = self._load_alignment(filename)
-
         trimmer = ManualTrimmer(gap_threshold=gt, conservation_percentage=cons)
         trimmed = trimmer.trim(ali)
-
-        self.assertEqual(trimmed.names, expected.names)
-        for seq1, seq2 in zip(trimmed.sequences, expected.sequences):
-            self.assertEqual(seq1, seq2)
+        self.assertTrimmedAlignmentEqual(trimmed, expected)
 
     def test_invalid_parameters(self):
         self.assertRaises(ValueError, ManualTrimmer, gap_threshold=100)
@@ -76,3 +80,19 @@ class TestManualTrimmer(unittest.TestCase):
         self.assertEqual(repr(trimmer), "ManualTrimmer(window=5, backend=None)")
         trimmer = ManualTrimmer(gap_absolute_threshold=10, similarity_threshold=0.5, conservation_percentage=50.0, gap_window=5, similarity_window=5, backend=None)
         self.assertEqual(repr(trimmer), "ManualTrimmer(gap_absolute_threshold=10, similarity_threshold=0.5, conservation_percentage=50.0, gap_window=5, similarity_window=5, backend=None)")
+
+    def test_pickle(self):
+        trimmer = ManualTrimmer(gap_threshold=0.4, window=5)
+        pickled = pickle.loads(pickle.dumps(trimmer))
+        ali = Alignment(
+            names=[b"Sp8", b"Sp17", b"Sp10", b"Sp26"],
+            sequences=[
+                "LG-----------TKSD---NNNNNNNNNNNNNNNNWV----------",
+                "APDLLL-IGFLLKTV-ATFG-----------------DTWFQLWQGLD",
+                "DPAVL--FVIMLGTI-TKFS-----------------SEWFFAWLGLE",
+                "AAALLTYLGLFLGTDYENFA-----------------AAAANAWLGLE",
+            ]
+        )
+        t1 = trimmer.trim(ali)
+        t2 = pickled.trim(ali)
+        self.assertTrimmedAlignmentEqual(t2, t1)

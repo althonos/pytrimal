@@ -57,6 +57,9 @@ cdef class TrimmedAlignment(Alignment):
 cdef class BaseTrimmer:
     cdef int _backend
 
+    cpdef dict __getstate__(self)
+    cpdef object __setstate__(self, dict state)
+
     cdef void _setup_simd_code(self, trimal.manager.trimAlManager* manager)
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager)
     cpdef TrimmedAlignment trim(self, Alignment alignment, SimilarityMatrix matrix = ?)
@@ -64,6 +67,9 @@ cdef class BaseTrimmer:
 
 cdef class AutomaticTrimmer(BaseTrimmer):
     cdef readonly str method
+
+    cpdef dict __getstate__(self)
+    cpdef object __setstate__(self, dict state)
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager)
 
@@ -79,6 +85,9 @@ cdef class ManualTrimmer(BaseTrimmer):
     cdef int     _similarity_window
     cdef int     _consistency_window
 
+    cpdef dict __getstate__(self)
+    cpdef object __setstate__(self, dict state)
+
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager)
 
 
@@ -86,12 +95,18 @@ cdef class OverlapTrimmer(BaseTrimmer):
     cdef float _sequence_overlap
     cdef float _residue_overlap
 
+    cpdef dict __getstate__(self)
+    cpdef object __setstate__(self, dict state)
+
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager)
 
 
 cdef class RepresentativeTrimmer(BaseTrimmer):
     cdef int    _clusters
     cdef float  _identity_threshold
+
+    cpdef dict __getstate__(self)
+    cpdef object __setstate__(self, dict state)
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager)
 

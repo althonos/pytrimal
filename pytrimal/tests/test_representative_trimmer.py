@@ -1,4 +1,5 @@
 import os
+import pickle
 import sys
 import json
 import unittest
@@ -16,6 +17,13 @@ from .._trimal import _SSE2_RUNTIME_SUPPORT
 
 
 class TestRepresentativeTrimmer(unittest.TestCase):
+
+    def assertTrimmedAlignmentEqual(self, trimmed, expected):
+        self.assertEqual(len(trimmed.names), len(expected.names))
+        self.assertEqual(len(trimmed.sequences), len(expected.sequences))
+        self.assertEqual(trimmed.names, expected.names)
+        for seq1, seq2 in zip(trimmed.sequences, expected.sequences):
+            self.assertEqual(seq1, seq2)
 
     @staticmethod
     def _load_alignment(name):
@@ -35,11 +43,7 @@ class TestRepresentativeTrimmer(unittest.TestCase):
 
         if clusters is not None:
             self.assertEqual(len(trimmed.sequences), clusters)
-        self.assertEqual(len(trimmed.names), len(expected.names))
-        self.assertEqual(len(trimmed.sequences), len(expected.sequences))
-        self.assertEqual(trimmed.names, expected.names)
-        for seq1, seq2 in zip(trimmed.sequences, expected.sequences):
-            self.assertEqual(seq1, seq2)
+        self.assertTrimmedAlignmentEqual(trimmed, expected)
 
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(importlib_resources, "importlib.resources not available")
@@ -63,3 +67,19 @@ class TestRepresentativeTrimmer(unittest.TestCase):
         self.assertEqual(repr(trimmer), "RepresentativeTrimmer(clusters=2)")
         trimmer = RepresentativeTrimmer(clusters=3, backend=None)
         self.assertEqual(repr(trimmer), "RepresentativeTrimmer(clusters=3, backend=None)")
+
+    def test_pickle(self):
+        trimmer = RepresentativeTrimmer(clusters=3)
+        pickled = pickle.loads(pickle.dumps(trimmer))
+        ali = Alignment(
+            names=[b"Sp8", b"Sp17", b"Sp10", b"Sp26"],
+            sequences=[
+                "LG-----------TKSD---NNNNNNNNNNNNNNNNWV----------",
+                "APDLLL-IGFLLKTV-ATFG-----------------DTWFQLWQGLD",
+                "DPAVL--FVIMLGTI-TKFS-----------------SEWFFAWLGLE",
+                "AAALLTYLGLFLGTDYENFA-----------------AAAANAWLGLE",
+            ]
+        )
+        t1 = trimmer.trim(ali)
+        t2 = pickled.trim(ali)
+        self.assertTrimmedAlignmentEqual(t2, t1)

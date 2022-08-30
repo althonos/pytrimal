@@ -1008,6 +1008,17 @@ cdef class BaseTrimmer:
             arg = f"backend={self.backend!r}"
         return f"{ty}({arg})"
 
+    cpdef dict __getstate__(self):
+        return {
+            "backend": self.backend,
+        }
+
+    cpdef object __setstate__(self, dict state):
+        try:
+            self.__init__(backend=state["backend"])
+        except (ValueError, RuntimeError):
+            self.__init__(backend="detect")
+
     @property
     def backend(self):
         """`str` or `None`: The computation backend for this trimmer.
@@ -1139,6 +1150,9 @@ cdef class AutomaticTrimmer(BaseTrimmer):
     .. versionadded:: 0.4.0
        The `AutomaticTrimmer.METHODS` class attribute.
 
+    .. versionadded:: 0.5.0
+       Support for `pickle` protocol.
+
     """
 
     METHODS = frozenset({
@@ -1189,6 +1203,19 @@ cdef class AutomaticTrimmer(BaseTrimmer):
         if self._backend != _BEST_BACKEND:
             args.append(f"backend={self.backend!r}")
         return f"{ty}({', '.join(args)})"
+
+    cpdef dict __getstate__(self):
+        return {
+            "method":  self.method,
+            "backend": self.backend,
+        }
+
+    cpdef object __setstate__(self, dict state):
+        try:
+            BaseTrimmer.__init__(self, backend=state["backend"])
+        except (ValueError, RuntimeError):
+            BaseTrimmer.__init__(self, backend="detect")
+        self.method = state["method"]
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         BaseTrimmer._configure_manager(self, manager)
@@ -1331,6 +1358,31 @@ cdef class ManualTrimmer(BaseTrimmer):
             args.append(f"backend={self.backend!r}")
         return f"{ty}({', '.join(args)})"
 
+    cpdef dict __getstate__(self):
+        return {
+            "backend":                 self.backend,
+            "gap_threshold":           self._gap_threshold,
+            "gap_absolute_threshold":  self._gap_absolute_threshold,
+            "similarity_threshold":    self._similarity_threshold,
+            "conservation_percentage": self._conservation_percentage,
+            "window":                  self._window,
+            "gap_window":              self._gap_window,
+            "similarity_window":       self._similarity_window,
+        }
+
+    cpdef object __setstate__(self, dict state):
+        try:
+            BaseTrimmer.__init__(self, backend=state["backend"])
+        except (ValueError, RuntimeError):
+            BaseTrimmer.__init__(self, backend="detect")
+        self._gap_threshold           = state["gap_threshold"]
+        self._gap_absolute_threshold  = state["gap_absolute_threshold"]
+        self._similarity_threshold    = state["similarity_threshold"]
+        self._conservation_percentage = state["conservation_percentage"]
+        self._window                  = state["window"]
+        self._gap_window              = state["gap_window"]
+        self._similarity_window       = state["similarity_window"]
+
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         manager.automatedMethodCount  = 0
         manager.gapThreshold          = self._gap_threshold
@@ -1385,6 +1437,9 @@ cdef class OverlapTrimmer(BaseTrimmer):
 
     .. versionadded:: 0.4.0
 
+    .. versionadded:: 0.5.0
+       Support for the `pickle` protocol.
+
     """
 
     def __init__(
@@ -1421,6 +1476,21 @@ cdef class OverlapTrimmer(BaseTrimmer):
         if self._backend != _BEST_BACKEND:
             args.append(f"backend={self.backend!r}")
         return f"{ty}({', '.join(args)})"
+
+    cpdef dict __getstate__(self):
+        return {
+            "backend":          self.backend,
+            "sequence_overlap": self._sequence_overlap,
+            "residue_overlap":  self._residue_overlap,
+        }
+
+    cpdef object __setstate__(self, dict state):
+        try:
+            BaseTrimmer.__init__(self, backend=state["backend"])
+        except (ValueError, RuntimeError):
+            BaseTrimmer.__init__(self, backend="detect")
+        self._sequence_overlap = state["sequence_overlap"]
+        self._residue_overlap  = state["residue_overlap"]
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         manager.automatedMethodCount  = 0
@@ -1493,6 +1563,21 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
         if self._backend != _BEST_BACKEND:
             args.append(f"backend={self.backend!r}")
         return f"{ty}({', '.join(args)})"
+
+    cpdef dict __getstate__(self):
+        return {
+            "backend":            self.backend,
+            "clusters":           self._clusters,
+            "identity_threshold": self._identity_threshold,
+        }
+
+    cpdef object __setstate__(self, dict state):
+        try:
+            BaseTrimmer.__init__(self, backend=state["backend"])
+        except (ValueError, RuntimeError):
+            BaseTrimmer.__init__(self, backend="detect")
+        self._clusters           = state["clusters"]
+        self._identity_threshold = state["identity_threshold"]
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         manager.automatedMethodCount  = 0

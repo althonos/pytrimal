@@ -2,7 +2,7 @@
 
 import os
 import typing
-from typing import BinaryIO, Sequence, List, Optional, Union, Sequence, FrozenSet
+from typing import BinaryIO, Dict, Sequence, List, Optional, Union, Sequence, FrozenSet
 
 try:
     from typing import Literal
@@ -85,6 +85,9 @@ class TrimmedAlignment(Alignment):
 
 class BaseTrimmer:
     def __init__(self, *, backend: TRIMMER_BACKEND = "detect") -> None: ...
+    def __repr__(self) -> str: ...
+    def __getstate__(self) -> Dict[str, object]: ...
+    def __setstate__(self, state: Dict[str, object]) -> None: ...
     @property
     def backend(self) -> Optional[str]: ...
     def trim(self, alignment: Alignment, matrix: Optional[SimilarityMatrix] = None) -> TrimmedAlignment: ...
@@ -93,7 +96,6 @@ class BaseTrimmer:
 class AutomaticTrimmer(BaseTrimmer):
     METHODS: typing.ClassVar[FrozenSet[AUTOMATIC_TRIMMER_METHODS]]
     def __init__(self, method: AUTOMATIC_TRIMMER_METHODS = "strict", *, backend: TRIMMER_BACKEND = "detect") -> None: ...
-
 
 class ManualTrimmer(BaseTrimmer):
     def __init__(
