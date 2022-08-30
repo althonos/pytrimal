@@ -5,6 +5,13 @@ import unittest
 import textwrap
 import tempfile
 
+try:
+    import Bio.Align
+    import Bio.SeqRecord
+    import Bio.Seq
+except ImportError as err:
+    Bio = None
+
 from .. import Alignment, TrimmedAlignment
 
 
@@ -268,6 +275,22 @@ class TestAlignment(unittest.TestCase):
         self.assertFalse(empty.sequences[:])
         self.assertFalse(empty.sequences[:][:2])
 
+    @unittest.skipUnless(Bio, "Biopython is required for this test")
+    def test_from_biopython(self):
+        SeqRecord = Bio.SeqRecord.SeqRecord
+        Seq = Bio.Seq.Seq
+        records = [
+            SeqRecord(Seq("-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII"), "Sp8"),
+            SeqRecord(Seq("-------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII"), "Sp10"),
+            SeqRecord(Seq("AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI"), "Sp26"),
+            SeqRecord(Seq("-----ASGAILT-LGIYLFTLCAVIS--VSWYLAWLGLEINMMAII"), "Sp6"),
+            SeqRecord(Seq("--FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF"), "Sp17"),
+            SeqRecord(Seq("-------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL"), "Sp33"),
+        ]
+        alignment = Alignment.from_biopython(records)
+        self.assertEqual(list(alignment.sequences), list(self.alignment.sequences))
+        self.assertEqual(list(alignment.names), list(self.alignment.names))
+
 
 class TestTrimmedAlignment(TestAlignment):
     def setUp(self):
@@ -277,15 +300,8 @@ class TestTrimmedAlignment(TestAlignment):
         residues_mask[26:28] = [False] * 2
         sequences_mask = [True, True, False, True, True, True]
         self.trimmed = TrimmedAlignment(
-            names=[b"Sp8", b"Sp10", b"Sp26", b"Sp6", b"Sp17", b"Sp33"],
-            sequences=[
-                "-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII",
-                "-------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII",
-                "AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI",
-                "-----ASGAILT-LGIYLFTLCAVIS--VSWYLAWLGLEINMMAII",
-                "--FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF",
-                "-------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL",
-            ],
+            names=self.alignment.names,
+            sequences=self.alignment.sequences,
             sequences_mask=sequences_mask,
             residues_mask=residues_mask,
         )

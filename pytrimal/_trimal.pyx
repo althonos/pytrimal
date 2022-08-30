@@ -358,6 +358,60 @@ cdef class Alignment:
     """A multiple sequence alignment.
     """
 
+    # --- Conversion methods -------------------------------------------------
+
+    @classmethod
+    def from_biopython(cls, object alignment not None):
+        """from_biopython(cls, alignment)\n--
+
+        Create a new `Alignment` from an iterable of Biopython records.
+
+        Arguments:
+            alignment (iterable of `~Bio.SeqRecord.SeqRecord`): An iterable
+                of `SeqRecord` objects to build the alignment from. Passing
+                a `Bio.Align.MultipleSeqAlignment` object is supported.
+
+        Returns:
+            `~pytrimal.Alignment`: A new alignment object ready for trimming.
+
+        .. versionadded:: 0.5.0
+
+        """
+        names = []
+        sequences = []
+        for record in alignment:
+            names.append(record.id.encode("utf-8"))
+            try:
+                sequences.append(bytes(record.seq))
+            except TypeError:
+                sequences.append(str(record.seq))
+        return cls(names=names, sequences=sequences)
+
+    def to_biopython(self):
+        """to_biopython(self)\n--
+
+        Create a new `~Bio.Align.MultipleSeqAlignment` from this `Alignment`.
+
+        Returns:
+            `~Bio.Align.MultipleSeqAlignment`: A multiple sequence alignment
+            object as implemented in Biopython.
+
+        Raises:
+            `ImportError`: When the `Bio` cannot be imported.
+
+        """
+        import Bio.Align
+        import Bio.SeqRecord
+        import Bio.Seq
+
+        if isinstance(Bio, ImportError):
+            raise Bio
+        records = []
+        for name, seq in zip(self.names, self.sequences):
+            record = Bio.SeqRecord.SeqRecord(Bio.Seq.Seq(seq), name)
+            records.append(record)
+        return Bio.Align.MultipleSeqAlignment(records)
+
     # --- Parser / Loader ----------------------------------------------------
 
     @classmethod
@@ -607,8 +661,8 @@ cdef class Alignment:
         Arguments:
             names (`~collections.abc.Sequence` of `bytes`): The names of
                 the sequences in the alignment.
-            sequences (`~collections.abc.Sequence` of `str`): The actual
-                sequences in the alignment.
+            sequences (`~collections.abc.Sequence` of `bytes` or `str`): The
+                actual sequences in the alignment.
 
         Examples:
             Create a new alignment with a list of sequences and a list of
@@ -647,10 +701,10 @@ cdef class Alignment:
                 ValueError: The sequence "Sp10" has an unknown (49) character
 
         """
-        cdef bytes name
-        cdef str   sequence
-        cdef int   nresidues     = -1
-        cdef bool  validate_seqs = not isinstance(sequences, AlignmentSequences)
+        cdef bytes  name
+        cdef object sequence
+        cdef int    nresidues     = -1
+        cdef bool   validate_seqs = not isinstance(sequences, AlignmentSequences)
 
         if len(names) != len(sequences):
             raise ValueError(f"`Alignment` given {len(names)!r} names but {len(sequences)!r} sequences")
@@ -668,7 +722,10 @@ cdef class Alignment:
                 raise ValueError(f"Sequence length mismatch in sequence {i}: {len(sequence)} != {self._ali.numberOfResidues)}")
 
             self._ali.seqsName[i]  = name
-            self._ali.sequences[i] = sequence.encode('ascii') # FIXME: no decoding
+            if isinstance(sequence, bytes):
+                self._ali.sequences[i] = sequence
+            else:
+                self._ali.sequences[i] = sequence.encode('ascii')
 
         if self._ali.numberOfSequences == 0:
             self._ali.numberOfResidues = 0

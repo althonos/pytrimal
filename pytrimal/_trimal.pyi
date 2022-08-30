@@ -2,12 +2,15 @@
 
 import os
 import typing
-from typing import BinaryIO, Dict, Sequence, List, Optional, Union, Sequence, FrozenSet
+from typing import BinaryIO, Dict, Sequence, List, Optional, Iterable, Union, Sequence, FrozenSet
 
 try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal  # type: ignore
+
+from Bio.SeqRecord import SeqRecord
+from Bio.Align import MultipleSeqAlignment
 
 # --- Constants --------------------------------------------------------------
 
@@ -64,6 +67,9 @@ class AlignmentResidues(Sequence[str]):
     def __getitem__(self, index: slice) -> AlignmentResidues: ...
 
 class Alignment:
+    @classmethod
+    def from_biopython(cls, alignment: Iterable[SeqRecord]) -> Alignment: ...
+    def to_biopython(self) -> MultipleSeqAlignment: ...
     @typing.overload
     @classmethod
     def load(
@@ -92,6 +98,8 @@ class Alignment:
     def copy(self) -> Alignment: ...
 
 class TrimmedAlignment(Alignment):
+    @classmethod
+    def from_biopython(cls, alignment: Iterable[SeqRecord]) -> TrimmedAlignment: ...
     @typing.overload
     @classmethod
     def load(
