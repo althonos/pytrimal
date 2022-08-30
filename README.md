@@ -82,7 +82,9 @@ The following features are available or considered for implementation:
 
 ## 🔧 Installing
 
-pytrimal can be installed directly from [PyPI](https://pypi.org/project/pytrimal/),
+PytrimAl is available for all modern versions (3.6+), with no external dependencies.
+
+It can be installed directly from [PyPI](https://pypi.org/project/pytrimal/),
 which hosts some pre-built wheels for the x86-64 architecture (Linux/OSX)
 and the Aarch64 architecture (Linux only), as well as the code required to compile
 from source with Cython:

@@ -13,9 +13,6 @@ jobs:
     strategy:
       matrix:
         include:
-        - python-version: 3.5
-          pyo3-python: /opt/python/cp35-cp35m/bin/python
-          image-tag: 2020-12-11-f1e0e80
         - python-version: 3.6
           pyo3-python: /opt/python/cp36-cp36m/bin/python
           image-tag: 2021-05-18-1e72e6c
@@ -72,7 +69,6 @@ jobs:
     strategy:
       matrix:
         python-version:
-        - 3.5
         - 3.6
         - 3.7
         - 3.8
@@ -187,7 +183,6 @@ jobs:
     strategy:
       matrix:
         python-version:
-        - 3.5
         - 3.6
         - 3.7
         - 3.8
@@ -225,7 +220,6 @@ jobs:
     strategy:
       matrix:
         python-version:
-        - 3.5
         - 3.6
         - 3.7
         - 3.8
@@ -255,7 +249,6 @@ jobs:
   #   strategy:
   #     matrix:
   #       python-version:
-  #       - 3.5
   #       - 3.6
   #       - 3.7
   #       - 3.8
@@ -292,7 +285,6 @@ jobs:
   #   strategy:
   #     matrix:
   #       python-version:
-  #       - 3.5
   #       - 3.6
   #       - 3.7
   #       - 3.8
