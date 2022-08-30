@@ -224,7 +224,7 @@ class build_ext(_build_ext):
         try:
             self.mkpath(self.build_temp)
             objects = self.compiler.compile([testfile], extra_preargs=flags)
-            self.compiler.link_executable(objects, base, output_dir=self.build_temp)
+            self.compiler.link_executable(objects, base, extra_preargs=flags, output_dir=self.build_temp)
             subprocess.run([binfile], check=True)
         except CompileError:
             _eprint("no")
@@ -320,6 +320,7 @@ class build_ext(_build_ext):
                         ),
                     )
                 ext.extra_objects.extend(objects)
+                ext.extra_link_args.extend(self._simd_flags[simd])
 
     def build_extension(self, ext):
         # show the compiler being used
@@ -431,12 +432,12 @@ class build_ext(_build_ext):
                 self._simd_supported["SSE2"] = True
                 self._simd_flags["SSE2"].extend(self._sse2_flags())
                 self._simd_defines["SSE2"].append(("__SSE2__", 1))
-        # elif TARGET_CPU == "arm" or TARGET_CPU == "aarch64":
-        #     if not self._simd_disabled["NEON"] and self._check_neon():
-        #         cython_args["compile_time_env"]["NEON_BUILD_SUPPORT"] = True
-        #         self._simd_supported["NEON"] = True
-        #         self._simd_flags["NEON"].extend(self._neon_flags())
-        #         self._simd_defines["NEON"].append(("__ARM_NEON__", 1))
+        elif TARGET_CPU == "arm" or TARGET_CPU == "aarch64":
+            if not self._simd_disabled["NEON"] and self._check_neon():
+                cython_args["compile_time_env"]["NEON_BUILD_SUPPORT"] = True
+                self._simd_supported["NEON"] = True
+                self._simd_flags["NEON"].extend(self._neon_flags())
+                self._simd_defines["NEON"].append(("__ARM_NEON__", 1))
 
         # add the platform sources as dependencies
         for ext in self.extensions:
@@ -775,7 +776,10 @@ setuptools.setup(
                 os.path.join("pytrimal", "impl", "generic.cpp"),
                 os.path.join("pytrimal", "_trimal.pyx"),
             ],
-            platform_sources={"SSE2": [os.path.join("pytrimal", "impl", "sse.cpp")]},
+            platform_sources={
+                "SSE2": [os.path.join("pytrimal", "impl", "sse.cpp")],
+                "NEON": [os.path.join("pytrimal", "impl", "neon.cpp")],
+            },
             include_dirs=[
                 os.path.join("pytrimal", "patch"),
                 os.path.join("pytrimal", "fileobj"),
