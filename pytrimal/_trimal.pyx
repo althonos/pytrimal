@@ -47,6 +47,8 @@ from pytrimal.fileobj cimport pyreadbuf, pyreadintobuf, pywritebuf
 from pytrimal.impl.generic cimport GenericSimilarity, GenericCleaner
 IF SSE2_BUILD_SUPPORT:
     from pytrimal.impl.sse cimport SSESimilarity, SSECleaner
+IF NEON_BUILD_SUPPORT:
+    from pytrimal.impl.neon cimport NEONSimilarity, NEONCleaner
 
 # --- Python imports ---------------------------------------------------------
 
@@ -58,15 +60,28 @@ import threading
 _TARGET_CPU           = TARGET_CPU
 _SSE2_RUNTIME_SUPPORT = False
 _SSE2_BUILD_SUPPORT   = False
+_NEON_RUNTIME_SUPPORT = False
+_NEON_BUILD_SUPPORT   = False
 
 IF TARGET_CPU == "x86" and TARGET_SYSTEM in ("freebsd", "linux_or_android", "macos", "windows"):
     from cpu_features.x86 cimport GetX86Info, X86Info
     cdef X86Info cpu_info = GetX86Info()
     _SSE2_BUILD_SUPPORT   = SSE2_BUILD_SUPPORT
     _SSE2_RUNTIME_SUPPORT = SSE2_BUILD_SUPPORT and cpu_info.features.sse2 != 0
+ELIF TARGET_CPU == "arm":
+    from cpu_features.arm cimport GetArmInfo, ArmInfo
+    cdef ArmInfo arm_info = GetArmInfo()
+    _NEON_BUILD_SUPPORT   = NEON_BUILD_SUPPORT
+    _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT and arm_info.features.neon != 0
+ELIF TARGET_CPU == "aarch64":
+    _NEON_BUILD_SUPPORT   = NEON_BUILD_SUPPORT
+    _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT # always runtime support on Aarch64
+
 
 if _SSE2_RUNTIME_SUPPORT:
     _BEST_BACKEND = simd_backend.SSE2
+elif _NEON_RUNTIME_SUPPORT:
+    _BEST_BACKEND = simd_backend.NEON
 else:
     _BEST_BACKEND = simd_backend.GENERIC
 
@@ -74,6 +89,7 @@ cdef enum simd_backend:
     NONE = 0
     GENERIC = 1
     SSE2 = 2
+    NEON = 3
 
 
 # --- Utilities --------------------------------------------------------------
@@ -1115,6 +1131,24 @@ cdef class BaseTrimmer:
                 self._backend = simd_backend.NONE
             else:
                 raise ValueError(f"Unsupported backend on this architecture: {backend}")
+        ELIF TARGET_CPU == "arm" or TARGET_CPU == "aarch64":
+            if backend == "detect":
+                self._backend = simd_backend.GENERIC
+                IF NEON_BUILD_SUPPORT:
+                    if _NEON_RUNTIME_SUPPORT:
+                        self._backend = simd_backend.NEON
+            elif backend == "neon":
+                IF not NEON_BUILD_SUPPORT:
+                    raise RuntimeError("Extension was compiled without NEON support")
+                if not _NEON_RUNTIME_SUPPORT:
+                    raise RuntimeError("Cannot run NEON instructions on this machine")
+                self._backend = simd_backend.NEON
+            elif backend == "generic":
+                self._backend = simd_backend.GENERIC
+            elif backend is None:
+                self._backend = simd_backend.NONE
+            else:
+                raise ValueError(f"Unsupported backend on this architecture: {backend}")
         ELSE:
             if backend == "detect" or backend == "generic":
                 self._backend = simd_backend.GENERIC
@@ -1171,6 +1205,12 @@ cdef class BaseTrimmer:
                 manager.origAlig.Statistics.similarity = new SSESimilarity(manager.origAlig)
                 del manager.origAlig.Cleaning
                 manager.origAlig.Cleaning = new SSECleaner(manager.origAlig)
+        IF NEON_BUILD_SUPPORT:
+            if self._backend == simd_backend.NEON:
+                del manager.origAlig.Statistics.similarity
+                manager.origAlig.Statistics.similarity = new NEONSimilarity(manager.origAlig)
+                del manager.origAlig.Cleaning
+                manager.origAlig.Cleaning = new NEONCleaner(manager.origAlig)
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         pass
