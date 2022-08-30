@@ -17,7 +17,6 @@ from .._trimal import _SSE2_RUNTIME_SUPPORT
 
 
 class TestRepresentativeTrimmer(unittest.TestCase):
-
     def assertTrimmedAlignmentEqual(self, trimmed, expected):
         self.assertEqual(len(trimmed.names), len(expected.names))
         self.assertEqual(len(trimmed.sequences), len(expected.sequences))
@@ -34,11 +33,17 @@ class TestRepresentativeTrimmer(unittest.TestCase):
         ali = self._load_alignment("ENOG411BWBU.fasta")
 
         if clusters is not None:
-            expected = self._load_alignment("ENOG411BWBU.clusters{}.fasta".format(clusters))
+            expected = self._load_alignment(
+                "ENOG411BWBU.clusters{}.fasta".format(clusters)
+            )
         else:
-            expected = self._load_alignment("ENOG411BWBU.maxidentity{}.fasta".format(int(identity_threshold*100)))
+            expected = self._load_alignment(
+                "ENOG411BWBU.maxidentity{}.fasta".format(int(identity_threshold * 100))
+            )
 
-        trimmer = RepresentativeTrimmer(clusters=clusters, identity_threshold=identity_threshold)
+        trimmer = RepresentativeTrimmer(
+            clusters=clusters, identity_threshold=identity_threshold
+        )
         trimmed = trimmer.trim(ali)
 
         if clusters is not None:
@@ -62,11 +67,15 @@ class TestRepresentativeTrimmer(unittest.TestCase):
 
     def test_repr(self):
         trimmer = RepresentativeTrimmer(identity_threshold=0.25)
-        self.assertEqual(repr(trimmer), "RepresentativeTrimmer(identity_threshold=0.25)")
+        self.assertEqual(
+            repr(trimmer), "RepresentativeTrimmer(identity_threshold=0.25)"
+        )
         trimmer = RepresentativeTrimmer(clusters=2)
         self.assertEqual(repr(trimmer), "RepresentativeTrimmer(clusters=2)")
         trimmer = RepresentativeTrimmer(clusters=3, backend=None)
-        self.assertEqual(repr(trimmer), "RepresentativeTrimmer(clusters=3, backend=None)")
+        self.assertEqual(
+            repr(trimmer), "RepresentativeTrimmer(clusters=3, backend=None)"
+        )
 
     def test_pickle(self):
         trimmer = RepresentativeTrimmer(clusters=3)
@@ -78,7 +87,7 @@ class TestRepresentativeTrimmer(unittest.TestCase):
                 "APDLLL-IGFLLKTV-ATFG-----------------DTWFQLWQGLD",
                 "DPAVL--FVIMLGTI-TKFS-----------------SEWFFAWLGLE",
                 "AAALLTYLGLFLGTDYENFA-----------------AAAANAWLGLE",
-            ]
+            ],
         )
         t1 = trimmer.trim(ali)
         t2 = pickled.trim(ali)

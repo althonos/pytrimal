@@ -157,6 +157,8 @@ cdef class AlignmentSequences:
 
     """
 
+    # --- Magic methods ------------------------------------------------------
+
     def __cinit__(self, Alignment alignment):
         self._owner = alignment
         self._ali = alignment._ali
@@ -262,6 +264,8 @@ cdef class AlignmentResidues:
        Support for zero-copy slicing.
 
     """
+
+    # --- Magic methods ------------------------------------------------------
 
     def __cinit__(self, Alignment alignment):
         self._owner = alignment
@@ -767,6 +771,8 @@ cdef class TrimmedAlignment(Alignment):
 
     """
 
+    # --- Parser / Loader ----------------------------------------------------
+
     @classmethod
     def load(cls, object file not None, str format = None):
         # For compatibility, allow loading a trimmed alignment from a file
@@ -777,6 +783,8 @@ cdef class TrimmedAlignment(Alignment):
         alignment._ali = NULL
         trimmed._build_index_mapping()
         return trimmed
+
+    # --- Magic methods ------------------------------------------------------
 
     def __init__(
         self,
@@ -837,6 +845,8 @@ cdef class TrimmedAlignment(Alignment):
         # build index mapping
         self._build_index_mapping()
 
+    # --- Utils --------------------------------------------------------------
+
     cdef void _build_index_mapping(self) except *:
         assert self._ali is not NULL
 
@@ -862,6 +872,48 @@ cdef class TrimmedAlignment(Alignment):
             if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
                 self._residues_mapping[x] = i
                 x += 1
+
+    # --- Properties ---------------------------------------------------------
+
+    @property
+    def residues_mask(self):
+        """sequence of `bool`: Which residues are kept in the alignment.
+        """
+        assert self._ali is not NULL
+
+        cdef int    i
+        cdef object mask = PyList_New(self._ali.originalNumberOfResidues)
+
+        for i in range(self._ali.originalNumberOfResidues):
+            if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
+                Py_INCREF(True)
+                PyList_SET_ITEM(mask, i, True)
+            else:
+                Py_INCREF(False)
+                PyList_SET_ITEM(mask, i, False)
+
+        return mask
+
+    @property
+    def sequences_mask(self):
+        """sequence of `bool`: Which sequences are kept in the alignment.
+        """
+        assert self._ali is not NULL
+
+        cdef int    i
+        cdef object mask = PyList_New(self._ali.originalNumberOfSequences)
+
+        for i in range(self._ali.originalNumberOfSequences):
+            if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
+                Py_INCREF(True)
+                PyList_SET_ITEM(mask, i, True)
+            else:
+                Py_INCREF(False)
+                PyList_SET_ITEM(mask, i, False)
+
+        return mask
+
+    # --- Functions ----------------------------------------------------------
 
     cpdef Alignment original_alignment(self):
         """original_alignment(self)\n--
@@ -912,44 +964,6 @@ cdef class TrimmedAlignment(Alignment):
         copy._build_index_mapping()
         return copy
 
-    @property
-    def residues_mask(self):
-        """sequence of `bool`: Which residues are kept in the alignment.
-        """
-        assert self._ali is not NULL
-
-        cdef int    i
-        cdef object mask = PyList_New(self._ali.originalNumberOfResidues)
-
-        for i in range(self._ali.originalNumberOfResidues):
-            if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
-                Py_INCREF(True)
-                PyList_SET_ITEM(mask, i, True)
-            else:
-                Py_INCREF(False)
-                PyList_SET_ITEM(mask, i, False)
-
-        return mask
-
-    @property
-    def sequences_mask(self):
-        """sequence of `bool`: Which sequences are kept in the alignment.
-        """
-        assert self._ali is not NULL
-
-        cdef int    i
-        cdef object mask = PyList_New(self._ali.originalNumberOfSequences)
-
-        for i in range(self._ali.originalNumberOfSequences):
-            if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
-                Py_INCREF(True)
-                PyList_SET_ITEM(mask, i, True)
-            else:
-                Py_INCREF(False)
-                PyList_SET_ITEM(mask, i, False)
-
-        return mask
-
 
 # -- Trimmer classes ---------------------------------------------------------
 
@@ -960,6 +974,8 @@ cdef class BaseTrimmer:
     through their constructor.
 
     """
+
+    # --- Magic methods ------------------------------------------------------
 
     def __init__(self, *, str backend = "detect"):
         """__init__(self, *, backend="detect")\n--
@@ -1019,6 +1035,8 @@ cdef class BaseTrimmer:
         except (ValueError, RuntimeError):
             self.__init__(backend="detect")
 
+    # --- Properties ---------------------------------------------------------
+
     @property
     def backend(self):
         """`str` or `None`: The computation backend for this trimmer.
@@ -1032,6 +1050,8 @@ cdef class BaseTrimmer:
             return "generic"
         else:
             return None
+
+    # --- Utils --------------------------------------------------------------
 
     cdef void _setup_simd_code(self, trimal.manager.trimAlManager* manager):
         if self._backend == simd_backend.GENERIC:
@@ -1048,6 +1068,8 @@ cdef class BaseTrimmer:
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         pass
+
+    # --- Functions ----------------------------------------------------------
 
     cpdef TrimmedAlignment trim(self, Alignment alignment, SimilarityMatrix matrix = None):
         """trim(self, alignment, matrix=None)\n--
@@ -1165,6 +1187,8 @@ cdef class AutomaticTrimmer(BaseTrimmer):
         "noduplicateseqs",
     })
 
+    # --- Magic methods ------------------------------------------------------
+
     def __init__(self, str method="strict", *, str backend="detect"):
         """__init__(self, method="strict", *, backend="detect")\n--
 
@@ -1217,6 +1241,8 @@ cdef class AutomaticTrimmer(BaseTrimmer):
             BaseTrimmer.__init__(self, backend="detect")
         self.method = state["method"]
 
+    # --- Utils --------------------------------------------------------------
+
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         BaseTrimmer._configure_manager(self, manager)
         manager.automatedMethodCount = 1
@@ -1253,6 +1279,8 @@ cdef class ManualTrimmer(BaseTrimmer):
     trimming.
 
     """
+
+    # --- Magic methods ------------------------------------------------------
 
     def __cinit__(self):
         self._gap_threshold           = -1
@@ -1383,6 +1411,8 @@ cdef class ManualTrimmer(BaseTrimmer):
         self._gap_window              = state["gap_window"]
         self._similarity_window       = state["similarity_window"]
 
+    # --- Utils --------------------------------------------------------------
+
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         manager.automatedMethodCount  = 0
         manager.gapThreshold          = self._gap_threshold
@@ -1442,6 +1472,8 @@ cdef class OverlapTrimmer(BaseTrimmer):
 
     """
 
+    # --- Magic methods ------------------------------------------------------
+
     def __init__(
         self,
         float sequence_overlap,
@@ -1492,6 +1524,8 @@ cdef class OverlapTrimmer(BaseTrimmer):
         self._sequence_overlap = state["sequence_overlap"]
         self._residue_overlap  = state["residue_overlap"]
 
+    # --- Utils --------------------------------------------------------------
+
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         manager.automatedMethodCount  = 0
         manager.residuesOverlap       = self._residue_overlap
@@ -1510,6 +1544,8 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
     .. versionadded:: 0.5.0
 
     """
+
+    # --- Magic methods ------------------------------------------------------
 
     def __cinit__(self):
         self._clusters = -1
@@ -1579,6 +1615,8 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
         self._clusters           = state["clusters"]
         self._identity_threshold = state["identity_threshold"]
 
+    # --- Utils --------------------------------------------------------------
+
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         manager.automatedMethodCount  = 0
         manager.clusters              = self._clusters
@@ -1591,6 +1629,8 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
 cdef class SimilarityMatrix:
     """A similarity matrix for biological sequence characters.
     """
+
+    # --- Class methods ------------------------------------------------------
 
     @classmethod
     def aa(cls):
@@ -1622,6 +1662,8 @@ cdef class SimilarityMatrix:
             else:
                 matrix._smx.defaultNTDegeneratedSimMatrix()
         return matrix
+
+    # --- Magic methods ------------------------------------------------------
 
     def __init__(self, str alphabet not None, object matrix not None):
         """__init__(alphabet, matrix)\n--
@@ -1727,6 +1769,8 @@ cdef class SimilarityMatrix:
             buffer.shape = &self._shape[0]
             buffer.suboffsets = &self._suboffsets[0]
             buffer.strides = &self._strides[0]
+
+    # --- Functions ----------------------------------------------------------
 
     cpdef float similarity(self, str a, str b) except -1:
         """similarity(self, a, b)\n--

@@ -32,13 +32,18 @@ for result in data["results"]:
 plt.figure(1, figsize=(18, 6))
 
 data["results"].sort(key=lambda r: r["statistic"])
-for i, (statistic, statistic_group) in enumerate(itertools.groupby(data["results"], key=lambda r: r["statistic"])):
-    plt.subplot(1, 3, i+1)
+for i, (statistic, statistic_group) in enumerate(
+    itertools.groupby(data["results"], key=lambda r: r["statistic"])
+):
+    plt.subplot(1, 3, i + 1)
     plt.title(statistic)
 
-    statistic_group = sorted(statistic_group, key=lambda r: (r["backend"], r["sequences"]))
+    statistic_group = sorted(
+        statistic_group, key=lambda r: (r["backend"], r["sequences"])
+    )
     for color, (backend, group) in zip(
-        Bold_4.hex_colors, itertools.groupby(statistic_group, key=lambda r: r["backend"])
+        Bold_4.hex_colors,
+        itertools.groupby(statistic_group, key=lambda r: r["backend"]),
     ):
         group = list(group)
         X = numpy.array([r["sequences"] for r in group])
@@ -46,8 +51,20 @@ for i, (statistic, statistic_group) in enumerate(itertools.groupby(data["results
 
         if statistic == "Gaps":
             reg = scipy.stats.linregress(X, Y)
-            plt.scatter(X, Y, marker="+", color=color, label=f"{backend} (R²={reg.rvalue**2:.3f})")
-            plt.plot([ 0, max(X) ], [ reg.intercept, reg.slope*max(X) + reg.intercept ], color=color, linestyle="--", marker="")
+            plt.scatter(
+                X,
+                Y,
+                marker="+",
+                color=color,
+                label=f"{backend} (R²={reg.rvalue**2:.3f})",
+            )
+            plt.plot(
+                [0, max(X)],
+                [reg.intercept, reg.slope * max(X) + reg.intercept],
+                color=color,
+                linestyle="--",
+                marker="",
+            )
         else:
             p = Polynomial.fit(X, Y, 2)
             pX = numpy.linspace(0, max(r["sequences"] for r in group), 1000)

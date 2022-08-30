@@ -42,7 +42,7 @@ elif re.match("^(powerpc|ppc)", MACHINE):
 else:
     TARGET_CPU = None
 
-SYSTEM  = platform.system()
+SYSTEM = platform.system()
 if SYSTEM == "Linux" or SYSTEM == "Java":
     TARGET_SYSTEM = "linux_or_android"
 elif SYSTEM.endswith("FreeBSD"):
@@ -58,8 +58,10 @@ else:
 
 _HEADER_PATTERN = re.compile("^@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@$")
 
+
 def _eprint(*args, **kwargs):
     print(*args, **kwargs, file=sys.stderr)
+
 
 def _patch_osx_compiler(compiler):
     # On newer OSX, Python has been compiled as a universal binary, so
@@ -67,49 +69,58 @@ def _patch_osx_compiler(compiler):
     # extension. This will not work because the code makes use of SSE2.
     for tool in ("compiler", "compiler_so", "linker_so"):
         flags = getattr(compiler, tool)
-        i = next((i for i in range(1, len(flags)) if flags[i-1] == "-arch" and flags[i] != platform.machine()), None)
+        i = next(
+            (
+                i
+                for i in range(1, len(flags))
+                if flags[i - 1] == "-arch" and flags[i] != platform.machine()
+            ),
+            None,
+        )
         if i is not None:
             flags.pop(i)
-            flags.pop(i-1)
+            flags.pop(i - 1)
 
-def _apply_patch(s,patch,revert=False):
+
+def _apply_patch(s, patch, revert=False):
     # see https://stackoverflow.com/a/40967337
     s = s.splitlines(keepends=True)
     p = patch.splitlines(keepends=True)
     t = []
     i = 0
     sl = 0
-    midx, sign = (1,'+') if not revert else (3,'-')
-    while i < len(p) and p[i].startswith(("---","+++")):
-        i += 1 # skip header lines
+    midx, sign = (1, "+") if not revert else (3, "-")
+    while i < len(p) and p[i].startswith(("---", "+++")):
+        i += 1  # skip header lines
 
     while i < len(p):
         match = _HEADER_PATTERN.match(p[i])
         if not match:
-          raise ValueError("Invalid line in patch: {!r}".format(p[i]))
+            raise ValueError("Invalid line in patch: {!r}".format(p[i]))
         i += 1
-        l = int(match.group(midx)) - 1 + (match.group(midx+1) == '0')
+        l = int(match.group(midx)) - 1 + (match.group(midx + 1) == "0")
         t.extend(s[sl:l])
         sl = l
-        while i < len(p) and p[i][0] != '@':
-            if i+1 < len(p) and p[i+1][0] == '\\':
+        while i < len(p) and p[i][0] != "@":
+            if i + 1 < len(p) and p[i + 1][0] == "\\":
                 line = p[i][:-1]
                 i += 2
             else:
                 line = p[i]
                 i += 1
             if len(line) > 0:
-                if line[0] == sign or line[0] == ' ':
+                if line[0] == sign or line[0] == " ":
                     t += line[1:]
-                sl += (line[0] != sign)
+                sl += line[0] != sign
 
     t.extend(s[sl:])
-    return ''.join(t)
+    return "".join(t)
+
 
 # --- Extension with SIMD support --------------------------------------------
 
-class Extension(setuptools.extension.Extension):
 
+class Extension(setuptools.extension.Extension):
     def __init__(self, *args, **kwargs):
         self._needs_stub = False
         self.platform_sources = kwargs.pop("platform_sources", {})
@@ -118,16 +129,16 @@ class Extension(setuptools.extension.Extension):
 
 # --- Commands ------------------------------------------------------------------
 
+
 class sdist(_sdist):
-    """A `sdist` that generates a `pyproject.toml` on the fly.
-    """
+    """A `sdist` that generates a `pyproject.toml` on the fly."""
 
     def run(self):
         # build `pyproject.toml` from `setup.cfg`
         c = configparser.ConfigParser()
         c.add_section("build-system")
         c.set("build-system", "requires", str(self.distribution.setup_requires))
-        c.set("build-system", 'build-backend', '"setuptools.build_meta"')
+        c.set("build-system", "build-backend", '"setuptools.build_meta"')
         with open("pyproject.toml", "w") as pyproject:
             c.write(pyproject)
         # run the rest of the packaging
@@ -135,15 +146,26 @@ class sdist(_sdist):
 
 
 class build_ext(_build_ext):
-    """A `build_ext` that disables optimizations if compiled in debug mode.
-    """
+    """A `build_ext` that disables optimizations if compiled in debug mode."""
 
     # --- Compatibility with `setuptools.Command`
 
     user_options = _build_ext.user_options + [
-        ("disable-avx2", None, "Force compiling the extension without AVX2 instructions"),
-        ("disable-sse2", None, "Force compiling the extension without SSE2 instructions"),
-        ("disable-neon", None, "Force compiling the extension without NEON instructions"),
+        (
+            "disable-avx2",
+            None,
+            "Force compiling the extension without AVX2 instructions",
+        ),
+        (
+            "disable-sse2",
+            None,
+            "Force compiling the extension without SSE2 instructions",
+        ),
+        (
+            "disable-neon",
+            None,
+            "Force compiling the extension without NEON instructions",
+        ),
     ]
 
     def initialize_options(self):
@@ -176,7 +198,7 @@ class build_ext(_build_ext):
     # --- Autotools-like helpers ---
 
     def _check_simd_generic(self, name, flags, header, vector, set, op, extract):
-        _eprint('checking whether compiler can build', name, 'code', end="... ")
+        _eprint("checking whether compiler can build", name, "code", end="... ")
 
         base = "have_{}".format(name)
         testfile = os.path.join(self.build_temp, "{}.c".format(base))
@@ -185,7 +207,8 @@ class build_ext(_build_ext):
 
         self.mkpath(self.build_temp)
         with open(testfile, "w") as f:
-            f.write("""
+            f.write(
+                """
                 #include <{}>
                 int main() {{
                     {}      a = {}(1);
@@ -193,7 +216,10 @@ class build_ext(_build_ext):
                     short   x = {}(a, 1);
                     return (x == 1) ? 0 : 1;
                 }}
-            """.format(header, vector, set, op, extract))
+            """.format(
+                    header, vector, set, op, extract
+                )
+            )
 
         try:
             self.mkpath(self.build_temp)
@@ -262,7 +288,7 @@ class build_ext(_build_ext):
             vector="int16x8_t",
             set="vdupq_n_s16",
             op="vabsq_s16",
-            extract="vgetq_lane_s16"
+            extract="vgetq_lane_s16",
         )
 
     # --- Build code ---
@@ -272,7 +298,9 @@ class build_ext(_build_ext):
         for simd, sources in ext.platform_sources.items():
             if self._simd_supported[simd] and not self._simd_disabled[simd]:
                 objects = [
-                    os.path.join(self.build_temp, s.replace(".cpp", self.compiler.obj_extension))
+                    os.path.join(
+                        self.build_temp, s.replace(".cpp", self.compiler.obj_extension)
+                    )
                     for s in sources
                 ]
                 for source, object in zip(sources, objects):
@@ -288,8 +316,8 @@ class build_ext(_build_ext):
                             self.debug,
                             ext.extra_compile_args + self._simd_flags[simd],
                             None,
-                            ext.depends
-                        )
+                            ext.depends,
+                        ),
                     )
                 ext.extra_objects.extend(objects)
 
@@ -339,7 +367,9 @@ class build_ext(_build_ext):
     def build_extensions(self):
         # check `cythonize` is available
         if isinstance(cythonize, ImportError):
-            raise RuntimeError("Cython is required to run `build_ext` command") from cythonize
+            raise RuntimeError(
+                "Cython is required to run `build_ext` command"
+            ) from cythonize
 
         # remove universal compilation flags for OSX
         if platform.system() == "Darwin":
@@ -363,7 +393,7 @@ class build_ext(_build_ext):
                 "AVX2_BUILD_SUPPORT": False,
                 "NEON_BUILD_SUPPORT": False,
                 "SSE2_BUILD_SUPPORT": False,
-            }
+            },
         }
         if self.force:
             cython_args["force"] = True
@@ -410,7 +440,9 @@ class build_ext(_build_ext):
 
         # add the platform sources as dependencies
         for ext in self.extensions:
-            ext.depends.extend(itertools.chain.from_iterable(ext.platform_sources.values()))
+            ext.depends.extend(
+                itertools.chain.from_iterable(ext.platform_sources.values())
+            )
 
         # cythonize the extensions (retaining platform-specific sources)
         platform_sources = [ext.platform_sources for ext in self.extensions]
@@ -423,8 +455,7 @@ class build_ext(_build_ext):
 
 
 class build_clib(_build_clib):
-    """A custom `build_clib` that makes all C++ class attributes public.
-    """
+    """A custom `build_clib` that makes all C++ class attributes public."""
 
     # --- Compatibility with `setuptools.Command`
 
@@ -445,9 +476,13 @@ class build_clib(_build_clib):
 
     def _patch_file(self, input, output):
         basename = os.path.basename(input)
-        patchname = os.path.realpath(os.path.join(__file__, os.pardir, "patches", "{}.patch".format(basename)))
+        patchname = os.path.realpath(
+            os.path.join(__file__, os.pardir, "patches", "{}.patch".format(basename))
+        )
         if os.path.exists(patchname):
-            _eprint("patching", os.path.relpath(input), "with", os.path.relpath(patchname))
+            _eprint(
+                "patching", os.path.relpath(input), "with", os.path.relpath(patchname)
+            )
             with open(patchname, "r") as patchfile:
                 patch = patchfile.read()
             with open(input, "r") as src:
@@ -458,7 +493,7 @@ class build_clib(_build_clib):
             self.copy_file(input, output)
 
     def _check_function(self, funcname, header, args="()"):
-        _eprint('checking whether function', repr(funcname), 'is available', end="... ")
+        _eprint("checking whether function", repr(funcname), "is available", end="... ")
 
         self.mkpath(self.build_temp)
         base = "have_{}".format(funcname)
@@ -467,13 +502,17 @@ class build_clib(_build_clib):
         objects = []
 
         with open(testfile, "w") as f:
-            f.write("""
+            f.write(
+                """
                 #include <{}>
                 int main() {{
                     {}{};
                     return 0;
                 }}
-            """.format(header, funcname, args))
+            """.format(
+                    header, funcname, args
+                )
+            )
         try:
             objects = self.compiler.compile([testfile], debug=self.debug)
             self.compiler.link_executable(objects, base, output_dir=self.build_temp)
@@ -496,10 +535,10 @@ class build_clib(_build_clib):
         pass
 
     def get_library_names(self):
-        return [ lib.name for lib in self.libraries ]
+        return [lib.name for lib in self.libraries]
 
     def get_source_files(self):
-        return [ source for lib in self.libraries for source in lib.sources ]
+        return [source for lib in self.libraries for source in lib.sources]
 
     def get_library(self, name):
         return next(lib for lib in self.libraries if lib.name == name)
@@ -510,18 +549,24 @@ class build_clib(_build_clib):
         # check for functions required for libcpu_features on OSX
         if SYSTEM == "Darwin":
             _patch_osx_compiler(self.compiler)
-            if self._check_function("sysctlbyname", "sys/sysctl.h", args="(NULL, NULL, 0, NULL, 0)"):
+            if self._check_function(
+                "sysctlbyname", "sys/sysctl.h", args="(NULL, NULL, 0, NULL, 0)"
+            ):
                 self.compiler.define_macro("HAVE_SYSCTLBYNAME", 1)
 
         # build each library only if the sources are outdated
         self.mkpath(self.build_clib)
         for library in libraries:
-            libname = self.compiler.library_filename(library.name, output_dir=self.build_clib)
+            libname = self.compiler.library_filename(
+                library.name, output_dir=self.build_clib
+            )
             self.make_file(library.sources, libname, self.build_library, (library,))
 
     def build_library(self, library):
         # show the compiler being used
-        _eprint("building", library.name, "with", self.compiler.compiler_type, "compiler")
+        _eprint(
+            "building", library.name, "with", self.compiler.compiler_type, "compiler"
+        )
 
         # add debug flags if we are building in debug mode
         if self.debug:
@@ -544,14 +589,11 @@ class build_clib(_build_clib):
 
         # expose all private members and copy headers to build directory
         for header in library.depends:
-            output = os.path.join(self.build_clib, os.path.relpath(header, INCLUDE_FOLDER))
-            self.mkpath(os.path.dirname(output))
-            self.make_file(
-                [header],
-                output,
-                self._patch_file,
-                (header, output)
+            output = os.path.join(
+                self.build_clib, os.path.relpath(header, INCLUDE_FOLDER)
             )
+            self.mkpath(os.path.dirname(output))
+            self.make_file([header], output, self._patch_file, (header, output))
 
         # copy sources to build directory
         sources = [
@@ -560,10 +602,7 @@ class build_clib(_build_clib):
         ]
         for source, source_copy in zip(library.sources, sources):
             self.make_file(
-                [source],
-                source_copy,
-                self._patch_file,
-                (source, source_copy)
+                [source], source_copy, self._patch_file, (source, source_copy)
             )
 
         # store compile args
@@ -578,14 +617,13 @@ class build_clib(_build_clib):
         )
         # manually prepare sources and get the names of object files
         objects = [
-            re.sub(r'(.cpp|.c)$', self.compiler.obj_extension, s)
-            for s in sources
+            re.sub(r"(.cpp|.c)$", self.compiler.obj_extension, s) for s in sources
         ]
         # only compile outdated files
         with multiprocessing.pool.ThreadPool(self.parallel) as pool:
             pool.starmap(
                 functools.partial(self._compile_file, compile_args=compile_args),
-                zip(sources, objects)
+                zip(sources, objects),
             )
 
         # link into a static library
@@ -597,21 +635,17 @@ class build_clib(_build_clib):
             objects,
             libfile,
             self.compiler.create_static_lib,
-            (objects, library.name, self.build_clib, None, self.debug)
+            (objects, library.name, self.build_clib, None, self.debug),
         )
 
     def _compile_file(self, source, object, compile_args):
         self.make_file(
-            [source],
-            object,
-            self.compiler.compile,
-            ([source], *compile_args)
+            [source], object, self.compiler.compile, ([source], *compile_args)
         )
 
 
 class clean(_clean):
-    """A `clean` that removes intermediate files created by Cython.
-    """
+    """A `clean` that removes intermediate files created by Cython."""
 
     def run(self):
 
@@ -651,7 +685,7 @@ setuptools.setup(
                 ]
             ],
             include_dirs=[os.path.join("vendor", "cpu_features", "include")],
-            define_macros=[("STACK_LINE_READER_BUFFER_SIZE", 1024)]
+            define_macros=[("STACK_LINE_READER_BUFFER_SIZE", 1024)],
         ),
         Library(
             "trimal",
@@ -660,24 +694,54 @@ setuptools.setup(
             sources=[
                 # commonFiles
                 os.path.join("vendor", "trimal", "source", "Cleaner.cpp"),
-                os.path.join("vendor", "trimal", "source", "Alignment", "Alignment.cpp"),
-                os.path.join("vendor", "trimal", "source", "Alignment", "sequencesMatrix.cpp"),
-                os.path.join("vendor", "trimal", "source", "Statistics", "similarityMatrix.cpp"),
+                os.path.join(
+                    "vendor", "trimal", "source", "Alignment", "Alignment.cpp"
+                ),
+                os.path.join(
+                    "vendor", "trimal", "source", "Alignment", "sequencesMatrix.cpp"
+                ),
+                os.path.join(
+                    "vendor", "trimal", "source", "Statistics", "similarityMatrix.cpp"
+                ),
                 # statisticsFiles
                 os.path.join("vendor", "trimal", "source", "Statistics", "Mold.cpp"),
                 os.path.join("vendor", "trimal", "source", "Statistics", "Gaps.cpp"),
                 os.path.join("vendor", "trimal", "source", "Statistics", "Manager.cpp"),
-                os.path.join("vendor", "trimal", "source", "Statistics", "Similarity.cpp"),
-                os.path.join("vendor", "trimal", "source", "Statistics", "Consistency.cpp"),
+                os.path.join(
+                    "vendor", "trimal", "source", "Statistics", "Similarity.cpp"
+                ),
+                os.path.join(
+                    "vendor", "trimal", "source", "Statistics", "Consistency.cpp"
+                ),
                 # reportSystemFiles
                 # os.path.join("vendor", "trimal", "source", "reportsystem"),
-                os.path.join("vendor", "trimal", "source", "reportMessages", "errorMessages.cpp"),
-                os.path.join("vendor", "trimal", "source", "reportMessages", "infoMessages.cpp"),
-                os.path.join("vendor", "trimal", "source", "reportMessages", "warningMessages.cpp"),
+                os.path.join(
+                    "vendor", "trimal", "source", "reportMessages", "errorMessages.cpp"
+                ),
+                os.path.join(
+                    "vendor", "trimal", "source", "reportMessages", "infoMessages.cpp"
+                ),
+                os.path.join(
+                    "vendor",
+                    "trimal",
+                    "source",
+                    "reportMessages",
+                    "warningMessages.cpp",
+                ),
                 # formatHandlerFiles
-                *glob.iglob(os.path.join("vendor", "trimal", "source", "FormatHandling", "*_state.cpp")),
+                *glob.iglob(
+                    os.path.join(
+                        "vendor", "trimal", "source", "FormatHandling", "*_state.cpp"
+                    )
+                ),
                 # formatHandler
-                os.path.join("vendor", "trimal", "source", "FormatHandling", "BaseFormatHandler.cpp"),
+                os.path.join(
+                    "vendor",
+                    "trimal",
+                    "source",
+                    "FormatHandling",
+                    "BaseFormatHandler.cpp",
+                ),
                 # utils
                 os.path.join("vendor", "trimal", "source", "utils.cpp"),
                 # Internal Benchmarker
@@ -711,9 +775,7 @@ setuptools.setup(
                 os.path.join("pytrimal", "impl", "generic.cpp"),
                 os.path.join("pytrimal", "_trimal.pyx"),
             ],
-            platform_sources={
-                "SSE2": [os.path.join("pytrimal", "impl", "sse.cpp")]
-            },
+            platform_sources={"SSE2": [os.path.join("pytrimal", "impl", "sse.cpp")]},
             include_dirs=[
                 os.path.join("pytrimal", "patch"),
                 os.path.join("pytrimal", "fileobj"),
@@ -732,6 +794,6 @@ setuptools.setup(
         "sdist": sdist,
         "build_ext": build_ext,
         "build_clib": build_clib,
-        "clean": clean
-    }
+        "clean": clean,
+    },
 )

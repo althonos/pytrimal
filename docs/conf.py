@@ -27,6 +27,7 @@ project_dir = os.path.dirname(docssrc_dir)
 
 # -- Sphinx Setup ------------------------------------------------------------
 
+
 def setup(app):
     # Add custom stylesheet
     app.add_css_file("css/main.css")
@@ -40,9 +41,9 @@ import pytrimal
 
 # extract the project metadata from the module itself
 project = pytrimal.__name__
-author = re.match('(.*) <.*>', pytrimal.__author__).group(1)
+author = re.match("(.*) <.*>", pytrimal.__author__).group(1)
 year = datetime.date.today().year
-copyright = '{}, {}'.format("2022" if year==2022 else "2022-{}".format(year), author)
+copyright = "{}, {}".format("2022" if year == 2022 else "2022-{}".format(year), author)
 
 # extract the semantic version
 semver = semantic_version.Version.coerce(pytrimal.__version__)
@@ -86,17 +87,17 @@ extensions = [
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = [
-    '_build',
-    'Thumbs.db',
-    '.DS_Store',
-    '**.ipynb_checkpoints',
-    'requirements.txt'
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+    "**.ipynb_checkpoints",
+    "requirements.txt",
 ]
 
 # The name of the Pygments (syntax highlighting) style to use.
@@ -111,12 +112,12 @@ default_role = "py:obj"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'bootstrap'
+html_theme = "bootstrap"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -137,13 +138,8 @@ html_theme_options = {
     # Render the current pages TOC in the navbar. (Default: true)
     "navbar_pagenav": False,
     # A list of tuples containing pages or urls to link to.
-    "navbar_links": [
-        ("GitHub", cfgparser.get("metadata", "url").strip(), True)
-    ] + [
-        (k, v, True)
-        for k, v in project_urls.items()
-        if k in {"Zenodo", "PyPI"}
-    ],
+    "navbar_links": [("GitHub", cfgparser.get("metadata", "url").strip(), True)]
+    + [(k, v, True) for k, v in project_urls.items() if k in {"Zenodo", "PyPI"}],
     "admonition_use_panel": True,
 }
 
@@ -186,7 +182,7 @@ napoleon_use_rtype = False
 # -- Options for autodoc extension -------------------------------------------
 
 autoclass_content = "class"
-autodoc_member_order = 'groupwise'
+autodoc_member_order = "groupwise"
 autosummary_generate = []
 
 # -- Options for intersphinx extension ---------------------------------------
@@ -200,14 +196,14 @@ intersphinx_mapping = {
 # -- Options for recommonmark extension --------------------------------------
 
 source_suffix = {
-    '.rst': 'restructuredtext',
-    '.txt': 'markdown',
-    '.md': 'markdown',
+    ".rst": "restructuredtext",
+    ".txt": "markdown",
+    ".md": "markdown",
 }
 
 # -- Options for nbsphinx extension ------------------------------------------
 
-nbsphinx_execute = 'auto'
+nbsphinx_execute = "auto"
 nbsphinx_execute_arguments = [
     "--InlineBackend.figure_formats={'svg', 'pdf'}",
     "--InlineBackend.rc={'figure.dpi': 96}",
@@ -216,9 +212,9 @@ nbsphinx_execute_arguments = [
 # -- Options for extlinks extension ------------------------------------------
 
 extlinks = {
-    'doi': ('https://doi.org/%s', 'doi:'),
-    'pmid': ('https://pubmed.ncbi.nlm.nih.gov/%s', 'PMID:'),
-    'pmc': ('https://www.ncbi.nlm.nih.gov/pmc/articles/PMC%s', 'PMC'),
-    'isbn': ('https://www.worldcat.org/isbn/%s', 'ISBN:'),
-    'wiki': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia:')
+    "doi": ("https://doi.org/%s", "doi:"),
+    "pmid": ("https://pubmed.ncbi.nlm.nih.gov/%s", "PMID:"),
+    "pmc": ("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC%s", "PMC"),
+    "isbn": ("https://www.worldcat.org/isbn/%s", "ISBN:"),
+    "wiki": ("https://en.wikipedia.org/wiki/%s", "Wikipedia:"),
 }

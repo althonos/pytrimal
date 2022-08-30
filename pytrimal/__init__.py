@@ -25,7 +25,7 @@ __all__ = [
     "AutomaticTrimmer",
     "ManualTrimmer",
     "OverlapTrimmer",
-    "SimilarityMatrix"
+    "SimilarityMatrix",
 ]
 
 __author__ = "Martin Larralde <martin.larralde@embl.de>"

@@ -154,25 +154,18 @@ class TestAlignment(unittest.TestCase):
         s = io.BytesIO()
         ali.dump(s)
         self.assertEqual(
-            s.getvalue().decode().splitlines(),
-            [">seq1", "MVVK", ">seq2", "MVYK"]
+            s.getvalue().decode().splitlines(), [">seq1", "MVVK", ">seq2", "MVYK"]
         )
 
     def test_dump_filename(self):
         ali = Alignment([b"seq1", b"seq2"], ["MVVK", "MVYK"])
         s = ali.dumps()
-        self.assertEqual(
-            s.splitlines(),
-            [">seq1", "MVVK", ">seq2", "MVYK"]
-        )
+        self.assertEqual(s.splitlines(), [">seq1", "MVVK", ">seq2", "MVYK"])
 
     def test_dumps(self):
         ali = Alignment([b"seq1", b"seq2"], ["MVVK", "MVYK"])
         s = ali.dumps()
-        self.assertEqual(
-            s.splitlines(),
-            [">seq1", "MVVK", ">seq2", "MVYK"]
-        )
+        self.assertEqual(s.splitlines(), [">seq1", "MVVK", ">seq2", "MVYK"])
 
     def _test_load_filename(self, format):
         with tempfile.NamedTemporaryFile(suffix=format, mode="wb") as tmp:
@@ -246,9 +239,18 @@ class TestAlignment(unittest.TestCase):
 
     def test_sequences(self):
         self.assertEqual(len(self.alignment.sequences), 6)
-        self.assertEqual(self.alignment.sequences[0], "-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII")
-        self.assertEqual(self.alignment.sequences[4], "--FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF")
-        self.assertEqual(self.alignment.sequences[-1], "-------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL")
+        self.assertEqual(
+            self.alignment.sequences[0],
+            "-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII",
+        )
+        self.assertEqual(
+            self.alignment.sequences[4],
+            "--FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF",
+        )
+        self.assertEqual(
+            self.alignment.sequences[-1],
+            "-------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL",
+        )
         with self.assertRaises(IndexError):
             self.alignment.sequences[100]
         with self.assertRaises(IndexError):
@@ -267,14 +269,12 @@ class TestAlignment(unittest.TestCase):
         self.assertFalse(empty.sequences[:][:2])
 
 
-
 class TestTrimmedAlignment(TestAlignment):
-
     def setUp(self):
         super().setUp()
         residues_mask = [True] * 46
-        residues_mask[:5] = [False]*5
-        residues_mask[26:28] = [False]*2
+        residues_mask[:5] = [False] * 5
+        residues_mask[26:28] = [False] * 2
         sequences_mask = [True, True, False, True, True, True]
         self.trimmed = TrimmedAlignment(
             names=[b"Sp8", b"Sp10", b"Sp26", b"Sp6", b"Sp17", b"Sp33"],
@@ -307,8 +307,12 @@ class TestTrimmedAlignment(TestAlignment):
 
     def test_sequences(self):
         self.assertEqual(len(self.trimmed.sequences), 5)
-        self.assertEqual(self.trimmed.sequences[3], "TAPDLL-LIGFLLKTVA-TFGDTWFQLWQGLDLNKMPVF")
-        self.assertEqual(self.trimmed.sequences[-1], "--PTILNIAGLHMETDI-NFSLAWFQAWGGLEINKQAIL")
+        self.assertEqual(
+            self.trimmed.sequences[3], "TAPDLL-LIGFLLKTVA-TFGDTWFQLWQGLDLNKMPVF"
+        )
+        self.assertEqual(
+            self.trimmed.sequences[-1], "--PTILNIAGLHMETDI-NFSLAWFQAWGGLEINKQAIL"
+        )
         with self.assertRaises(IndexError):
             self.trimmed.sequences[5]
         with self.assertRaises(IndexError):
@@ -322,7 +326,7 @@ class TestTrimmedAlignment(TestAlignment):
         self.assertEqual(len(mask), len(original.residues))
         self.assertEqual(
             self.trimmed.sequences[0],
-            "".join([x for x,c in zip(original.sequences[0], mask) if c])
+            "".join([x for x, c in zip(original.sequences[0], mask) if c]),
         )
 
     def test_sequences_mask(self):

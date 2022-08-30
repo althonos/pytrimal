@@ -15,7 +15,6 @@ from .. import Alignment, ManualTrimmer
 
 
 class TestManualTrimmer(unittest.TestCase):
-
     def assertTrimmedAlignmentEqual(self, trimmed, expected):
         self.assertEqual(len(trimmed.names), len(expected.names))
         self.assertEqual(len(trimmed.sequences), len(expected.sequences))
@@ -30,7 +29,7 @@ class TestManualTrimmer(unittest.TestCase):
 
     def _test_parameters(self, gt, cons):
         ali = self._load_alignment("ENOG411BWBU.fasta")
-        filename = "ENOG411BWBU.cons{:02}.gt{:02}.fasta".format(cons, int(gt*100))
+        filename = "ENOG411BWBU.cons{:02}.gt{:02}.fasta".format(cons, int(gt * 100))
         expected = self._load_alignment(filename)
         trimmer = ManualTrimmer(gap_threshold=gt, conservation_percentage=cons)
         trimmed = trimmer.trim(ali)
@@ -42,7 +41,9 @@ class TestManualTrimmer(unittest.TestCase):
         self.assertRaises(ValueError, ManualTrimmer, gap_absolute_threshold=-1)
         self.assertRaises(ValueError, ManualTrimmer, conservation_percentage=1000)
         self.assertRaises(ValueError, ManualTrimmer, conservation_percentage=-2)
-        self.assertRaises(ValueError, ManualTrimmer, gap_threshold=0.5, gap_absolute_threshold=0.5)
+        self.assertRaises(
+            ValueError, ManualTrimmer, gap_threshold=0.5, gap_absolute_threshold=0.5
+        )
         self.assertRaises(ValueError, ManualTrimmer, window=5, gap_window=5)
 
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
@@ -71,15 +72,27 @@ class TestManualTrimmer(unittest.TestCase):
 
     def test_duplicate_window(self):
         self.assertRaises(ValueError, ManualTrimmer, window=3, gap_window=3)
-        self.assertRaises(ValueError, ManualTrimmer, window=3, gap_window=3, similarity_window=3)
+        self.assertRaises(
+            ValueError, ManualTrimmer, window=3, gap_window=3, similarity_window=3
+        )
 
     def test_repr(self):
         trimmer = ManualTrimmer(gap_threshold=0.5)
         self.assertEqual(repr(trimmer), "ManualTrimmer(gap_threshold=0.5)")
         trimmer = ManualTrimmer(window=5, backend=None)
         self.assertEqual(repr(trimmer), "ManualTrimmer(window=5, backend=None)")
-        trimmer = ManualTrimmer(gap_absolute_threshold=10, similarity_threshold=0.5, conservation_percentage=50.0, gap_window=5, similarity_window=5, backend=None)
-        self.assertEqual(repr(trimmer), "ManualTrimmer(gap_absolute_threshold=10, similarity_threshold=0.5, conservation_percentage=50.0, gap_window=5, similarity_window=5, backend=None)")
+        trimmer = ManualTrimmer(
+            gap_absolute_threshold=10,
+            similarity_threshold=0.5,
+            conservation_percentage=50.0,
+            gap_window=5,
+            similarity_window=5,
+            backend=None,
+        )
+        self.assertEqual(
+            repr(trimmer),
+            "ManualTrimmer(gap_absolute_threshold=10, similarity_threshold=0.5, conservation_percentage=50.0, gap_window=5, similarity_window=5, backend=None)",
+        )
 
     def test_pickle(self):
         trimmer = ManualTrimmer(gap_threshold=0.4, window=5)
@@ -91,7 +104,7 @@ class TestManualTrimmer(unittest.TestCase):
                 "APDLLL-IGFLLKTV-ATFG-----------------DTWFQLWQGLD",
                 "DPAVL--FVIMLGTI-TKFS-----------------SEWFFAWLGLE",
                 "AAALLTYLGLFLGTDYENFA-----------------AAAANAWLGLE",
-            ]
+            ],
         )
         t1 = trimmer.trim(ali)
         t2 = pickled.trim(ali)

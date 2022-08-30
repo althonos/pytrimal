@@ -23,8 +23,7 @@ import pytrimal
 
 
 def _load_tests_from_module(tests, module, globs, setUp=None, tearDown=None):
-    """Load tests from module, iterating through submodules.
-    """
+    """Load tests from module, iterating through submodules."""
     for attr in (getattr(module, x) for x in dir(module) if not x.startswith("_")):
         if isinstance(attr, types.ModuleType):
             suite = doctest.DocTestSuite(
@@ -39,8 +38,7 @@ def _load_tests_from_module(tests, module, globs, setUp=None, tearDown=None):
 
 
 def load_tests(loader, tests, ignore):
-    """`load_test` function used by unittest to find the doctests.
-    """
+    """`load_test` function used by unittest to find the doctests."""
     _current_cwd = os.getcwd()
     # demonstrate how to use Biopython substitution matrices without
     # actually requiring Biopython
@@ -51,7 +49,9 @@ def load_tests(loader, tests, ignore):
     Bio.Align.substitution_matrices.load.return_value = jones = mock.Mock()
     jones.alphabet = "ARNDCQEGHILKMFPSTWYV"
     jones.__len__ = mock.Mock(return_value=len(jones.alphabet))
-    jones.__iter__ = mock.Mock(return_value=iter([[0] * len(jones.alphabet)]*len(jones.alphabet)))
+    jones.__iter__ = mock.Mock(
+        return_value=iter([[0] * len(jones.alphabet)] * len(jones.alphabet))
+    )
 
     def setUp(self):
         warnings.simplefilter("ignore")
@@ -81,11 +81,7 @@ def load_tests(loader, tests, ignore):
                 continue
             # import the submodule and add it to the tests
             module = importlib.import_module(".".join([pkg.__name__, subpkgname]))
-            globs = dict(
-                numpy=numpy,
-                Bio=Bio,
-                **module.__dict__
-            )
+            globs = dict(numpy=numpy, Bio=Bio, **module.__dict__)
             tests.addTests(
                 doctest.DocTestSuite(
                     module,

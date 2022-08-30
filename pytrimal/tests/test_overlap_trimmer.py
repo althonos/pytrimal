@@ -17,7 +17,6 @@ from .._trimal import _SSE2_RUNTIME_SUPPORT
 
 
 class TestOverlapTrimmer(unittest.TestCase):
-
     def assertTrimmedAlignmentEqual(self, trimmed, expected):
         self.assertEqual(len(trimmed.names), len(expected.names))
         self.assertEqual(len(trimmed.sequences), len(expected.sequences))
@@ -32,8 +31,10 @@ class TestOverlapTrimmer(unittest.TestCase):
 
     def _test_overlap(self, seq, res):
         ali = self._load_alignment("ENOG411BWBU.fasta")
-        expected = self._load_alignment("ENOG411BWBU.seq{}.res{}.fasta".format(seq, res))
-        trimmer = OverlapTrimmer(sequence_overlap=seq, residue_overlap=res/100)
+        expected = self._load_alignment(
+            "ENOG411BWBU.seq{}.res{}.fasta".format(seq, res)
+        )
+        trimmer = OverlapTrimmer(sequence_overlap=seq, residue_overlap=res / 100)
         trimmed = trimmer.trim(ali)
         self.assertTrimmedAlignmentEqual(trimmed, expected)
 
@@ -65,7 +66,7 @@ class TestOverlapTrimmer(unittest.TestCase):
                 "APDLLL-IGFLLKTV-ATFG-----------------DTWFQLWQGLD",
                 "DPAVL--FVIMLGTI-TKFS-----------------SEWFFAWLGLE",
                 "AAALLTYLGLFLGTDYENFA-----------------AAAANAWLGLE",
-            ]
+            ],
         )
         t1 = trimmer.trim(ali)
         t2 = pickled.trim(ali)

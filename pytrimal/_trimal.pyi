@@ -12,10 +12,38 @@ except ImportError:
 # --- Constants --------------------------------------------------------------
 
 TRIMMER_BACKEND = Literal["detect", "sse", "generic", None]
-AUTOMATIC_TRIMMER_METHODS = Literal["strict", "strictplus", "gappyout", "nogaps", "noallgaps", "automated1", "noduplicateseqs"]
+AUTOMATIC_TRIMMER_METHODS = Literal[
+    "strict",
+    "strictplus",
+    "gappyout",
+    "nogaps",
+    "noallgaps",
+    "automated1",
+    "noduplicateseqs",
+]
 
-FORMATS_LOAD = Literal["clustal", "fasta", "nexus", "phylip", "phylip32", "phylip40", "pir"]
-FORMATS_DUMP = Literal["clustal", "fasta", "html", "mega", "nexus", "phylip", "phylip32", "phylip40", "phylippaml", "nbrf", "pir", "fasta_m10", "nexus_m10", "phylippaml_m10", "phylip32_m10", "phylip_m10", "phylip40_m10"]
+FORMATS_LOAD = Literal[
+    "clustal", "fasta", "nexus", "phylip", "phylip32", "phylip40", "pir"
+]
+FORMATS_DUMP = Literal[
+    "clustal",
+    "fasta",
+    "html",
+    "mega",
+    "nexus",
+    "phylip",
+    "phylip32",
+    "phylip40",
+    "phylippaml",
+    "nbrf",
+    "pir",
+    "fasta_m10",
+    "nexus_m10",
+    "phylippaml_m10",
+    "phylip32_m10",
+    "phylip_m10",
+    "phylip40_m10",
+]
 
 # --- Alignment classes ------------------------------------------------------
 
@@ -27,7 +55,6 @@ class AlignmentSequences(Sequence[str]):
     @typing.overload
     def __getitem__(self, index: slice) -> AlignmentSequences: ...
 
-
 class AlignmentResidues(Sequence[str]):
     def __init__(self, alignment: Alignment) -> None: ...
     def __len__(self) -> int: ...
@@ -36,15 +63,22 @@ class AlignmentResidues(Sequence[str]):
     @typing.overload
     def __getitem__(self, index: slice) -> AlignmentResidues: ...
 
-
 class Alignment:
     @typing.overload
     @classmethod
-    def load(cls, file: Union[str, bytes, os.PathLike[str]], format: Optional[FORMATS_LOAD] = None) -> Alignment: ...
+    def load(
+        cls,
+        file: Union[str, bytes, os.PathLike[str]],
+        format: Optional[FORMATS_LOAD] = None,
+    ) -> Alignment: ...
     @typing.overload
     @classmethod
     def load(cls, file: BinaryIO, format: FORMATS_LOAD) -> Alignment: ...
-    def dump(self, file: Union[str, bytes, os.PathLike[str], BinaryIO], format: FORMATS_DUMP = "fasta") -> None: ...
+    def dump(
+        self,
+        file: Union[str, bytes, os.PathLike[str], BinaryIO],
+        format: FORMATS_DUMP = "fasta",
+    ) -> None: ...
     def dumps(self, format: str = "fasta", encoding: str = "utf-8") -> str: ...
     def __init__(self, names: Sequence[bytes], sequences: Sequence[str]) -> None: ...
     def __repr__(self) -> str: ...
@@ -57,11 +91,14 @@ class Alignment:
     def residues(self) -> AlignmentResidues: ...
     def copy(self) -> Alignment: ...
 
-
 class TrimmedAlignment(Alignment):
     @typing.overload
     @classmethod
-    def load(cls, file: Union[str, bytes, os.PathLike[str]], format: Optional[FORMATS_LOAD] = None) -> TrimmedAlignment: ...
+    def load(
+        cls,
+        file: Union[str, bytes, os.PathLike[str]],
+        format: Optional[FORMATS_LOAD] = None,
+    ) -> TrimmedAlignment: ...
     @typing.overload
     @classmethod
     def load(cls, file: BinaryIO, format: FORMATS_LOAD) -> TrimmedAlignment: ...
@@ -80,7 +117,6 @@ class TrimmedAlignment(Alignment):
     @property
     def sequences_mask(self) -> List[bool]: ...
 
-
 # -- Trimmer classes ---------------------------------------------------------
 
 class BaseTrimmer:
@@ -90,12 +126,18 @@ class BaseTrimmer:
     def __setstate__(self, state: Dict[str, object]) -> None: ...
     @property
     def backend(self) -> Optional[str]: ...
-    def trim(self, alignment: Alignment, matrix: Optional[SimilarityMatrix] = None) -> TrimmedAlignment: ...
-
+    def trim(
+        self, alignment: Alignment, matrix: Optional[SimilarityMatrix] = None
+    ) -> TrimmedAlignment: ...
 
 class AutomaticTrimmer(BaseTrimmer):
     METHODS: typing.ClassVar[FrozenSet[AUTOMATIC_TRIMMER_METHODS]]
-    def __init__(self, method: AUTOMATIC_TRIMMER_METHODS = "strict", *, backend: TRIMMER_BACKEND = "detect") -> None: ...
+    def __init__(
+        self,
+        method: AUTOMATIC_TRIMMER_METHODS = "strict",
+        *,
+        backend: TRIMMER_BACKEND = "detect",
+    ) -> None: ...
 
 class ManualTrimmer(BaseTrimmer):
     def __init__(
@@ -111,16 +153,14 @@ class ManualTrimmer(BaseTrimmer):
         backend: TRIMMER_BACKEND = "detect",
     ) -> None: ...
 
-
 class OverlapTrimmer(BaseTrimmer):
     def __init__(
         self,
         sequence_overlap: float,
         residue_overlap: float,
         *,
-        backend: TRIMMER_BACKEND = "detect"
+        backend: TRIMMER_BACKEND = "detect",
     ) -> None: ...
-
 
 class RepresentativeTrimmer(BaseTrimmer):
     @typing.overload
@@ -129,7 +169,7 @@ class RepresentativeTrimmer(BaseTrimmer):
         *,
         clusters: Literal[None] = None,
         identity_threshold: float,
-        backend: TRIMMER_BACKEND = "detect"
+        backend: TRIMMER_BACKEND = "detect",
     ) -> None: ...
     @typing.overload
     def __init__(
@@ -137,17 +177,16 @@ class RepresentativeTrimmer(BaseTrimmer):
         *,
         clusters: int,
         identity_threshold: Literal[None] = None,
-        backend: TRIMMER_BACKEND = "detect"
+        backend: TRIMMER_BACKEND = "detect",
     ) -> None: ...
 
 # -- Misc classes ------------------------------------------------------------
-
 
 class SimilarityMatrix:
     @classmethod
     def aa(cls) -> SimilarityMatrix: ...
     @classmethod
-    def nt(cls, degenerated: bool =False) -> SimilarityMatrix: ...
+    def nt(cls, degenerated: bool = False) -> SimilarityMatrix: ...
     def __init__(self, alphabet: str, matrix: Sequence[Sequence[float]]) -> None: ...
     def __len__(self) -> int: ...
     def distance(self, a: str, b: str) -> float: ...

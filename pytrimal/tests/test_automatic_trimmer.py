@@ -17,7 +17,6 @@ from .._trimal import _SSE2_RUNTIME_SUPPORT
 
 
 class TestAutomaticTrimmer(unittest.TestCase):
-
     def assertTrimmedAlignmentEqual(self, trimmed, expected):
         self.assertEqual(len(trimmed.names), len(expected.names))
         self.assertEqual(len(trimmed.sequences), len(expected.sequences))
@@ -47,7 +46,9 @@ class TestAutomaticTrimmer(unittest.TestCase):
         trimmer = AutomaticTrimmer("automated1")
         self.assertEqual(repr(trimmer), "AutomaticTrimmer('automated1')")
         trimmer = AutomaticTrimmer("noduplicateseqs", backend=None)
-        self.assertEqual(repr(trimmer), "AutomaticTrimmer('noduplicateseqs', backend=None)")
+        self.assertEqual(
+            repr(trimmer), "AutomaticTrimmer('noduplicateseqs', backend=None)"
+        )
 
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(importlib_resources, "importlib.resources not available")
@@ -126,7 +127,7 @@ class TestAutomaticTrimmer(unittest.TestCase):
                 "APDLLL-IGFLLKTV-ATFG-----------------DTWFQLWQGLD",
                 "DPAVL--FVIMLGTI-TKFS-----------------SEWFFAWLGLE",
                 "AAALLTYLGLFLGTDYENFA-----------------AAAANAWLGLE",
-            ]
+            ],
         )
         t1 = trimmer.trim(ali)
         t2 = pickled.trim(ali)
