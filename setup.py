@@ -517,7 +517,7 @@ class build_clib(_build_clib):
         try:
             objects = self.compiler.compile([testfile], debug=self.debug)
             self.compiler.link_executable(objects, base, output_dir=self.build_temp)
-        except CompileError:
+        except:
             _eprint("no")
             return False
         else:
