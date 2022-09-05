@@ -2,6 +2,7 @@ import argparse
 import glob
 import json
 import os
+import platform
 import time
 import statistics
 import sys
@@ -10,11 +11,12 @@ import typing
 from itertools import islice
 from typing import Dict, Callable, List
 
-sys.path.insert(0, os.path.realpath(os.path.join(__file__, "..", "..")))
-
 import numpy
 import pandas
 import rich.progress
+
+sys.path.insert(0, os.path.realpath(os.path.join(__file__, "..", "..")))
+
 from pytrimal import (
     Alignment,
     BaseTrimmer,
@@ -31,6 +33,13 @@ parser.add_argument("-r", "--runs", default=3, type=int)
 parser.add_argument("-d", "--data", required=True)
 parser.add_argument("-o", "--output", required=True)
 args = parser.parse_args()
+
+if platform.machine().startswith("x86"):
+    BACKENDS = ["sse", "generic", None]
+elif platform.machine().startswith("arm") or platform.machine() == "aarch64":
+    BACKENDS = ["neon", "generic", None]
+else:
+    BACKENDS = ["generic", None]
 
 STATISTIC: Dict[str, Callable[["TRIMMER_BACKEND"], BaseTrimmer]] = {
     "Gaps": lambda backend: ManualTrimmer(gap_threshold=0.5, backend=backend),
@@ -58,9 +67,8 @@ with rich.progress.Progress(transient=True) as progress:
     task0 = progress.add_task(total=len(STATISTIC), description="Statistic (...)")
     for statistic, get_trimmer in progress.track(STATISTIC.items(), task_id=task0):
         progress.update(task_id=task0, description=f"Statistic ({statistic})")
-        backends: List["TRIMMER_BACKEND"] = ["sse", "generic", None]
-        task1 = progress.add_task(total=len(backends), description=" Backend (...)")
-        for backend in progress.track(backends, task_id=task1):
+        task1 = progress.add_task(total=len(BACKENDS), description=" Backend (...)")
+        for backend in progress.track(BACKENDS, task_id=task1):
             progress.update(task_id=task1, description=f" Backend ({backend})")
             trimmer = get_trimmer(backend)
             task2 = progress.add_task(
