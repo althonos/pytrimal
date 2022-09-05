@@ -28,14 +28,17 @@ jobs:
         - python-version: '3.10'
           pyo3-python: /opt/python/cp310-cp310/bin/python
           image-tag: latest
+        - python-version: '3.11'
+          pyo3-python: /opt/python/cp311-cp311/bin/python
+          image-tag: latest
         - python-version: pypy-3.7
-          pyo3-python: /opt/pypy/pypy3.7-7.3.4/bin/python
+          pyo3-python: /opt/python/pp37-pypy37_*/bin/python
           image-tag: latest
         - python-version: pypy-3.8
-          pyo3-python: /opt/pypy/pypy3.7-7.3.4/bin/python
+          pyo3-python: /opt/python/pp38-pypy38_*/bin/python
           image-tag: latest
         - python-version: pypy-3.9
-          pyo3-python: /opt/pypy/pypy3.7-7.3.4/bin/python
+          pyo3-python: /opt/python/pp39-pypy39_*/bin/python
           image-tag: latest
     steps:
     - name: Checkout code
@@ -45,7 +48,7 @@ jobs:
     - name: Build manylinux wheels
       uses: addnab/docker-run-action@v2
       with:
-        image: pypywheels/manylinux2010-pypy_x86_64:${{ matrix.image-tag }}
+        image: quay.io/pypa/manylinux2014_x86_64:${{ matrix.image-tag }}
         options: -v ${{ github.workspace }}:/io -e TERM=$TERM
         shell: bash
         run: |
@@ -71,6 +74,9 @@ jobs:
         - 3.8
         - 3.9
         - '3.10'
+        - pypy-3.7
+        - pypy-3.8
+        - pypy-3.9
     steps:
     - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
@@ -313,10 +319,10 @@ jobs:
       uses: actions/checkout@v2
       with:
         submodules: true
-    - name: Set up Python 3.9
+    - name: Set up Python 3.10
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: '3.10'
     - name: Install build requirements
       run: python -m pip install -r .github/workflows/requirements.txt
     - name: Build source distribution
