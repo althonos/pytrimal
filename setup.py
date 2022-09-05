@@ -569,11 +569,16 @@ class build_clib(_build_clib):
             "building", library.name, "with", self.compiler.compiler_type, "compiler"
         )
 
-        # detect functions and headers
+        # detect hardware detection capabilities of CPU features
+        hwcaps = False
         if self._check_function("getauxval", "sys/auxv.h", "(0)"):
             library.define_macros.append(("HAVE_STRONG_GETAUXVAL", 1))
+            hwcaps = True
         if self._check_function("dlclose", "dlfcn.h", "(0)"):
             library.define_macros.append(("HAVE_DLFCN_H", 1))
+            hwcaps = True
+        if library.name == "cpu_features" and hwcaps and TARGET_SYSTEM in ("linux_or_android", "freebsd", "macos"):
+            library.sources.append(os.path.join("vendor", "cpu_features", "src", "hwcaps.c"))
 
         # add debug flags if we are building in debug mode
         if self.debug:
