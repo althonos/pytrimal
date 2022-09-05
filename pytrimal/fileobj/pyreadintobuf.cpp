@@ -43,7 +43,7 @@ int pyreadintobuf::underflow() {
     }
 
     long n = PyLong_AsLong(nread);
-    char c = (n == 0) ? EOF : *eback();
+    int c = (n == 0) ? EOF : *eback();
 
     Py_DECREF(nread);
 
