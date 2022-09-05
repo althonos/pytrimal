@@ -6,7 +6,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.5.0...HEAD
+
+
+## [v0.5.0] - 2022-09-05
+[v0.5.0]: https://github.com/althonos/pytrimal/compare/v0.4.0...v0.5.0
+
+### Added
+- `pytrimal.RepresentativeTrimmer` class to trim by maximum identity or fixed number of cluster representatives.
+- `pickle` protocol support for all trimmer classes.
+- Conversion methods to convert an `Alignment` from and to Biopython or PyHMMER objects.
+- Arm NEON implementation of the statistics computation algorithm, with speed-up similar to that of the SSE implementation.
+
+### Fixed
+- `std::streambuf` implementation based on the `readinto` Python method not working on Arm because of `char` being used to read ASCII.
+
+### Removed
+- Support for Python 3.5, due to Cython compatibility issues.
 
 
 ## [v0.4.0] - 2022-08-14
