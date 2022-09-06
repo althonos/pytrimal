@@ -774,10 +774,6 @@ CPU_FEATURES = Library(
     define_macros=[("STACK_LINE_READER_BUFFER_SIZE", 1024)],
 )
 
-if TARGET_SYSTEM in ("linux_or_android", "freebsd", "macos"):
-    CPU_FEATURES.sources.append(os.path.join("vendor", "cpu_features", "src", "hwcaps.c"))
-
-
 setuptools.setup(
     libraries=[CPU_FEATURES, TRIMAL],
     ext_modules=[
