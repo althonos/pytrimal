@@ -6,7 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.5.1...HEAD
+
+## [v0.5.1] - 2022-09-05
+[v0.5.1]: https://github.com/althonos/pytrimal/compare/v0.5.0...v0.5.1
+
+### Fixed
+- Build of `cpu_features` for platforms without hardware detection support.
 
 
 ## [v0.5.0] - 2022-09-05
