@@ -14,12 +14,16 @@
 
 #define NLANES_8  sizeof(uint8x16_t) / sizeof(uint8_t)   // number of 8-bit  lanes in __m128i
 
-static inline uint32_t vhsumq_u8(uint8x16_t a) {
-    uint8_t buffer[16];
-    vst1q_u8(&buffer[0], a);
-    uint32_t s = 0;
-    for (size_t i = 0; i < 16; i++) s += buffer[i];
-    return s;
+static inline uint32_t vhaddq_u8(uint8x16_t a) {
+#ifdef __aarch64__
+    // Don't use `vaddvq_u8` because it can overflow, first add pairwise 
+    // into 16-bit lanes to avoid overflows
+    uint16x8_t paired = vpaddlq_u8(a);
+    return vaddvq_u16(paired);    
+#else
+    uint64x2_t paired = vpaddlq_u32(vpaddlq_u16(vpaddlq_u8(a)));
+    return vgetq_lane_u64(paired, 0) + vgetq_lane_u64(paired, 1);
+#endif
 }
 
 namespace statistics {
@@ -91,8 +95,8 @@ namespace statistics {
                         len_acc = vaddq_u8(len_acc,              vbicq_u8(ONES, vandq_u8(gapsi, gapsj)));
                     }
                     // merge accumulators
-                    sum    += vhsumq_u8(sum_acc);
-                    length += vhsumq_u8(len_acc);
+                    sum    += vhaddq_u8(sum_acc);
+                    length += vhaddq_u8(len_acc);
                     sum_acc = vdupq_n_u8(0);
                     len_acc = vdupq_n_u8(0);
                 }
@@ -117,8 +121,8 @@ namespace statistics {
                 }
 
                 // merge accumulators
-                sum    += vhsumq_u8(sum_acc);
-                length += vhsumq_u8(len_acc);
+                sum    += vhaddq_u8(sum_acc);
+                length += vhaddq_u8(len_acc);
 
                 // process the tail elements when there remain less than
                 // can be fitted in a SIMD vector
@@ -370,8 +374,8 @@ void NEONCleaner::calculateSeqIdentity() {
                   hit_acc = vaddq_u8(hit_acc, vandq_u8(eq, mask));
               }
               // merge accumulators
-              dst += vhsumq_u8(dst_acc);
-              hit += vhsumq_u8(hit_acc);
+              dst += vhaddq_u8(dst_acc);
+              hit += vhaddq_u8(hit_acc);
               dst_acc = vdupq_n_u8(0);
               hit_acc = vdupq_n_u8(0);
           }
@@ -398,8 +402,8 @@ void NEONCleaner::calculateSeqIdentity() {
           }
 
           // update counters after last loop
-          hit += vhsumq_u8(hit_acc);
-          dst += vhsumq_u8(dst_acc);
+          hit += vhaddq_u8(hit_acc);
+          dst += vhaddq_u8(dst_acc);
 
           // process the tail elements when there remain less than
           // can be fitted in a SIMD vector
