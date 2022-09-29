@@ -14,7 +14,6 @@
 #include "sse.h"
 
 #define NLANES_8  sizeof(__m128i) / sizeof(uint8_t)   // number of 8-bit lanes in __m128i
-#define NLANES_32 sizeof(__m128i) / sizeof(uint32_t)  // number of 32-bit lanes in __m128i
 
 #define ALLOC_MASK          (sizeof(__m128i) - 1)
 #define ALLOC_SIZE(N, T)    ((N * sizeof(T) + ALLOC_MASK) & (~ALLOC_MASK))
@@ -32,8 +31,6 @@ static inline uint32_t _mm_hsum_epi32(__m128i a) {
 }
 
 namespace statistics {
-    SSESimilarity::SSESimilarity(Alignment* parentAlignment): Similarity(parentAlignment) {}
-
     void SSESimilarity::calculateMatrixIdentity() {
         // Create a timerLevel that will report times upon its destruction
         //	which means the end of the current scope.
@@ -265,8 +262,6 @@ namespace statistics {
         return true;
     }
 
-    SSEGaps::SSEGaps(Alignment* parentAlignment): Gaps(parentAlignment) {}
-
     void SSEGaps::CalculateVectors() {
         int i, j;
         const __m128i ALLGAP    = _mm_set1_epi8('-');
@@ -320,37 +315,14 @@ namespace statistics {
         for (; i < alig->originalNumberOfResidues; i++)
           totalGaps += gapsInColumn[i];
 
-        // build histogram and find largest number of gaps
-        // (maxGaps could be computed in SIMD but would require SSE4.1
-        // to use `_mm_max_epu32`).
+        // build histogram and find largest number of gaps (maxGaps could be
+        // computed in SIMD but would require SSE4.1 to use `_mm_max_epu32`).
         for (i = 0; i < alig->originalNumberOfResidues; i++) {
             numColumnsWithGaps[gapsInColumn[i]]++;
             if (gapsInColumn[i] > maxGaps)
                 maxGaps = gapsInColumn[i];
         }
     }
-}
-
-SSECleaner::SSECleaner(Alignment* parent): Cleaner(parent) {
-    // allocate aligned memory for faster SIMD loads
-    hits_unaligned         = (uint32_t*)      malloc(sizeof(uint32_t) * alig->originalNumberOfResidues + 0xF);
-    hits_u8_unaligned      = (uint8_t*)       malloc(sizeof(uint8_t)  * alig->originalNumberOfResidues + 0xF);
-    skipResidues_unaligned = (unsigned char*) malloc(sizeof(char)     * alig->originalNumberOfResidues + 0xF);
-
-    hits         = (uint32_t*)      (((uintptr_t) hits_unaligned         + 15) & (~0xF));
-    hits_u8      = (uint8_t*)       (((uintptr_t) hits_u8_unaligned      + 15) & (~0xF));
-    skipResidues = (unsigned char*) (((uintptr_t) skipResidues_unaligned + 15) & (~0xF));
-
-    // create an index for residues to skip
-    for(int i = 0; i < alig->originalNumberOfResidues; i++) {
-        skipResidues[i] = alig->saveResidues[i] == -1 ? 0xFF : 0;
-    }
-}
-
-SSECleaner::~SSECleaner() {
-    free(hits_u8_unaligned);
-    free(hits_unaligned);
-    free(skipResidues_unaligned);
 }
 
 void SSECleaner::calculateSeqIdentity() {
@@ -375,6 +347,12 @@ void SSECleaner::calculateSeqIdentity() {
       if (alig->saveSequences[i] == -1) continue;
       alig->identities[i] = new float[alig->originalNumberOfSequences];
       alig->identities[i][i] = 0;
+  }
+
+  // create an index of residues to skip
+  uint8_t* skipResidues = ALIGNED_ALLOC(alig->originalNumberOfResidues, uint8_t);
+  for(k = 0; k < alig->originalNumberOfResidues; i++) {
+      skipResidues[k] = alig->saveResidues[k] == -1 ? 0xFF : 0;
   }
 
   // For each seq, compute its identity score against the others in the MSA
@@ -469,6 +447,9 @@ void SSECleaner::calculateSeqIdentity() {
           alig->identities[j][i] = alig->identities[i][j];
       }
   }
+
+  // free allocated memory
+  free(skipResidues);
 }
 
 bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
@@ -490,6 +471,10 @@ bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
     const __m128i allindet  = _mm_set1_epi8(indet);
     const __m128i ALLGAP    = _mm_set1_epi8('-');
     const __m128i ONES      = _mm_set1_epi8(1);
+
+    // allocate aligned memory for faster SIMD loads
+    uint32_t* hits    = ALIGNED_ALLOC(alig->originalNumberOfResidues, uint32_t);
+    uint8_t*  hits_u8 = ALIGNED_ALLOC(alig->originalNumberOfResidues, uint8_t);
 
     // for each sequence in the alignment, computes its overlap
     for (int i = 0; i < alig->originalNumberOfSequences; i++) {
@@ -558,6 +543,10 @@ bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
         // above overlap threshold
         spuriousVector[i] = ((float) seqValue / alig->originalNumberOfResidues);
     }
+
+    // free allocated memory
+    free(hits);
+    free(hits_u8);
 
     // If there is not problem in the method, return true
     return true;

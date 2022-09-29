@@ -7,30 +7,20 @@
 namespace statistics {
     class SSESimilarity: public Similarity {
     public:
-        SSESimilarity(Alignment* parentAlignment);
+        SSESimilarity(Alignment* parentAlignment): Similarity(parentAlignment) {}
         void calculateMatrixIdentity() override;
         bool calculateVectors(bool cutByGap) override;
     };
     class SSEGaps: public Gaps {
     public:
-        SSEGaps(Alignment* parentAlignment);
+        SSEGaps(Alignment* parentAlignment): Gaps(parentAlignment) {}
         void CalculateVectors() override;
     };
 }
 
 class SSECleaner: public Cleaner {
-private:
-    // SIMD index for which residues can be skipped in `skipResidues`
-    unsigned char* skipResidues;
-    unsigned char* skipResidues_unaligned;
-    // temporary counters for `calculateSpuriousVector`
-    uint8_t* hits_u8;
-    uint8_t* hits_u8_unaligned;
-    uint32_t* hits;
-    uint32_t* hits_unaligned;
 public:
-    SSECleaner(Alignment* parent);
-    ~SSECleaner();
+    SSECleaner(Alignment* parent): Cleaner(parent) {}
     void calculateSeqIdentity() override;
     bool calculateSpuriousVector(float overlap, float *spuriousVector);
 };

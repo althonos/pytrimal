@@ -125,7 +125,7 @@ cdef extern from *:
     }
     template <typename T>
     void del_array(T* array) {
-        delete array;
+        delete[] array;
     }
     """
     T* new_array[T](size_t)
