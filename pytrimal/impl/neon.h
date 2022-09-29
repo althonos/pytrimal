@@ -6,15 +6,10 @@
 
 namespace statistics {
     class NEONSimilarity: public Similarity {
-    private:
-        std::vector<char> ascii_vhash;
-        std::vector<char> colgap;
-        std::string column;
     public:
         NEONSimilarity(Alignment* parentAlignment);
         void calculateMatrixIdentity() override;
         bool calculateVectors(bool cutByGap) override;
-        bool setSimilarityMatrix(similarityMatrix *sm) override;
     };
 }
 

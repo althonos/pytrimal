@@ -21,11 +21,7 @@ static inline uint32_t _mm_hsum_epi8(__m128i a) {
 }
 
 namespace statistics {
-    SSESimilarity::SSESimilarity(Alignment* parentAlignment): Similarity(parentAlignment) {
-        ascii_vhash = std::vector<char>(UCHAR_MAX, -1);
-        column = std::string(parentAlignment->originalNumberOfSequences, 0);
-        colgap = std::vector<char>(parentAlignment->originalNumberOfSequences);
-    }
+    SSESimilarity::SSESimilarity(Alignment* parentAlignment): Similarity(parentAlignment) {}
 
     void SSESimilarity::calculateMatrixIdentity() {
         // Create a timerLevel that will report times upon its destruction
@@ -136,7 +132,7 @@ namespace statistics {
     bool SSESimilarity::calculateVectors(bool cutByGap) {
         // Create a timerLevel that will report times upon its destruction
         //	which means the end of the current scope.
-        StartTiming("bool SSESimilarity::calculateVectors(int *gaps) ");
+        StartTiming("bool GenericSimilarity::calculateVectors(int *gaps) ");
 
         // A similarity matrix must be defined. If not, return false
         if (simMatrix == nullptr)
@@ -168,39 +164,44 @@ namespace statistics {
         // Q temporal value
         float Q;
         // Temporal chars that will contain the residues to compare by pair.
-        char chA, chB;
         int numA, numB;
-
-        // Cache pointer to rows of distance and identity matrices
-        float* distRow;
-        float* identityRow;
 
         // Calculate the maximum number of gaps a column can have to calculate it's
         //      similarity
         float gapThreshold = 0.8F * alig->numberOfResidues;
 
+        // Cache pointers to matrix rows to avoid dereferencing in inner loops
+        float* identityRow;
+        float* distRow;
+
+        // Create buffers to store column data
+        std::vector<char> colnum = std::vector<char>(alig->originalNumberOfSequences);
+        std::vector<char> colgap = std::vector<char>(alig->originalNumberOfSequences);
+
         // For each column calculate the Q value and the MD value using an equation
         for (i = 0; i < alig->originalNumberOfResidues; i++) {
             // Set MDK for columns with gaps values bigger or equal to 0.8F
-            if (cutByGap && (gaps[i] >= gapThreshold)) {
+            if (cutByGap && gaps[i] >= gapThreshold) {
                 MDK[i] = 0.F;
                 continue;
             }
 
-            // Fill the column data with the current column and check characters
-            // are well-defined with respect to the similarity matrix
+            // Fill the column buffer with the current column and check
+            // characters are well-defined with respect to the similarity matrix
             for (j = 0; j < alig->originalNumberOfSequences; j++) {
-                column[j] = chA = utils::toUpper(alig->sequences[j][i]);
-                if ((chA == indet) || (chA == '-')) {
+                char letter = utils::toUpper(alig->sequences[j][i]);
+                if ((letter == indet) || (letter == '-')) {
                     colgap[j] = 1;
                 } else {
                     colgap[j] = 0;
-                    if ((chA < 'A') || (chA > 'Z')) {
-                        debug.report(ErrorCode::IncorrectSymbol, new std::string[1]{std::string(1, chA)});
+                    if ((letter < 'A') || (letter > 'Z')) {
+                        debug.report(ErrorCode::IncorrectSymbol, new std::string[1]{std::string(1, letter)});
                         return false;
-                    } else if (ascii_vhash[chA] == -1) {
-                        debug.report(ErrorCode::UndefinedSymbol, new std::string[1]{std::string(1, chA)});
+                    } else if (simMatrix->vhash[letter - 'A'] == -1) {
+                        debug.report(ErrorCode::UndefinedSymbol, new std::string[1]{std::string(1, letter)});
                         return false;
+                    } else {
+                        colnum[j] = simMatrix->vhash[letter - 'A'];
                     }
                 }
             }
@@ -211,17 +212,9 @@ namespace statistics {
                 // a indeterminate (XN) or a gap (-) element.
                 if (colgap[j]) continue;
 
-                // Calculate the upper value of the residue,
-                //      to use in simMatrix->getDistance
-                // This is faster than calculating the upper on that method
-                //      as this is done before entering the loop
-                // Doing this before checking if the element is indeterminate or gap
-                //      allows to check if the indetermination is not capitalized
-                chA = column[j];
-                // Search the first character position
-                numA = ascii_vhash[chA];
-
-                // Cache pointers to matrix rows
+                // Get the index of the first residue
+                // and cache pointers to matrix rows
+                numA = colnum[j];
                 distRow = simMatrix->distMat[numA];
                 identityRow = matrixIdentity[j];
 
@@ -230,28 +223,20 @@ namespace statistics {
                     //      a indeterminate (XN) or a gap (-) element
                     if (colgap[k]) continue;
 
-                    // We calculate the upper value of the residue,
-                    //      to use in simMatrix->getDistance
-                    // This is equally faster as if it was done inside the method
-                    //      but to prevent errors, the method doesn't 'upper'
-                    //      the given chars.
-                    // Doing this before checking if the element is indeterminate or gap
-                    //      allows to check if the indetermination is not capitalized
-                    chB = column[k];
-                    // Search the second character position
-                    numB = ascii_vhash[chB];
-
-                    // We use the identity value for the two pairs and
-                    //      its distance based on similarity matrix's value.
+                    // Get the index of the second residue and compute 
+                    // fraction with identity value for the two pairs and
+                    // its distance based on similarity matrix's value.
+                    numB = colnum[k];
                     num += identityRow[k] * distRow[numB];
                     den += identityRow[k];
                 }
             }
 
             // If we are processing a column with only one AA/nucleotide, MDK = 0
-            if (den == 0) {
+            if (den == 0)
                 MDK[i] = 0;
-            } else {
+            else
+            {
                 Q = num / den;
                 // If the MDK value is more than 1, we normalized this value to 1.
                 //      Only numbers higher than 0 yield exponents higher than 1
@@ -259,7 +244,10 @@ namespace statistics {
                 //      And thus, prevent calculating the exp.
                 // Take in mind that the Q is negative, so we must test if Q is LESSER
                 //      than one, not bigger.
-                MDK[i] = (Q < 0) ? 1.F : exp(-Q);;
+                if (Q < 0)
+                    MDK[i] = 1.F;
+                else
+                    MDK[i] = exp(-Q);
             }
         }
 
@@ -269,14 +257,6 @@ namespace statistics {
         matrixIdentity = nullptr;
 
         return true;
-    }
-
-    bool SSESimilarity::setSimilarityMatrix(similarityMatrix *sm) {
-        if (sm != nullptr) {
-            for (char x = 'A'; x <= 'Z'; x++)
-                ascii_vhash[x] = sm->vhash[x - 'A'];
-        }
-        return Similarity::setSimilarityMatrix(sm);
     }
 }
 
