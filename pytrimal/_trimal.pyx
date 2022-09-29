@@ -46,7 +46,7 @@ cimport trimal.similarity_matrix
 from pytrimal.fileobj cimport pyreadbuf, pyreadintobuf, pywritebuf
 from pytrimal.impl.generic cimport GenericSimilarity, GenericCleaner
 IF SSE2_BUILD_SUPPORT:
-    from pytrimal.impl.sse cimport SSESimilarity, SSECleaner
+    from pytrimal.impl.sse cimport SSESimilarity, SSEGaps, SSECleaner
 IF NEON_BUILD_SUPPORT:
     from pytrimal.impl.neon cimport NEONSimilarity, NEONCleaner
 
@@ -1193,7 +1193,7 @@ cdef class BaseTrimmer:
 
     # --- Utils --------------------------------------------------------------
 
-    cdef void _setup_simd_code(self, trimal.manager.trimAlManager* manager):
+    cdef void _setup_simd_code(self, trimal.manager.trimAlManager* manager) nogil:
         if self._backend == simd_backend.GENERIC:
             del manager.origAlig.Statistics.similarity
             manager.origAlig.Statistics.similarity = new GenericSimilarity(manager.origAlig)
@@ -1205,6 +1205,9 @@ cdef class BaseTrimmer:
                 manager.origAlig.Statistics.similarity = new SSESimilarity(manager.origAlig)
                 del manager.origAlig.Cleaning
                 manager.origAlig.Cleaning = new SSECleaner(manager.origAlig)
+                del manager.origAlig.Statistics.gaps
+                manager.origAlig.Statistics.gaps = new SSEGaps(manager.origAlig)
+                manager.origAlig.Statistics.gaps.CalculateVectors()
         IF NEON_BUILD_SUPPORT:
             if self._backend == simd_backend.NEON:
                 del manager.origAlig.Statistics.similarity
@@ -1260,9 +1263,10 @@ cdef class BaseTrimmer:
 
         # configure the manager (to be implemented by the different subclasses)
         self._configure_manager(&manager)
-        self._setup_simd_code(&manager)
 
         with nogil:
+            # setup computation of optimized statistics with SIMD
+            self._setup_simd_code(&manager)
             # set flags
             manager.set_window_size()
             if manager.blockSize != -1:

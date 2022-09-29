@@ -11,6 +11,11 @@ namespace statistics {
         void calculateMatrixIdentity() override;
         bool calculateVectors(bool cutByGap) override;
     };
+    class SSEGaps: public Gaps {
+    public:
+        SSEGaps(Alignment* parentAlignment);
+        void CalculateVectors() override;
+    };
 }
 
 class SSECleaner: public Cleaner {

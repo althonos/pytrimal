@@ -18,7 +18,7 @@ cdef extern from "Statistics/Consistency.h" namespace "statistics" nogil:
 cdef extern from "Statistics/Gaps.h" namespace "statistics" nogil:
 
     cdef cppclass Gaps:
-        pass
+        void CalculateVectors()
 
 
 cdef extern from "Statistics/Mold.h" namespace "statistics" nogil:

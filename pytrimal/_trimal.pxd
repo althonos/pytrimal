@@ -57,7 +57,7 @@ cdef class TrimmedAlignment(Alignment):
 cdef class BaseTrimmer:
     cdef int _backend
 
-    cdef void _setup_simd_code(self, trimal.manager.trimAlManager* manager)
+    cdef void _setup_simd_code(self, trimal.manager.trimAlManager* manager) nogil
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager)
     cpdef TrimmedAlignment trim(self, Alignment alignment, SimilarityMatrix matrix = ?)
 

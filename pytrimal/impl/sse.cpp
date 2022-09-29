@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "Alignment/Alignment.h"
+#include "Statistics/Gaps.h"
 #include "Statistics/Manager.h"
 #include "Statistics/Similarity.h"
 #include "InternalBenchmarker.h"
@@ -15,9 +16,19 @@
 #define NLANES_8  sizeof(__m128i) / sizeof(uint8_t)   // number of 8-bit lanes in __m128i
 #define NLANES_32 sizeof(__m128i) / sizeof(uint32_t)  // number of 32-bit lanes in __m128i
 
+#define ALLOC_MASK          (sizeof(__m128i) - 1)
+#define ALLOC_SIZE(N, T)    ((N * sizeof(T) + ALLOC_MASK) & (~ALLOC_MASK))
+#define ALIGNED_ALLOC(N, T) (static_cast<T*>(aligned_alloc(sizeof(__m128i), ALLOC_SIZE(N, T))))
+
 static inline uint32_t _mm_hsum_epi8(__m128i a) {
     __m128i vsum = _mm_sad_epu8(a, _mm_setzero_si128());
     return _mm_extract_epi16(vsum, 0) + _mm_extract_epi16(vsum, 4);
+}
+
+static inline uint32_t _mm_hsum_epi32(__m128i a) {
+    int32_t tmp[4];
+    _mm_storeu_si128((__m128i*) tmp, a);
+    return tmp[0] + tmp[1] + tmp[2] + tmp[3];
 }
 
 namespace statistics {
@@ -47,7 +58,7 @@ namespace statistics {
 
         // prepare constant SIMD vectors
         const __m128i allindet = _mm_set1_epi8(indet);
-        const __m128i allgap   = _mm_set1_epi8('-');
+        const __m128i ALLGAP   = _mm_set1_epi8('-');
         const __m128i ONES     = _mm_set1_epi8(1);
 
         // For each sequences' pair, compare identity
@@ -71,8 +82,8 @@ namespace statistics {
                         __m128i seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
                         __m128i seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
                         // find which sequence characters are gap or indet
-                        __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
-                        __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
+                        __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, ALLGAP), _mm_cmpeq_epi8(seqi, allindet));
+                        __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, ALLGAP), _mm_cmpeq_epi8(seqj, allindet));
                         // find which sequence characters are equal
                         __m128i eq    = _mm_cmpeq_epi8(seqi, seqj);
                         // update counters
@@ -94,8 +105,8 @@ namespace statistics {
                     __m128i seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
                     // find which sequence characters are either a gap or
                     // an indeterminate character
-                    __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
-                    __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
+                    __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, ALLGAP), _mm_cmpeq_epi8(seqi, allindet));
+                    __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, ALLGAP), _mm_cmpeq_epi8(seqj, allindet));
                     // find which sequence characters are equal
                     __m128i eq    = _mm_cmpeq_epi8(seqi, seqj);
                     // update counters: update sum if both sequence characters
@@ -218,7 +229,7 @@ namespace statistics {
                     //      a indeterminate (XN) or a gap (-) element
                     if (colgap[k]) continue;
 
-                    // Get the index of the second residue and compute 
+                    // Get the index of the second residue and compute
                     // fraction with identity value for the two pairs and
                     // its distance based on similarity matrix's value.
                     numB = colnum[k];
@@ -252,6 +263,71 @@ namespace statistics {
         matrixIdentity = nullptr;
 
         return true;
+    }
+
+    SSEGaps::SSEGaps(Alignment* parentAlignment): Gaps(parentAlignment) {}
+
+    void SSEGaps::CalculateVectors() {
+        int i, j;
+        const __m128i ALLGAP    = _mm_set1_epi8('-');
+        const __m128i ONES      = _mm_set1_epi8(1);
+
+        // use temporary buffer for storing 8-bit partial sums
+        uint8_t* gapsInColumn_u8 = ALIGNED_ALLOC(alig->originalNumberOfResidues, uint8_t);
+        memset(gapsInColumn,    0, sizeof(int)     * alig->originalNumberOfResidues);
+        memset(gapsInColumn_u8, 0, sizeof(uint8_t) * alig->originalNumberOfResidues);
+
+        // count gaps per column
+        for (j = 0; j < alig->originalNumberOfSequences; j++) {
+            // skip sequences not retained in alignment
+            if (alig->saveSequences[j] == -1)
+                continue;
+            // process the whole sequence, 16 lanes at a time
+            const char* data = alig->sequences[j].data();
+            for (i = 0; ((int) (i + NLANES_8)) < alig->originalNumberOfResidues; i += NLANES_8) {
+                __m128i letters = _mm_loadu_si128((const __m128i*) &data[i]);
+                __m128i counts  = _mm_load_si128((const __m128i*) &gapsInColumn_u8[i]);
+                __m128i gaps    = _mm_and_si128(ONES, _mm_cmpeq_epi8(letters, ALLGAP));
+                __m128i updated = _mm_add_epi8(counts, gaps);
+                _mm_store_si128((__m128i*) &gapsInColumn_u8[i], updated);
+            }
+            // count the remaining gap elements without SIMD
+            for (; i < alig->originalNumberOfResidues; i++)
+                if (data[i] == '-') gapsInColumn_u8[i]++;
+            // every UCHAR_MAX iterations the accumulator may overflow, so the
+            // temporary counts are moved into the final counter array, and the
+            // accumulator is reset
+            if (j % UCHAR_MAX == 0) {
+                for (i = 0; i < alig->originalNumberOfResidues; i++)
+                    gapsInColumn[i] += gapsInColumn_u8[i];
+                memset(gapsInColumn_u8, 0, sizeof(uint8_t) * alig->originalNumberOfResidues);
+            }
+        }
+        // collect the remaining partial counts into the final counter array
+        for (i = 0; i < alig->originalNumberOfResidues; i++)
+            gapsInColumn[i] += gapsInColumn_u8[i];
+
+        // free temporary buffer
+        free(gapsInColumn_u8);
+
+        // compute the total number of gaps
+        __m128i totalGaps_u32 = _mm_setzero_si128();
+        for (i = 0; ((int) (i + NLANES_8)) < alig->originalNumberOfResidues; i += NLANES_8) {
+            __m128i counts = _mm_loadu_si128((const __m128i*) &gapsInColumn[i]);
+            totalGaps_u32  = _mm_add_epi32(totalGaps_u32, counts);
+        }
+        totalGaps = _mm_hsum_epi32(totalGaps_u32);
+        for (; i < alig->originalNumberOfResidues; i++)
+          totalGaps += gapsInColumn[i];
+
+        // build histogram and find largest number of gaps
+        // (maxGaps could be computed in SIMD but would require SSE4.1
+        // to use `_mm_max_epu32`).
+        for (i = 0; i < alig->originalNumberOfResidues; i++) {
+            numColumnsWithGaps[gapsInColumn[i]]++;
+            if (gapsInColumn[i] > maxGaps)
+                maxGaps = gapsInColumn[i];
+        }
     }
 }
 
@@ -290,7 +366,7 @@ void SSECleaner::calculateSeqIdentity() {
 
   // prepare constant SIMD vectors
   const __m128i allindet = _mm_set1_epi8(indet);
-  const __m128i allgap   = _mm_set1_epi8('-');
+  const __m128i ALLGAP   = _mm_set1_epi8('-');
   const __m128i ONES     = _mm_set1_epi8(1);
 
   // Create identities matrix to store identities scores
@@ -327,8 +403,8 @@ void SSECleaner::calculateSeqIdentity() {
                   __m128i skip = _mm_load_si128(  (const __m128i*) (&skipResidues[k]));
                   __m128i eq = _mm_cmpeq_epi8(seqi, seqj);
                   // find which sequence characters are gap or indet
-                  __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
-                  __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
+                  __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, ALLGAP), _mm_cmpeq_epi8(seqi, allindet));
+                  __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, ALLGAP), _mm_cmpeq_epi8(seqj, allindet));
                   // find position where not both characters are gap
                   __m128i mask = _mm_andnot_si128(skip, _mm_andnot_si128(_mm_and_si128(gapsi, gapsj), ONES));
                   // update counters
@@ -352,8 +428,8 @@ void SSECleaner::calculateSeqIdentity() {
               __m128i eq = _mm_cmpeq_epi8(seqi, seqj);
               // find which sequence characters are either a gap or
               // an indeterminate character
-              __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
-              __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
+              __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, ALLGAP), _mm_cmpeq_epi8(seqi, allindet));
+              __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, ALLGAP), _mm_cmpeq_epi8(seqj, allindet));
               // find position where not both characters are gap
               __m128i mask = _mm_andnot_si128(skip, _mm_andnot_si128(_mm_and_si128(gapsi, gapsj), ONES));
               // update counters: update dst if any of the two sequence
@@ -412,7 +488,7 @@ bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
 
     // prepare constant SIMD vectors
     const __m128i allindet  = _mm_set1_epi8(indet);
-    const __m128i allgap    = _mm_set1_epi8('-');
+    const __m128i ALLGAP    = _mm_set1_epi8('-');
     const __m128i ONES      = _mm_set1_epi8(1);
 
     // for each sequence in the alignment, computes its overlap
@@ -440,8 +516,8 @@ bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
                 __m128i seqi = _mm_loadu_si128((const __m128i*) (&datai[k]));
                 __m128i seqj = _mm_loadu_si128((const __m128i*) (&dataj[k]));
                 // find which sequence characters are gap or indet
-                __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
-                __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
+                __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, ALLGAP), _mm_cmpeq_epi8(seqi, allindet));
+                __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, ALLGAP), _mm_cmpeq_epi8(seqj, allindet));
                 __m128i gaps  = _mm_andnot_si128( _mm_or_si128(gapsi, gapsj), _mm_set1_epi8(0xFF));
                 // find which sequence characters match
                 __m128i eq = _mm_cmpeq_epi8(seqi, seqj);
