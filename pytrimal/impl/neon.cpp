@@ -63,29 +63,24 @@ namespace statistics {
                 const char* datai = alig->sequences[i].data();
                 const char* dataj = alig->sequences[j].data();
 
-                uint8x16_t seqi;
-                uint8x16_t seqj;
-                uint8x16_t eq;
-                uint8x16_t gapsi;
-                uint8x16_t gapsj;
                 uint8x16_t len_acc = vdupq_n_u8(0);
                 uint8x16_t sum_acc = vdupq_n_u8(0);
 
-                int sum = 0;
-                int length = 0;
+                uint32_t sum    = 0;
+                uint32_t length = 0;
 
                 // run with unrolled loops of UCHAR_MAX iterations first
                 for (k = 0; ((int) (k + NLANES_8*UCHAR_MAX)) < alig->originalNumberOfResidues;) {
                     // unroll the internal loop
                     for (l = 0; l < UCHAR_MAX; l++, k += NLANES_8) {
                         // load data for the sequences
-                        seqi = vld1q_u8( (const uint8_t*) (&datai[k]));
-                        seqj = vld1q_u8( (const uint8_t*) (&dataj[k]));
+                        uint8x16_t seqi = vld1q_u8( (const uint8_t*) (&datai[k]));
+                        uint8x16_t seqj = vld1q_u8( (const uint8_t*) (&dataj[k]));
                         // find which sequence characters are gap or indet
-                        gapsi = vorrq_u8(vceqq_u8(seqi, allgap), vceqq_u8(seqi, allindet));
-                        gapsj = vorrq_u8(vceqq_u8(seqj, allgap), vceqq_u8(seqj, allindet));
+                        uint8x16_t gapsi = vorrq_u8(vceqq_u8(seqi, allgap), vceqq_u8(seqi, allindet));
+                        uint8x16_t gapsj = vorrq_u8(vceqq_u8(seqj, allgap), vceqq_u8(seqj, allindet));
                         // find which sequence characters are equal
-                        eq    = vceqq_u8(seqi, seqj);
+                        uint8x16_t eq    = vceqq_u8(seqi, seqj);
                         // update counters
                         sum_acc = vaddq_u8(sum_acc, vandq_u8(eq, vbicq_u8(ONES, vorrq_u8(gapsi, gapsj))));
                         len_acc = vaddq_u8(len_acc,              vbicq_u8(ONES, vandq_u8(gapsi, gapsj)));
@@ -101,14 +96,14 @@ namespace statistics {
                 for (; ((int) (k + NLANES_8)) < alig->originalNumberOfResidues; k += NLANES_8) {
                     // load data for the sequences; load is unaligned because
                     // string data is not guaranteed to be aligned.
-                    seqi = vld1q_u8( (const uint8_t*) (&datai[k]));
-                    seqj = vld1q_u8( (const uint8_t*) (&dataj[k]));
+                    uint8x16_t seqi = vld1q_u8( (const uint8_t*) (&datai[k]));
+                    uint8x16_t seqj = vld1q_u8( (const uint8_t*) (&dataj[k]));
                     // find which sequence characters are either a gap or
                     // an indeterminate character
-                    gapsi = vorrq_u8(vceqq_u8(seqi, allgap), vceqq_u8(seqi, allindet));
-                    gapsj = vorrq_u8(vceqq_u8(seqj, allgap), vceqq_u8(seqj, allindet));
+                    uint8x16_t gapsi = vorrq_u8(vceqq_u8(seqi, allgap), vceqq_u8(seqi, allindet));
+                    uint8x16_t gapsj = vorrq_u8(vceqq_u8(seqj, allgap), vceqq_u8(seqj, allindet));
                     // find which sequence characters are equal
-                    eq    = vceqq_u8(seqi, seqj);
+                    uint8x16_t eq    = vceqq_u8(seqi, seqj);
                     // update counters: update sum if both sequence characters
                     // are non-gap/indeterminate and equal; update length if
                     // any of the characters is non-gappy/indeterminate.
@@ -323,13 +318,6 @@ void NEONCleaner::calculateSeqIdentity() {
           const char* datai = alig->sequences[i].data();
           const char* dataj = alig->sequences[j].data();
 
-          uint8x16_t seqi;
-          uint8x16_t seqj;
-          uint8x16_t skip;
-          uint8x16_t eq;
-          uint8x16_t gapsi;
-          uint8x16_t gapsj;
-          uint8x16_t mask;
           uint8x16_t dst_acc = vdupq_n_u8(0);
           uint8x16_t hit_acc = vdupq_n_u8(0);
 
@@ -340,15 +328,15 @@ void NEONCleaner::calculateSeqIdentity() {
           for (k = 0; ((int) (k + NLANES_8*UCHAR_MAX)) < alig->originalNumberOfResidues;) {
               for (l = 0; l < UCHAR_MAX; l++, k += NLANES_8) {
                   // load data for the sequences
-                  seqi = vld1q_u8((const uint8_t*) (&datai[k]));
-                  seqj = vld1q_u8((const uint8_t*) (&dataj[k]));
-                  skip = vld1q_u8((const uint8_t*) (&skipResidues[k]));
-                  eq = vceqq_u8(seqi, seqj);
+                  uint8x16_t seqi = vld1q_u8((const uint8_t*) (&datai[k]));
+                  uint8x16_t seqj = vld1q_u8((const uint8_t*) (&dataj[k]));
+                  uint8x16_t skip = vld1q_u8((const uint8_t*) (&skipResidues[k]));
+                  uint8x16_t eq = vceqq_u8(seqi, seqj);
                   // find which sequence characters are gap or indet
-                  gapsi = vorrq_u8(vceqq_u8(seqi, allgap), vceqq_u8(seqi, allindet));
-                  gapsj = vorrq_u8(vceqq_u8(seqj, allgap), vceqq_u8(seqj, allindet));
+                  uint8x16_t gapsi = vorrq_u8(vceqq_u8(seqi, allgap), vceqq_u8(seqi, allindet));
+                  uint8x16_t gapsj = vorrq_u8(vceqq_u8(seqj, allgap), vceqq_u8(seqj, allindet));
                   // find position where not both characters are gap
-                  mask  = vbicq_u8(vbicq_u8(ONES, vandq_u8(gapsi, gapsj)), skip);
+                  uint8x16_t mask  = vbicq_u8(vbicq_u8(ONES, vandq_u8(gapsi, gapsj)), skip);
                   // update counters
                   dst_acc = vaddq_u8(dst_acc,                   mask);
                   hit_acc = vaddq_u8(hit_acc, vandq_u8(eq, mask));
@@ -364,16 +352,16 @@ void NEONCleaner::calculateSeqIdentity() {
           for (; ((int) (k + NLANES_8)) < alig->originalNumberOfResidues; k += NLANES_8) {
               // load data for the sequences; load is unaligned because
               // string data is not guaranteed to be aligned.
-              seqi = vld1q_u8((const uint8_t*) (&datai[k]));
-              seqj = vld1q_u8((const uint8_t*) (&dataj[k]));
-              skip = vld1q_u8((const uint8_t*) (&skipResidues[k]));
-              eq = vceqq_u8(seqi, seqj);
+              uint8x16_t seqi = vld1q_u8((const uint8_t*) (&datai[k]));
+              uint8x16_t seqj = vld1q_u8((const uint8_t*) (&dataj[k]));
+              uint8x16_t skip = vld1q_u8((const uint8_t*) (&skipResidues[k]));
+              uint8x16_t eq = vceqq_u8(seqi, seqj);
               // find which sequence characters are either a gap or
               // an indeterminate character
-              gapsi = vorrq_u8(vceqq_u8(seqi, allgap), vceqq_u8(seqi, allindet));
-              gapsj = vorrq_u8(vceqq_u8(seqj, allgap), vceqq_u8(seqj, allindet));
+              uint8x16_t gapsi = vorrq_u8(vceqq_u8(seqi, allgap), vceqq_u8(seqi, allindet));
+              uint8x16_t gapsj = vorrq_u8(vceqq_u8(seqj, allgap), vceqq_u8(seqj, allindet));
               // find position where not both characters are gap
-              mask = vbicq_u8(vbicq_u8(ONES, vandq_u8(gapsi, gapsj)), skip);
+              uint8x16_t mask = vbicq_u8(vbicq_u8(ONES, vandq_u8(gapsi, gapsj)), skip);
               // update counters: update dst if any of the two sequence
               // characters is non-gap/indeterminate; update length if
               // any of the characters is non-gappy/indeterminate.
@@ -450,7 +438,7 @@ bool NEONCleaner::calculateSpuriousVector(float overlap, float *spuriousVector) 
             const char* datai = alig->sequences[i].data();
             const char* dataj = alig->sequences[j].data();
 
-            uint8x16_t seqi;
+             seqi;
             uint8x16_t seqj;
             uint8x16_t eq;
             uint8x16_t gapsi;
@@ -464,20 +452,19 @@ bool NEONCleaner::calculateSpuriousVector(float overlap, float *spuriousVector) 
             // run iterations in SIMD while possible
             for (; ((int) (k + NLANES_8)) <= alig->originalNumberOfResidues; k += NLANES_8) {
                 // load data for the sequences
-                seqi = vld1q_u8((const uint8_t*) (&datai[k]));
-                seqj = vld1q_u8((const uint8_t*) (&dataj[k]));
+                uint8x16_t seqi = vld1q_u8((const uint8_t*) (&datai[k]));
+                uint8x16_t seqj = vld1q_u8((const uint8_t*) (&dataj[k]));
                 // find which sequence characters are gap or indet
-                gapsi = vorrq_u8(vceqq_u8(seqi, allgap), vceqq_u8(seqi, allindet));
-                gapsj = vorrq_u8(vceqq_u8(seqj, allgap), vceqq_u8(seqj, allindet));
-                gaps  = vmvnq_u8(vorrq_u8(gapsi, gapsj));
+                uint8x16_t gapsi = vorrq_u8(vceqq_u8(seqi, allgap), vceqq_u8(seqi, allindet));
+                uint8x16_t gapsj = vorrq_u8(vceqq_u8(seqj, allgap), vceqq_u8(seqj, allindet));
+                uint8x16_t gaps  = vmvnq_u8(vorrq_u8(gapsi, gapsj));
                 // find which sequence characters match
-                eq = vceqq_u8(seqi, seqj);
+                uint8x16_t eq = vceqq_u8(seqi, seqj);
                 // find position where either not both characters are gap, or they are equal
-                n = vandq_u8(vorrq_u8(eq, gaps), ONES);
+                uint8x16_t n = vandq_u8(vorrq_u8(eq, gaps), ONES);
                 // update counters
-                hit = vld1q_u8((const uint8_t*) (&hits_u8[k]));
-                hit = vaddq_u8(hit, n);
-                vst1q_u8((uint8_t*) (&hits_u8[k]), hit);
+                uint8x16_t hit = vld1q_u8((const uint8_t*) (&hits_u8[k]));
+                vst1q_u8((uint8_t*) (&hits_u8[k]), vaddq_u8(hit, n));
             }
 
             // process the tail elements when there remain less than

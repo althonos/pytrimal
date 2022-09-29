@@ -57,29 +57,24 @@ namespace statistics {
                 const char* datai = alig->sequences[i].data();
                 const char* dataj = alig->sequences[j].data();
 
-                __m128i seqi;
-                __m128i seqj;
-                __m128i eq;
-                __m128i gapsi;
-                __m128i gapsj;
                 __m128i len_acc = _mm_setzero_si128();
                 __m128i sum_acc = _mm_setzero_si128();
 
-                int sum = 0;
-                int length = 0;
+                uint32_t sum    = 0;
+                uint32_t length = 0;
 
                 // run with unrolled loops of UCHAR_MAX iterations first
                 for (k = 0; ((int) (k + NLANES_8*UCHAR_MAX)) < alig->originalNumberOfResidues;) {
                     // unroll the internal loop
                     for (l = 0; l < UCHAR_MAX; l++, k += NLANES_8) {
                         // load data for the sequences
-                        seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
-                        seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
+                        __m128i seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
+                        __m128i seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
                         // find which sequence characters are gap or indet
-                        gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
-                        gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
+                        __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
+                        __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
                         // find which sequence characters are equal
-                        eq    = _mm_cmpeq_epi8(seqi, seqj);
+                        __m128i eq    = _mm_cmpeq_epi8(seqi, seqj);
                         // update counters
                         sum_acc = _mm_add_epi8(sum_acc, _mm_and_si128(eq, _mm_andnot_si128( _mm_or_si128(gapsi, gapsj), ONES)));
                         len_acc = _mm_add_epi8(len_acc,                   _mm_andnot_si128(_mm_and_si128(gapsi, gapsj), ONES));
@@ -95,14 +90,14 @@ namespace statistics {
                 for (; ((int) (k + NLANES_8)) < alig->originalNumberOfResidues; k += NLANES_8) {
                     // load data for the sequences; load is unaligned because
                     // string data is not guaranteed to be aligned.
-                    seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
-                    seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
+                    __m128i seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
+                    __m128i seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
                     // find which sequence characters are either a gap or
                     // an indeterminate character
-                    gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
-                    gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
+                    __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
+                    __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
                     // find which sequence characters are equal
-                    eq    = _mm_cmpeq_epi8(seqi, seqj);
+                    __m128i eq    = _mm_cmpeq_epi8(seqi, seqj);
                     // update counters: update sum if both sequence characters
                     // are non-gap/indeterminate and equal; update length if
                     // any of the characters is non-gappy/indeterminate.
@@ -317,13 +312,6 @@ void SSECleaner::calculateSeqIdentity() {
           const char* datai = alig->sequences[i].data();
           const char* dataj = alig->sequences[j].data();
 
-          __m128i seqi;
-          __m128i seqj;
-          __m128i skip;
-          __m128i eq;
-          __m128i gapsi;
-          __m128i gapsj;
-          __m128i mask;
           __m128i dst_acc = _mm_setzero_si128();
           __m128i hit_acc = _mm_setzero_si128();
 
@@ -334,15 +322,15 @@ void SSECleaner::calculateSeqIdentity() {
           for (k = 0; ((int) (k + NLANES_8*UCHAR_MAX)) < alig->originalNumberOfResidues;) {
               for (l = 0; l < UCHAR_MAX; l++, k += NLANES_8) {
                   // load data for the sequences
-                  seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
-                  seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
-                  skip = _mm_load_si128(  (const __m128i*) (&skipResidues[k]));
-                  eq = _mm_cmpeq_epi8(seqi, seqj);
+                  __m128i seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
+                  __m128i seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
+                  __m128i skip = _mm_load_si128(  (const __m128i*) (&skipResidues[k]));
+                  __m128i eq = _mm_cmpeq_epi8(seqi, seqj);
                   // find which sequence characters are gap or indet
-                  gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
-                  gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
+                  __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
+                  __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
                   // find position where not both characters are gap
-                  mask = _mm_andnot_si128(skip, _mm_andnot_si128(_mm_and_si128(gapsi, gapsj), ONES));
+                  __m128i mask = _mm_andnot_si128(skip, _mm_andnot_si128(_mm_and_si128(gapsi, gapsj), ONES));
                   // update counters
                   dst_acc = _mm_add_epi8(dst_acc,                   mask);
                   hit_acc = _mm_add_epi8(hit_acc, _mm_and_si128(eq, mask));
@@ -358,16 +346,16 @@ void SSECleaner::calculateSeqIdentity() {
           for (; ((int) (k + NLANES_8)) < alig->originalNumberOfResidues; k += NLANES_8) {
               // load data for the sequences; load is unaligned because
               // string data is not guaranteed to be aligned.
-              seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
-              seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
-              skip = _mm_load_si128(  (const __m128i*) (&skipResidues[k]));
-              eq = _mm_cmpeq_epi8(seqi, seqj);
+              __m128i seqi = _mm_loadu_si128( (const __m128i*) (&datai[k]));
+              __m128i seqj = _mm_loadu_si128( (const __m128i*) (&dataj[k]));
+              __m128i skip = _mm_load_si128(  (const __m128i*) (&skipResidues[k]));
+              __m128i eq = _mm_cmpeq_epi8(seqi, seqj);
               // find which sequence characters are either a gap or
               // an indeterminate character
-              gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
-              gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
+              __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
+              __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
               // find position where not both characters are gap
-              mask = _mm_andnot_si128(skip, _mm_andnot_si128(_mm_and_si128(gapsi, gapsj), ONES));
+              __m128i mask = _mm_andnot_si128(skip, _mm_andnot_si128(_mm_and_si128(gapsi, gapsj), ONES));
               // update counters: update dst if any of the two sequence
               // characters is non-gap/indeterminate; update length if
               // any of the characters is non-gappy/indeterminate.
@@ -444,34 +432,24 @@ bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
             const char* datai = alig->sequences[i].data();
             const char* dataj = alig->sequences[j].data();
 
-            __m128i seqi;
-            __m128i seqj;
-            __m128i eq;
-            __m128i gapsi;
-            __m128i gapsj;
-            __m128i gaps;
-            __m128i n;
-            __m128i hit;
-
             int k = 0;
 
             // run iterations in SIMD while possible
             for (; ((int) (k + NLANES_8)) <= alig->originalNumberOfResidues; k += NLANES_8) {
                 // load data for the sequences
-                seqi = _mm_loadu_si128((const __m128i*) (&datai[k]));
-                seqj = _mm_loadu_si128((const __m128i*) (&dataj[k]));
+                __m128i seqi = _mm_loadu_si128((const __m128i*) (&datai[k]));
+                __m128i seqj = _mm_loadu_si128((const __m128i*) (&dataj[k]));
                 // find which sequence characters are gap or indet
-                gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
-                gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
-                gaps  = _mm_andnot_si128( _mm_or_si128(gapsi, gapsj), _mm_set1_epi8(0xFF));
+                __m128i gapsi = _mm_or_si128(_mm_cmpeq_epi8(seqi, allgap), _mm_cmpeq_epi8(seqi, allindet));
+                __m128i gapsj = _mm_or_si128(_mm_cmpeq_epi8(seqj, allgap), _mm_cmpeq_epi8(seqj, allindet));
+                __m128i gaps  = _mm_andnot_si128( _mm_or_si128(gapsi, gapsj), _mm_set1_epi8(0xFF));
                 // find which sequence characters match
-                eq = _mm_cmpeq_epi8(seqi, seqj);
+                __m128i eq = _mm_cmpeq_epi8(seqi, seqj);
                 // find position where either not both characters are gap, or they are equal
-                n = _mm_and_si128(_mm_or_si128(eq, gaps), ONES);
+                __m128i n = _mm_and_si128(_mm_or_si128(eq, gaps), ONES);
                 // update counters
-                hit = _mm_load_si128((const __m128i*) (&hits_u8[k]));
-                hit = _mm_add_epi8(hit, n);
-                _mm_store_si128((__m128i*) (&hits_u8[k]), hit);
+                __m128i hit = _mm_load_si128((const __m128i*) (&hits_u8[k]));
+                _mm_store_si128((__m128i*) (&hits_u8[k]), _mm_add_epi8(hit, n));
             }
 
             // process the tail elements when there remain less than
