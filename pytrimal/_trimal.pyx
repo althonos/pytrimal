@@ -48,7 +48,7 @@ from pytrimal.impl.generic cimport GenericSimilarity, GenericCleaner
 IF SSE2_BUILD_SUPPORT:
     from pytrimal.impl.sse cimport SSESimilarity, SSEGaps, SSECleaner
 IF NEON_BUILD_SUPPORT:
-    from pytrimal.impl.neon cimport NEONSimilarity, NEONCleaner
+    from pytrimal.impl.neon cimport NEONSimilarity, NEONGaps, NEONCleaner
 
 # --- Python imports ---------------------------------------------------------
 
@@ -1214,6 +1214,9 @@ cdef class BaseTrimmer:
                 manager.origAlig.Statistics.similarity = new NEONSimilarity(manager.origAlig)
                 del manager.origAlig.Cleaning
                 manager.origAlig.Cleaning = new NEONCleaner(manager.origAlig)
+                del manager.origAlig.Statistics.gaps
+                manager.origAlig.Statistics.gaps = new NEONGaps(manager.origAlig)
+                manager.origAlig.Statistics.gaps.CalculateVectors()
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         pass

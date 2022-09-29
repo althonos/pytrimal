@@ -2,6 +2,7 @@
 #define _PYTRIMAL_IMPL_SSE
 
 #include "Statistics/Similarity.h"
+#include "Statistics/Gaps.h"
 #include "Cleaner.h"
 
 namespace statistics {

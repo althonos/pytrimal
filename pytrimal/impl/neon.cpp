@@ -14,21 +14,31 @@
 
 #define NLANES_8  sizeof(uint8x16_t) / sizeof(uint8_t)   // number of 8-bit  lanes in __m128i
 
+#define ALLOC_MASK          (sizeof(uint8x16_t) - 1)
+#define ALLOC_SIZE(N, T)    ((N * sizeof(T) + ALLOC_MASK) & (~ALLOC_MASK))
+#define ALIGNED_ALLOC(N, T) (static_cast<T*>(aligned_alloc(sizeof(uint8x16_t), ALLOC_SIZE(N, T))))
+
 static inline uint32_t vhaddq_u8(uint8x16_t a) {
 #ifdef __aarch64__
-    // Don't use `vaddvq_u8` because it can overflow, first add pairwise 
+    // Don't use `vaddvq_u8` because it can overflow, first add pairwise
     // into 16-bit lanes to avoid overflows
-    uint16x8_t paired = vpaddlq_u8(a);
-    return vaddvq_u16(paired);    
+    return vaddvq_u16(vpaddlq_u8(a));
 #else
     uint64x2_t paired = vpaddlq_u32(vpaddlq_u16(vpaddlq_u8(a)));
     return vgetq_lane_u64(paired, 0) + vgetq_lane_u64(paired, 1);
 #endif
 }
 
+static inline uint32_t vhaddq_u32(uint32x4_t a) {
+#ifdef __aarch64__
+    return vaddvq_u32(a);
+#else
+    uint64x2_t paired = vpaddlq_u32(a);
+    return vgetq_lane_u64(paired, 0) + vgetq_lane_u64(paired, 1);
+#endif
+}
+
 namespace statistics {
-    NEONSimilarity::NEONSimilarity(Alignment* parentAlignment): Similarity(parentAlignment) {}
-    
     void NEONSimilarity::calculateMatrixIdentity() {
         // Create a timerLevel that will report times upon its destruction
         //	which means the end of the current scope.
@@ -224,7 +234,7 @@ namespace statistics {
                     //      a indeterminate (XN) or a gap (-) element
                     if (colgap[k]) continue;
 
-                    // Get the index of the second residue and compute 
+                    // Get the index of the second residue and compute
                     // fraction with identity value for the two pairs and
                     // its distance based on similarity matrix's value.
                     numB = colnum[k];
@@ -259,28 +269,68 @@ namespace statistics {
 
         return true;
     }
-}
 
-NEONCleaner::NEONCleaner(Alignment* parent): Cleaner(parent) {
-    // allocate aligned memory for faster SIMD loads
-    hits_unaligned         = (uint32_t*)      malloc(sizeof(uint32_t) * alig->originalNumberOfResidues + 0xF);
-    hits_u8_unaligned      = (uint8_t*)       malloc(sizeof(uint8_t)  * alig->originalNumberOfResidues + 0xF);
-    skipResidues_unaligned = (unsigned char*) malloc(sizeof(char)     * alig->originalNumberOfResidues + 0xF);
+    void NEONGaps::CalculateVectors() {
+        int i, j;
+        const uint8x16_t ALLGAP    = vdupq_n_u8('-');
+        const uint8x16_t ONES      = vdupq_n_u8(1);
 
-    hits         = (uint32_t*)      (((uintptr_t) hits_unaligned         + 15) & (~0xF));
-    hits_u8      = (uint8_t*)       (((uintptr_t) hits_u8_unaligned      + 15) & (~0xF));
-    skipResidues = (unsigned char*) (((uintptr_t) skipResidues_unaligned + 15) & (~0xF));
+        // use temporary buffer for storing 8-bit partial sums
+        uint8_t* gapsInColumn_u8 = ALIGNED_ALLOC(alig->originalNumberOfResidues, uint8_t);
+        memset(gapsInColumn,    0, sizeof(int)     * alig->originalNumberOfResidues);
+        memset(gapsInColumn_u8, 0, sizeof(uint8_t) * alig->originalNumberOfResidues);
 
-    // create an index for residues to skip
-    for(int i = 0; i < alig->originalNumberOfResidues; i++) {
-        skipResidues[i] = alig->saveResidues[i] == -1 ? 0xFF : 0;
+        // count gaps per column
+        for (j = 0; j < alig->originalNumberOfSequences; j++) {
+            // skip sequences not retained in alignment
+            if (alig->saveSequences[j] == -1)
+                continue;
+            // process the whole sequence, 16 lanes at a time
+            const uint8_t* data = (const uint8_t*) alig->sequences[j].data();
+            for (i = 0; ((int) (i + NLANES_8)) < alig->originalNumberOfResidues; i += NLANES_8) {
+                uint8x16_t letters = vld1q_u8(&data[i]);
+                uint8x16_t counts  = vld1q_u8(&gapsInColumn_u8[i]);
+                uint8x16_t gaps    = vandq_u8(ONES, vceqq_u8(letters, ALLGAP));
+                uint8x16_t updated = vaddq_u8(counts, gaps);
+                vst1q_u8(&gapsInColumn_u8[i], updated);
+            }
+            // count the remaining gap elements without SIMD
+            for (; i < alig->originalNumberOfResidues; i++)
+                if (data[i] == '-')
+                    gapsInColumn_u8[i]++;
+            // every UCHAR_MAX iterations the accumulator may overflow, so the
+            // temporary counts are moved into the final counter array, and the
+            // accumulator is reset
+            if (j % UCHAR_MAX == 0) {
+                for (i = 0; i < alig->originalNumberOfResidues; i++)
+                    gapsInColumn[i] += gapsInColumn_u8[i];
+                memset(gapsInColumn_u8, 0, sizeof(uint8_t) * alig->originalNumberOfResidues);
+            }
+        }
+        // collect the remaining partial counts into the final counter array
+        for (i = 0; i < alig->originalNumberOfResidues; i++)
+            gapsInColumn[i] += gapsInColumn_u8[i];
+
+        // free temporary buffer
+        free(gapsInColumn_u8);
+
+        // compute the total number of gaps by summing gaps of every column
+        uint32x4_t totalGaps_u32 = vdupq_n_u32(0);
+        for (i = 0; ((int) (i + NLANES_8)) < alig->originalNumberOfResidues; i += NLANES_8) {
+            uint32x4_t counts = vreinterpretq_u32_s32(vld1q_s32(&gapsInColumn[i]));
+            totalGaps_u32 = vaddq_u32(totalGaps_u32, counts);
+        }
+        totalGaps = vhaddq_u32(totalGaps_u32);
+        for (; i < alig->originalNumberOfResidues; i++)
+            totalGaps += gapsInColumn[i];
+
+        // build histogram and find largest number of gaps
+        for (i = 0; i < alig->originalNumberOfResidues; i++) {
+            numColumnsWithGaps[gapsInColumn[i]]++;
+            if (gapsInColumn[i] > maxGaps)
+                maxGaps = gapsInColumn[i];
+        }
     }
-}
-
-NEONCleaner::~NEONCleaner() {
-    free(hits_u8_unaligned);
-    free(hits_unaligned);
-    free(skipResidues_unaligned);
 }
 
 void NEONCleaner::calculateSeqIdentity() {
@@ -305,6 +355,12 @@ void NEONCleaner::calculateSeqIdentity() {
       if (alig->saveSequences[i] == -1) continue;
       alig->identities[i] = new float[alig->originalNumberOfSequences];
       alig->identities[i][i] = 0;
+  }
+
+  // create an index of residues to skip
+  uint8_t* skipResidues = ALIGNED_ALLOC(alig->originalNumberOfResidues, uint8_t);
+  for(k = 0; k < alig->originalNumberOfResidues; k++) {
+      skipResidues[k] = alig->saveResidues[k] == -1 ? 0xFF : 0;
   }
 
   // For each seq, compute its identity score against the others in the MSA
@@ -399,6 +455,9 @@ void NEONCleaner::calculateSeqIdentity() {
           alig->identities[j][i] = alig->identities[i][j];
       }
   }
+
+  // free allocated memory
+  free(skipResidues);
 }
 
 bool NEONCleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
@@ -421,6 +480,10 @@ bool NEONCleaner::calculateSpuriousVector(float overlap, float *spuriousVector) 
     const uint8x16_t allgap    = vdupq_n_u8('-');
     const uint8x16_t ONES      = vdupq_n_u8(1);
 
+    // allocate aligned memory for faster SIMD loads
+    uint32_t* hits    = ALIGNED_ALLOC(alig->originalNumberOfResidues, uint32_t);
+    uint8_t*  hits_u8 = ALIGNED_ALLOC(alig->originalNumberOfResidues, uint8_t);
+
     // for each sequence in the alignment, computes its overlap
     for (int i = 0; i < alig->originalNumberOfSequences; i++) {
 
@@ -437,15 +500,6 @@ bool NEONCleaner::calculateSpuriousVector(float overlap, float *spuriousVector) 
 
             const char* datai = alig->sequences[i].data();
             const char* dataj = alig->sequences[j].data();
-
-             seqi;
-            uint8x16_t seqj;
-            uint8x16_t eq;
-            uint8x16_t gapsi;
-            uint8x16_t gapsj;
-            uint8x16_t gaps;
-            uint8x16_t n;
-            uint8x16_t hit;
 
             int k = 0;
 
@@ -497,6 +551,10 @@ bool NEONCleaner::calculateSpuriousVector(float overlap, float *spuriousVector) 
         // above overlap threshold
         spuriousVector[i] = ((float) seqValue / alig->originalNumberOfResidues);
     }
+
+    // free allocated memory
+    free(hits);
+    free(hits_u8);
 
     // If there is not problem in the method, return true
     return true;

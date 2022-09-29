@@ -7,8 +7,7 @@ cdef extern from "impl/sse.h" namespace "statistics" nogil:
     cdef cppclass SSESimilarity(Similarity):
         SSESimilarity(Alignment* parentAlignment)
     cdef cppclass SSEGaps(Gaps):
-        SSEGaps(Alignment* parentAlignment)  
-        void CalculateVectors()
+        SSEGaps(Alignment* parentAlignment)
 
 
 cdef extern from "impl/sse.h" nogil:

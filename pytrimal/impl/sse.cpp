@@ -351,7 +351,7 @@ void SSECleaner::calculateSeqIdentity() {
 
   // create an index of residues to skip
   uint8_t* skipResidues = ALIGNED_ALLOC(alig->originalNumberOfResidues, uint8_t);
-  for(k = 0; k < alig->originalNumberOfResidues; i++) {
+  for(k = 0; k < alig->originalNumberOfResidues; k++) {
       skipResidues[k] = alig->saveResidues[k] == -1 ? 0xFF : 0;
   }
 

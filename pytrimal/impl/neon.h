@@ -2,30 +2,26 @@
 #define _PYTRIMAL_IMPL_NEON
 
 #include "Statistics/Similarity.h"
+#include "Statistics/Gaps.h"
 #include "Cleaner.h"
 
 namespace statistics {
     class NEONSimilarity: public Similarity {
     public:
-        NEONSimilarity(Alignment* parentAlignment);
+        NEONSimilarity(Alignment* parentAlignment): Similarity(parentAlignment) {}
         void calculateMatrixIdentity() override;
         bool calculateVectors(bool cutByGap) override;
+    };
+    class NEONGaps: public Gaps {
+    public:
+        NEONGaps(Alignment* parentAlignment): Gaps(parentAlignment) {}
+        void CalculateVectors() override;
     };
 }
 
 class NEONCleaner: public Cleaner {
-private:
-    // SIMD index for which residues can be skipped in `skipResidues`
-    unsigned char* skipResidues;
-    unsigned char* skipResidues_unaligned;
-    // temporary counters for `calculateSpuriousVector`
-    uint8_t* hits_u8;
-    uint8_t* hits_u8_unaligned;
-    uint32_t* hits;
-    uint32_t* hits_unaligned;
 public:
-    NEONCleaner(Alignment* parent);
-    ~NEONCleaner();
+    NEONCleaner(Alignment* parent): Cleaner(parent) {}
     void calculateSeqIdentity() override;
     bool calculateSpuriousVector(float overlap, float *spuriousVector);
 };
