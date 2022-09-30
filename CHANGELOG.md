@@ -6,7 +6,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.5.2...HEAD
+
+
+## [v0.5.2] - 2022-09-30
+[v0.5.2]: https://github.com/althonos/pytrimal/compare/v0.5.1...v0.5.2
+
+### Changed
+- Replace NEON horizontal sums with implementations using `vaddvq` on Aarch64 and `vpaddl` on Armv7.
+- Remove one layer of table lookup in all `Similarity::CalculateVectors` implementations.
+- Make all SIMD code use local buffers and deallocate early.
+
+### Fixed
+- Invalid operator being used in Cython code to deallocate C++ arrays.
+
+### Added
+- SSE2 and NEON implementations for the `Gaps` statistic.
+
 
 ## [v0.5.1] - 2022-09-05
 [v0.5.1]: https://github.com/althonos/pytrimal/compare/v0.5.0...v0.5.1
