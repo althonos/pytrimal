@@ -6,7 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.5.3...HEAD
+
+
+## [v0.5.3] - 2022-10-04
+[v0.5.3]: https://github.com/althonos/pytrimal/compare/v0.5.2...v0.5.3
+
+### Fixed
+- `SimilarityMatrix.nt` inverting the `degenerated` argument value.
 
 
 ## [v0.5.2] - 2022-09-30
