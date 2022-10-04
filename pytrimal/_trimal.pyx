@@ -1811,9 +1811,9 @@ cdef class SimilarityMatrix:
         cdef SimilarityMatrix matrix = cls.__new__(cls)
         with nogil:
             if degenerated:
-                matrix._smx.defaultNTSimMatrix()
-            else:
                 matrix._smx.defaultNTDegeneratedSimMatrix()
+            else:
+                matrix._smx.defaultNTSimMatrix()
         return matrix
 
     # --- Magic methods ------------------------------------------------------
@@ -1970,7 +1970,7 @@ cdef class SimilarityMatrix:
         Return the distance between two sequence characters.
 
         Example:
-            >>> mx = SimilarityMatrix.nt()
+            >>> mx = SimilarityMatrix.nt(degenerated=True)
             >>> mx.distance('A', 'A')
             0.0
             >>> mx.distance('A', 'T')
