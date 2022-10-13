@@ -1217,6 +1217,15 @@ cdef class BaseTrimmer:
             manager.origAlig.Statistics.similarity = new GenericSimilarity(manager.origAlig)
             del manager.origAlig.Cleaning
             manager.origAlig.Cleaning = new GenericCleaner(manager.origAlig)
+        IF AVX2_BUILD_SUPPORT:
+            if self._backend == simd_backend.AVX2:
+                del manager.origAlig.Statistics.similarity
+                manager.origAlig.Statistics.similarity = new AVXSimilarity(manager.origAlig)
+                del manager.origAlig.Cleaning
+                manager.origAlig.Cleaning = new AVXCleaner(manager.origAlig)
+                del manager.origAlig.Statistics.gaps
+                manager.origAlig.Statistics.gaps = new AVXGaps(manager.origAlig)
+                manager.origAlig.Statistics.gaps.CalculateVectors()
         IF SSE2_BUILD_SUPPORT:
             if self._backend == simd_backend.SSE2:
                 del manager.origAlig.Statistics.similarity
