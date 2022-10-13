@@ -12,11 +12,13 @@ try:
 except ImportError:
     importlib_resources = None
 
-from .. import Alignment, AutomaticTrimmer, SimilarityMatrix
-from .._trimal import _SSE2_RUNTIME_SUPPORT
+from .. import _trimal, Alignment, AutomaticTrimmer, SimilarityMatrix
 
 
 class TestAutomaticTrimmer(unittest.TestCase):
+
+    backend = None
+
     def assertTrimmedAlignmentEqual(self, trimmed, expected):
         self.assertEqual(len(trimmed.names), len(expected.names))
         self.assertEqual(len(trimmed.sequences), len(expected.sequences))
@@ -32,7 +34,7 @@ class TestAutomaticTrimmer(unittest.TestCase):
     def _test_method(self, name):
         ali = self._load_alignment("ENOG411BWBU.fasta")
         expected = self._load_alignment("ENOG411BWBU.{}.fasta".format(name))
-        trimmer = AutomaticTrimmer(method=name)
+        trimmer = AutomaticTrimmer(method=name, backend=self.backend)
         trimmed = trimmer.trim(ali)
         self.assertTrimmedAlignmentEqual(trimmed, expected)
 
@@ -87,38 +89,16 @@ class TestAutomaticTrimmer(unittest.TestCase):
         with importlib_resources.open_binary("pytrimal.tests.data", "pam70.json") as f:
             pam70 = SimilarityMatrix(**json.load(f))
 
-        trimmer = AutomaticTrimmer("strict")
+        trimmer = AutomaticTrimmer("strict", backend=self.backend)
         trimmed = trimmer.trim(alignment, pam70)
 
-    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
-    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
-    @unittest.skipUnless(_SSE2_RUNTIME_SUPPORT, "SSE2 not available")
-    def test_consistency_sse2(self):
-        ali = self._load_alignment("ENOG411BWBU.fasta")
-
-        trimmer_generic = AutomaticTrimmer(method="automated1", backend=None)
-        trimmer_sse = AutomaticTrimmer(method="automated1", backend="sse")
-
-        trimmed_generic = trimmer_generic.trim(ali)
-        trimmed_sse = trimmer_sse.trim(ali)
-
-        self.assertEqual(trimmed_generic.names, trimmed_sse.names)
-        for seq1, seq2 in zip(trimmed_generic.sequences, trimmed_sse.sequences):
-            self.assertEqual(seq1, seq2)
-
-    def test_invalid_character_generic(self):
+    def test_invalid_characters(self):
         alignment = Alignment([b"seq1", b"seq2"], ["MKKBO", "MKKAY"])
-        trimmer = AutomaticTrimmer(method="strict", backend=None)
-        self.assertRaises(ValueError, trimmer.trim, alignment)
-
-    @unittest.skipUnless(_SSE2_RUNTIME_SUPPORT, "SSE2 not available")
-    def test_invalid_character_sse2(self):
-        alignment = Alignment([b"seq1", b"seq2"], ["MKKBO", "MKKAY"])
-        trimmer = AutomaticTrimmer(method="strict", backend="sse")
+        trimmer = AutomaticTrimmer(method="strict", backend=self.backend)
         self.assertRaises(ValueError, trimmer.trim, alignment)
 
     def test_pickle(self):
-        trimmer = AutomaticTrimmer(method="automated1")
+        trimmer = AutomaticTrimmer(method="automated1", backend=self.backend)
         pickled = pickle.loads(pickle.dumps(trimmer))
         ali = Alignment(
             names=[b"Sp8", b"Sp17", b"Sp10", b"Sp26"],
@@ -132,3 +112,18 @@ class TestAutomaticTrimmer(unittest.TestCase):
         t1 = trimmer.trim(ali)
         t2 = pickled.trim(ali)
         self.assertTrimmedAlignmentEqual(t2, t1)
+
+
+@unittest.skipUnless(_trimal._SSE2_RUNTIME_SUPPORT, "SSE2 not available")
+class TestAutomaticTrimmerSSE(TestAutomaticTrimmer):
+    backend = "sse"
+
+
+@unittest.skipUnless(_trimal._AVX2_RUNTIME_SUPPORT, "AVX2 not available")
+class TestAutomaticTrimmerAVX(TestAutomaticTrimmer):
+    backend = "avx"
+
+
+@unittest.skipUnless(_trimal._NEON_RUNTIME_SUPPORT, "NEON not available")
+class TestAutomaticTrimmerNEON(TestAutomaticTrimmer):
+    backend = "neon"

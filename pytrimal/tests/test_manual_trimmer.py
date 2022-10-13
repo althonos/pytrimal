@@ -11,10 +11,13 @@ try:
 except ImportError:
     importlib_resources = None
 
-from .. import Alignment, ManualTrimmer
+from .. import _trimal, Alignment, ManualTrimmer
 
 
 class TestManualTrimmer(unittest.TestCase):
+
+    backend = None
+
     def assertTrimmedAlignmentEqual(self, trimmed, expected):
         self.assertEqual(len(trimmed.names), len(expected.names))
         self.assertEqual(len(trimmed.sequences), len(expected.sequences))
@@ -31,7 +34,7 @@ class TestManualTrimmer(unittest.TestCase):
         ali = self._load_alignment("ENOG411BWBU.fasta")
         filename = "ENOG411BWBU.cons{:02}.gt{:02}.fasta".format(cons, int(gt * 100))
         expected = self._load_alignment(filename)
-        trimmer = ManualTrimmer(gap_threshold=gt, conservation_percentage=cons)
+        trimmer = ManualTrimmer(gap_threshold=gt, conservation_percentage=cons, backend=self.backend)
         trimmed = trimmer.trim(ali)
         self.assertTrimmedAlignmentEqual(trimmed, expected)
 
@@ -58,7 +61,7 @@ class TestManualTrimmer(unittest.TestCase):
         ali = self._load_alignment("example.001.AA.clw")
         expected = self._load_alignment("example.001.gt90.w3.fasta")
 
-        trimmer = ManualTrimmer(gap_threshold=0.9, window=3)
+        trimmer = ManualTrimmer(gap_threshold=0.9, window=3, backend=self.backend)
         trimmed = trimmer.trim(ali)
 
         self.assertEqual(trimmed.names, expected.names)
@@ -67,7 +70,7 @@ class TestManualTrimmer(unittest.TestCase):
 
     def test_large_window(self):
         ali = Alignment([b"seq1", b"seq2"], ["M-KKV", "MY-KV"])
-        trimmer = ManualTrimmer(gap_threshold=0.9, window=100)
+        trimmer = ManualTrimmer(gap_threshold=0.9, window=100, backend=self.backend)
         self.assertRaises(Exception, trimmer.trim, ali)
 
     def test_duplicate_window(self):
@@ -95,7 +98,7 @@ class TestManualTrimmer(unittest.TestCase):
         )
 
     def test_pickle(self):
-        trimmer = ManualTrimmer(gap_threshold=0.4, window=5)
+        trimmer = ManualTrimmer(gap_threshold=0.4, window=5, backend=self.backend)
         pickled = pickle.loads(pickle.dumps(trimmer))
         ali = Alignment(
             names=[b"Sp8", b"Sp17", b"Sp10", b"Sp26"],
@@ -109,3 +112,18 @@ class TestManualTrimmer(unittest.TestCase):
         t1 = trimmer.trim(ali)
         t2 = pickled.trim(ali)
         self.assertTrimmedAlignmentEqual(t2, t1)
+
+
+@unittest.skipUnless(_trimal._SSE2_RUNTIME_SUPPORT, "SSE2 not available")
+class TestManualTrimmerSSE(TestManualTrimmer):
+    backend = "sse"
+
+
+@unittest.skipUnless(_trimal._AVX2_RUNTIME_SUPPORT, "AVX2 not available")
+class TestManualTrimmerAVX(TestManualTrimmer):
+    backend = "avx"
+
+
+@unittest.skipUnless(_trimal._NEON_RUNTIME_SUPPORT, "NEON not available")
+class TestManualTrimmerNEON(TestManualTrimmer):
+    backend = "neon"

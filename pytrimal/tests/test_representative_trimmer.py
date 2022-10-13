@@ -12,11 +12,13 @@ try:
 except ImportError:
     importlib_resources = None
 
-from .. import Alignment, RepresentativeTrimmer
-from .._trimal import _SSE2_RUNTIME_SUPPORT
+from .. import _trimal, Alignment, RepresentativeTrimmer
 
 
 class TestRepresentativeTrimmer(unittest.TestCase):
+
+    backend = None
+
     def assertTrimmedAlignmentEqual(self, trimmed, expected):
         self.assertEqual(len(trimmed.names), len(expected.names))
         self.assertEqual(len(trimmed.sequences), len(expected.sequences))
@@ -42,7 +44,7 @@ class TestRepresentativeTrimmer(unittest.TestCase):
             )
 
         trimmer = RepresentativeTrimmer(
-            clusters=clusters, identity_threshold=identity_threshold
+            clusters=clusters, identity_threshold=identity_threshold, backend=self.backend
         )
         trimmed = trimmer.trim(ali)
 
@@ -78,7 +80,7 @@ class TestRepresentativeTrimmer(unittest.TestCase):
         )
 
     def test_pickle(self):
-        trimmer = RepresentativeTrimmer(clusters=3)
+        trimmer = RepresentativeTrimmer(clusters=3, backend=self.backend)
         pickled = pickle.loads(pickle.dumps(trimmer))
         ali = Alignment(
             names=[b"Sp8", b"Sp17", b"Sp10", b"Sp26"],
@@ -92,3 +94,18 @@ class TestRepresentativeTrimmer(unittest.TestCase):
         t1 = trimmer.trim(ali)
         t2 = pickled.trim(ali)
         self.assertTrimmedAlignmentEqual(t2, t1)
+
+
+@unittest.skipUnless(_trimal._SSE2_RUNTIME_SUPPORT, "SSE2 not available")
+class TestRepresentativeTrimmerSSE(TestRepresentativeTrimmer):
+    backend = "sse"
+
+
+@unittest.skipUnless(_trimal._AVX2_RUNTIME_SUPPORT, "AVX2 not available")
+class TestRepresentativeTrimmerAVX(TestRepresentativeTrimmer):
+    backend = "avx"
+
+
+@unittest.skipUnless(_trimal._NEON_RUNTIME_SUPPORT, "NEON not available")
+class TestRepresentativeTrimmerNEON(TestRepresentativeTrimmer):
+    backend = "neon"

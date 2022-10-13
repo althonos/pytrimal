@@ -12,11 +12,13 @@ try:
 except ImportError:
     importlib_resources = None
 
-from .. import Alignment, OverlapTrimmer
-from .._trimal import _SSE2_RUNTIME_SUPPORT
+from .. import _trimal, Alignment, OverlapTrimmer
 
 
 class TestOverlapTrimmer(unittest.TestCase):
+
+    backend = None
+
     def assertTrimmedAlignmentEqual(self, trimmed, expected):
         self.assertEqual(len(trimmed.names), len(expected.names))
         self.assertEqual(len(trimmed.sequences), len(expected.sequences))
@@ -34,7 +36,7 @@ class TestOverlapTrimmer(unittest.TestCase):
         expected = self._load_alignment(
             "ENOG411BWBU.seq{}.res{}.fasta".format(seq, res)
         )
-        trimmer = OverlapTrimmer(sequence_overlap=seq, residue_overlap=res / 100)
+        trimmer = OverlapTrimmer(sequence_overlap=seq, residue_overlap=res / 100, backend=self.backend)
         trimmed = trimmer.trim(ali)
         self.assertTrimmedAlignmentEqual(trimmed, expected)
 
@@ -57,7 +59,7 @@ class TestOverlapTrimmer(unittest.TestCase):
         self.assertEqual(repr(trimmer), "OverlapTrimmer(30.0, 0.25, backend=None)")
 
     def test_pickle(self):
-        trimmer = OverlapTrimmer(40, 0.5)
+        trimmer = OverlapTrimmer(40, 0.5, backend=self.backend)
         pickled = pickle.loads(pickle.dumps(trimmer))
         ali = Alignment(
             names=[b"Sp8", b"Sp17", b"Sp10", b"Sp26"],
@@ -71,3 +73,18 @@ class TestOverlapTrimmer(unittest.TestCase):
         t1 = trimmer.trim(ali)
         t2 = pickled.trim(ali)
         self.assertTrimmedAlignmentEqual(t2, t1)
+
+
+@unittest.skipUnless(_trimal._SSE2_RUNTIME_SUPPORT, "SSE2 not available")
+class TestOverlapTrimmerSSE(TestOverlapTrimmer):
+    backend = "sse"
+
+
+@unittest.skipUnless(_trimal._AVX2_RUNTIME_SUPPORT, "AVX2 not available")
+class TestOverlapTrimmerAVX(TestOverlapTrimmer):
+    backend = "avx"
+
+
+@unittest.skipUnless(_trimal._NEON_RUNTIME_SUPPORT, "NEON not available")
+class TestOverlapTrimmerNEON(TestOverlapTrimmer):
+    backend = "neon"
