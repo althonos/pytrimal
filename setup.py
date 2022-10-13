@@ -804,6 +804,9 @@ setuptools.setup(
                 "cpu_features",
                 "trimal",
             ],
+            depends=[
+                os.path.join("pytrimal", "impl", "template.h"),
+            ]
         ),
     ],
     cmdclass={
