@@ -19,12 +19,23 @@ namespace simd {
     }
 
     template<class Vector>
-    inline void calculateMatrixIdentity(const Alignment* alig, float** matrixIdentity) {
+    inline void calculateMatrixIdentity(statistics::Similarity& s) {
+
+        // abort if identity matrix computation was already done
+        if (s.matrixIdentity != nullptr)
+            return;
+
+        // Allocate memory for the matrix identity
+        s.matrixIdentity = new float *[s.alig->originalNumberOfSequences];
+        for (int i = 0; i < s.alig->originalNumberOfSequences; i++) {
+            s.matrixIdentity[i] = new float[s.alig->originalNumberOfSequences];
+        }
+
         // declare indices
         int i, j, k, l;
 
         // Depending on alignment type, indetermination symbol will be one or other
-        char indet = alig->getAlignmentType() & SequenceTypes::AA ? 'X' : 'N';
+        char indet = s.alig->getAlignmentType() & SequenceTypes::AA ? 'X' : 'N';
 
         // prepare constant SIMD vectors
         const Vector allindet = Vector(indet);
@@ -32,13 +43,13 @@ namespace simd {
         const Vector ONES     = Vector(1);
 
         // For each sequences' pair, compare identity
-        for (i = 0; i < alig->originalNumberOfSequences; i++) {
+        for (i = 0; i < s.alig->originalNumberOfSequences; i++) {
 
-            const uint8_t* datai = reinterpret_cast<const uint8_t*>(alig->sequences[i].data());
+            const uint8_t* datai = reinterpret_cast<const uint8_t*>(s.alig->sequences[i].data());
 
-            for (j = i + 1; j < alig->originalNumberOfSequences; j++) {
+            for (j = i + 1; j < s.alig->originalNumberOfSequences; j++) {
 
-                const uint8_t* dataj = reinterpret_cast<const uint8_t*>(alig->sequences[j].data());
+                const uint8_t* dataj = reinterpret_cast<const uint8_t*>(s.alig->sequences[j].data());
 
                 Vector len_acc = Vector();
                 Vector sum_acc = Vector();
@@ -47,7 +58,7 @@ namespace simd {
                 uint32_t length = 0;
 
                 // run with unrolled loops of UCHAR_MAX iterations first
-                for (k = 0; ((int) (k + Vector::LANES*UCHAR_MAX)) < alig->originalNumberOfResidues;) {
+                for (k = 0; ((int) (k + Vector::LANES*UCHAR_MAX)) < s.alig->originalNumberOfResidues;) {
                     // unroll the internal loop
                     for (l = 0; l < UCHAR_MAX; l++, k += Vector::LANES) {
                         // load data for the sequences
@@ -70,7 +81,7 @@ namespace simd {
                 }
 
                 // run remaining iterations in SIMD while possible
-                for (; ((int) (k + Vector::LANES)) < alig->originalNumberOfResidues; k += Vector::LANES) {
+                for (; ((int) (k + Vector::LANES)) < s.alig->originalNumberOfResidues; k += Vector::LANES) {
                     // load data for the sequences
                     Vector seqi = Vector::load(&datai[k]);
                     Vector seqj = Vector::load(&dataj[k]);
@@ -90,7 +101,7 @@ namespace simd {
 
                 // process the tail elements when there remain less than
                 // can be fitted in a SIMD vector
-                for (; k < alig->originalNumberOfResidues; k++) {
+                for (; k < s.alig->originalNumberOfResidues; k++) {
                     int gapi = (datai[k] == '-') || (datai[k] == indet);
                     int gapj = (dataj[k] == '-') || (dataj[k] == indet);
                     sum    += (!gapi) && (!gapj) && (datai[k] == dataj[k]);
@@ -98,18 +109,22 @@ namespace simd {
                 }
 
                 // Calculate the value of matrix idn for columns j and i
-                matrixIdentity[i][j] = matrixIdentity[j][i] = (1.0F - ((float)sum / length));
+                s.matrixIdentity[i][j] = s.matrixIdentity[j][i] = (1.0F - ((float)sum / length));
             }
         }
     }
 
     template<class Vector>
-    inline bool calculateSpuriousVector(const Alignment* alig, const float overlap, float *spuriousVector) {
+    inline bool calculateSpuriousVector(Cleaner& c, const float overlap, float *spuriousVector) {
+        // abort if there is not output vector to write to
+        if (spuriousVector == nullptr)
+            return false;
+
         // compute number of sequences from overlap threshold
-        uint32_t  ovrlap  = uint32_t(ceil(overlap * float(alig->originalNumberOfSequences - 1)));
+        uint32_t  ovrlap  = uint32_t(ceil(overlap * float(c.alig->originalNumberOfSequences - 1)));
 
         // Depending on alignment type, indetermination symbol will be one or other
-        char indet = (alig->getAlignmentType() & SequenceTypes::AA) ? 'X' : 'N';
+        char indet = (c.alig->getAlignmentType() & SequenceTypes::AA) ? 'X' : 'N';
 
         // prepare constant SIMD vectors
         const Vector allindet = Vector(indet);
@@ -117,31 +132,31 @@ namespace simd {
         const Vector ONES     = Vector(1);
 
         // allocate aligned memory for faster SIMD loads
-        uint32_t* hits    = aligned_array<uint32_t, Vector>(alig->originalNumberOfResidues);
-        uint8_t*  hits_u8 = aligned_array<uint8_t, Vector>(alig->originalNumberOfResidues);
+        uint32_t* hits    = aligned_array<uint32_t, Vector>(c.alig->originalNumberOfResidues);
+        uint8_t*  hits_u8 = aligned_array<uint8_t, Vector>(c.alig->originalNumberOfResidues);
 
         // for each sequence in the alignment, computes its overlap
-        for (int i = 0; i < alig->originalNumberOfSequences; i++) {
+        for (int i = 0; i < c.alig->originalNumberOfSequences; i++) {
 
             // reset hits count
-            memset(&hits[0],    0, alig->originalNumberOfResidues*sizeof(uint32_t));
-            memset(&hits_u8[0], 0, alig->originalNumberOfResidues*sizeof(uint8_t));
+            memset(&hits[0],    0, c.alig->originalNumberOfResidues*sizeof(uint32_t));
+            memset(&hits_u8[0], 0, c.alig->originalNumberOfResidues*sizeof(uint8_t));
 
-            const uint8_t* datai = reinterpret_cast<const uint8_t*>(alig->sequences[i].data());
+            const uint8_t* datai = reinterpret_cast<const uint8_t*>(c.alig->sequences[i].data());
 
             // compare sequence to other sequences for every position
-            for (int j = 0; j < alig->originalNumberOfSequences; j++) {
+            for (int j = 0; j < c.alig->originalNumberOfSequences; j++) {
 
                 // don't compare sequence to itself
                 if (j == i)
                     continue;
 
-                const uint8_t* dataj = reinterpret_cast<const uint8_t*>(alig->sequences[j].data());
+                const uint8_t* dataj = reinterpret_cast<const uint8_t*>(c.alig->sequences[j].data());
 
                 int k = 0;
 
                 // run iterations in SIMD while possible
-                for (; ((int) (k + Vector::LANES)) <= alig->originalNumberOfResidues; k += Vector::LANES) {
+                for (; ((int) (k + Vector::LANES)) <= c.alig->originalNumberOfResidues; k += Vector::LANES) {
                     // load data for the sequences
                     const Vector seqi = Vector::loadu(&datai[k]);
                     const Vector seqj = Vector::loadu(&dataj[k]);
@@ -161,7 +176,7 @@ namespace simd {
 
                 // process the tail elements when there remain less than
                 // can be fitted in a SIMD vector
-                for (; k < alig->originalNumberOfResidues; k++) {
+                for (; k < c.alig->originalNumberOfResidues; k++) {
                     int nongapi = (datai[k] != indet) && (datai[k] != '-');
                     int nongapj = (dataj[k] != indet) && (dataj[k] != '-');
                     hits_u8[k] += ((nongapi && nongapj) || (datai[k] == dataj[k]));
@@ -171,23 +186,24 @@ namespace simd {
                 // may overflow, so every UCHAR_MAX iterations we transfer the
                 // partial hit counts from `hits_u8` to `hits`
                 if ((j % UCHAR_MAX) == 0) {
-                    for (k = 0; k < alig->originalNumberOfResidues; k++) hits[k] += hits_u8[k];
-                    memset(hits_u8, 0, alig->originalNumberOfResidues*sizeof(uint8_t));
+                    for (k = 0; k < c.alig->originalNumberOfResidues; k++) hits[k] += hits_u8[k];
+                    memset(hits_u8, 0, c.alig->originalNumberOfResidues*sizeof(uint8_t));
                 }
             }
 
             // update counters after last loop
-            for (int k = 0; k < alig->originalNumberOfResidues; k++) hits[k] += hits_u8[k];
+            for (int k = 0; k < c.alig->originalNumberOfResidues; k++) 
+                hits[k] += hits_u8[k];
 
             // compute number of good positions in for sequence i
             uint32_t seqValue = 0;
-            for (int k = 0; k < alig->originalNumberOfResidues; k++)
+            for (int k = 0; k < c.alig->originalNumberOfResidues; k++)
                 if (hits[k] >= ovrlap)
                     seqValue++;
 
             // compute overlap of current sequence as the fraction of columns
             // above overlap threshold
-            spuriousVector[i] = ((float) seqValue / alig->originalNumberOfResidues);
+            spuriousVector[i] = ((float) seqValue / c.alig->originalNumberOfResidues);
         }
 
         // free allocated memory
@@ -199,13 +215,21 @@ namespace simd {
     }
 
     template<class Vector>
-    inline void calculateSeqIdentity(const Alignment* alig, float** identities) {
+    inline void calculateSeqIdentity(Cleaner& c) {
             
+        // create identities matrix to store identities scores
+        c.alig->identities = new float*[c.alig->originalNumberOfSequences];
+        for(int i = 0; i < c.alig->originalNumberOfSequences; i++) {
+            if (c.alig->saveSequences[i] == -1) continue;
+            c.alig->identities[i] = new float[c.alig->originalNumberOfSequences];
+            c.alig->identities[i][i] = 0;
+        }
+
         // declare indices
         int i, j, k, l;
 
         // Depending on alignment type, indetermination symbol will be one or other
-        char indet = (alig->getAlignmentType() & SequenceTypes::AA) ? 'X' : 'N';
+        char indet = (c.alig->getAlignmentType() & SequenceTypes::AA) ? 'X' : 'N';
 
         // prepare constant SIMD vectors
         const Vector allindet = Vector(indet);
@@ -213,23 +237,22 @@ namespace simd {
         const Vector ONES     = Vector(1);
 
         // create an index of residues to skip
-        uint8_t* skipResidues = aligned_array<uint8_t, Vector>(alig->originalNumberOfResidues); //ALIGNED_ALLOC(alig->originalNumberOfResidues, uint8_t);
-        for(k = 0; k < alig->originalNumberOfResidues; k++) {
-            skipResidues[k] = alig->saveResidues[k] == -1 ? 0xFF : 0;
+        uint8_t* skipResidues = aligned_array<uint8_t, Vector>(c.alig->originalNumberOfResidues); //ALIGNED_ALLOC(alig->originalNumberOfResidues, uint8_t);
+        for(k = 0; k < c.alig->originalNumberOfResidues; k++) {
+            skipResidues[k] = c.alig->saveResidues[k] == -1 ? 0xFF : 0;
         }
 
         // For each seq, compute its identity score against the others in the MSA
-        for (i = 0; i < alig->originalNumberOfSequences; i++) {
-            if (alig->saveSequences[i] == -1) continue;
+        for (i = 0; i < c.alig->originalNumberOfSequences; i++) {
+            if (c.alig->saveSequences[i] == -1) continue;
 
-            const uint8_t* datai = reinterpret_cast<const uint8_t*>(alig->sequences[i].data());
-
+            const uint8_t* datai = reinterpret_cast<const uint8_t*>(c.alig->sequences[i].data());
 
             // Compute identity scores for the current sequence against the rest
-            for (j = i + 1; j < alig->originalNumberOfSequences; j++) {
-                if (alig->saveSequences[j] == -1) continue;
+            for (j = i + 1; j < c.alig->originalNumberOfSequences; j++) {
+                if (c.alig->saveSequences[j] == -1) continue;
 
-                const uint8_t* dataj = reinterpret_cast<const uint8_t*>(alig->sequences[j].data());
+                const uint8_t* dataj = reinterpret_cast<const uint8_t*>(c.alig->sequences[j].data());
 
                 Vector dst_acc = Vector();
                 Vector hit_acc = Vector();
@@ -238,7 +261,7 @@ namespace simd {
                 int dst = 0;
 
                 // run with unrolled loops of UCHAR_MAX iterations first
-                for (k = 0; ((int) (k + Vector::LANES*UCHAR_MAX)) < alig->originalNumberOfResidues;) {
+                for (k = 0; ((int) (k + Vector::LANES*UCHAR_MAX)) < c.alig->originalNumberOfResidues;) {
                     for (l = 0; l < UCHAR_MAX; l++, k += Vector::LANES) {
                         // load data for the sequences
                         Vector seqi = Vector::loadu( (&datai[k]));
@@ -262,7 +285,7 @@ namespace simd {
                 }
 
                 // run remaining iterations in SIMD while possible
-                for (; ((int) (k + Vector::LANES)) < alig->originalNumberOfResidues; k += Vector::LANES) {
+                for (; ((int) (k + Vector::LANES)) < c.alig->originalNumberOfResidues; k += Vector::LANES) {
                     // load data for the sequences; load is unaligned because
                     // string data is not guaranteed to be aligned.
                     Vector seqi = Vector::loadu( (&datai[k]));
@@ -285,7 +308,7 @@ namespace simd {
 
                 // process the tail elements when there remain less than
                 // can be fitted in a SIMD vector
-                for (; k < alig->originalNumberOfResidues; k++) {
+                for (; k < c.alig->originalNumberOfResidues; k++) {
                     int gapi = (datai[k] == indet) || (datai[k] == '-');
                     int gapj = (dataj[k] == indet) || (dataj[k] == '-');
                     dst += (!(gapi && gapj)) && (!skipResidues[k]);
@@ -295,16 +318,16 @@ namespace simd {
                 if (dst == 0) {
                     debug.report(
                             ErrorCode::NoResidueSequences,
-                        new std::string[2] { alig->seqsName[i], alig->seqsName[j] }
+                        new std::string[2] { c.alig->seqsName[i], c.alig->seqsName[j] }
                         );
-                    identities[i][j] = 0;
+                    c.alig->identities[i][j] = 0;
                 } else {
                     // Identity score between two sequences is the ratio of identical residues
                     // by the total length (common and no-common residues) among them
-                    alig->identities[i][j] = (float) hit / dst;
+                    c.alig->identities[i][j] = (float) hit / dst;
                 }
 
-                identities[j][i] = identities[i][j];
+                c.alig->identities[j][i] = c.alig->identities[i][j];
             }
         }
 
@@ -314,24 +337,24 @@ namespace simd {
     }
 
     template<class Vector>
-    inline void calculateGapVectors(const Alignment* alig, int* gapsInColumn) {
+    inline void calculateGapVectors(statistics::Gaps& g) {
         int i, j;
         const __m128i ALLGAP = _mm_set1_epi8('-');
         const __m128i ONES   = _mm_set1_epi8(1);
 
         // use temporary buffer for storing 8-bit partial sums
-        uint8_t* gapsInColumn_u8 = aligned_array<uint8_t, Vector>(alig->originalNumberOfResidues);
-        memset(gapsInColumn,    0, sizeof(int)     * alig->originalNumberOfResidues);
-        memset(gapsInColumn_u8, 0, sizeof(uint8_t) * alig->originalNumberOfResidues);
+        uint8_t* gapsInColumn_u8 = aligned_array<uint8_t, Vector>(g.alig->originalNumberOfResidues);
+        memset(g.gapsInColumn,    0, sizeof(int)     * g.alig->originalNumberOfResidues);
+        memset(gapsInColumn_u8, 0, sizeof(uint8_t) * g.alig->originalNumberOfResidues);
 
         // count gaps per column
-        for (j = 0; j < alig->originalNumberOfSequences; j++) {
+        for (j = 0; j < g.alig->originalNumberOfSequences; j++) {
             // skip sequences not retained in alignment
-            if (alig->saveSequences[j] == -1)
+            if (g.alig->saveSequences[j] == -1)
                 continue;
             // process the whole sequence, 16 lanes at a time
-            const char* data = alig->sequences[j].data();
-            for (i = 0; ((int) (i + Vector::LANES)) < alig->originalNumberOfResidues; i += Vector::LANES) {
+            const char* data = g.alig->sequences[j].data();
+            for (i = 0; ((int) (i + Vector::LANES)) < g.alig->originalNumberOfResidues; i += Vector::LANES) {
                 __m128i letters = _mm_loadu_si128((const __m128i*) &data[i]);
                 __m128i counts  = _mm_load_si128((const __m128i*) &gapsInColumn_u8[i]);
                 __m128i gaps    = _mm_and_si128(ONES, _mm_cmpeq_epi8(letters, ALLGAP));
@@ -339,33 +362,61 @@ namespace simd {
                 _mm_store_si128((__m128i*) &gapsInColumn_u8[i], updated);
             }
             // count the remaining gap elements without SIMD
-            for (; i < alig->originalNumberOfResidues; i++)
+            for (; i < g.alig->originalNumberOfResidues; i++)
                 if (data[i] == '-') gapsInColumn_u8[i]++;
             // every UCHAR_MAX iterations the accumulator may overflow, so the
             // temporary counts are moved into the final counter array, and the
             // accumulator is reset
             if (j % UCHAR_MAX == 0) {
-                for (i = 0; i < alig->originalNumberOfResidues; i++)
-                    gapsInColumn[i] += gapsInColumn_u8[i];
-                memset(gapsInColumn_u8, 0, sizeof(uint8_t) * alig->originalNumberOfResidues);
+                for (i = 0; i < g.alig->originalNumberOfResidues; i++)
+                    g.gapsInColumn[i] += gapsInColumn_u8[i];
+                memset(gapsInColumn_u8, 0, sizeof(uint8_t) * g.alig->originalNumberOfResidues);
             }
         }
         // collect the remaining partial counts into the final counter array
-        for (i = 0; i < alig->originalNumberOfResidues; i++)
-            gapsInColumn[i] += gapsInColumn_u8[i];
+        for (i = 0; i < g.alig->originalNumberOfResidues; i++)
+            g.gapsInColumn[i] += gapsInColumn_u8[i];
 
         // free temporary buffer
         free(gapsInColumn_u8);
+
+        // build histogram and find largest number of gaps
+        for (int i = 0; i < g.alig->originalNumberOfResidues; i++) {
+            g.totalGaps += g.gapsInColumn[i];
+            g.numColumnsWithGaps[g.gapsInColumn[i]]++;
+            if (g.gapsInColumn[i] > g.maxGaps)
+                g.maxGaps = g.gapsInColumn[i];
+        }
     }
 
     template<class Vector>
-    inline bool calculateSimilarityVectors(const Alignment* alig, const float** matrixIdentity, const statistics::similarityMatrix* simMatrix, const int* gaps, float* MDK) {
+    inline bool calculateSimilarityVectors(statistics::Similarity& s, bool cutByGap) {
+        // A similarity matrix must be defined. If not, return false
+        if (s.simMatrix == nullptr)
+            return false;
+
+        // Calculate the matrix identity in case it's not done before
+        if (s.matrixIdentity == nullptr)
+            s.calculateMatrixIdentity();
+
+        // Create the variable gaps, in case we want to cut by gaps
+        int *gaps = nullptr;
+
+        // Retrieve the gaps values in case we want to set to 0 the similarity value
+        // in case the gaps value for that column is bigger or equal to 0.8F
+        if (cutByGap)
+        {
+            if (s.alig->Statistics->gaps == nullptr)
+                s.alig->Statistics->calculateGapStats();
+            gaps = s.alig->Statistics->gaps->getGapsWindow();
+        }
+
         // Initialize the variables used
         int i, j, k;
         float num, den;
 
         // Depending on alignment type, indetermination symbol will be one or other
-        char indet = alig->getAlignmentType() & SequenceTypes::AA ? 'X' : 'N';
+        char indet = s.alig->getAlignmentType() & SequenceTypes::AA ? 'X' : 'N';
 
         // Q temporal value
         float Q;
@@ -374,28 +425,28 @@ namespace simd {
 
         // Calculate the maximum number of gaps a column can have to calculate it's
         //      similarity
-        float gapThreshold = 0.8F * alig->numberOfResidues;
+        float gapThreshold = 0.8F * s.alig->numberOfResidues;
 
         // Cache pointers to matrix rows to avoid dereferencing in inner loops
         const float* identityRow;
         const float* distRow;
 
         // Create buffers to store column data
-        std::vector<char> colnum = std::vector<char>(alig->originalNumberOfSequences);
-        std::vector<char> colgap = std::vector<char>(alig->originalNumberOfSequences);
+        std::vector<char> colnum = std::vector<char>(s.alig->originalNumberOfSequences);
+        std::vector<char> colgap = std::vector<char>(s.alig->originalNumberOfSequences);
 
         // For each column calculate the Q value and the MD value using an equation
-        for (i = 0; i < alig->originalNumberOfResidues; i++) {
+        for (i = 0; i < s.alig->originalNumberOfResidues; i++) {
             // Set MDK for columns with gaps values bigger or equal to threshold
             if ((gaps != nullptr) && gaps[i] >= gapThreshold) {
-                MDK[i] = 0.F;
+                s.MDK[i] = 0.F;
                 continue;
             }
 
             // Fill the column buffer with the current column and check
             // characters are well-defined with respect to the similarity matrix
-            for (j = 0; j < alig->originalNumberOfSequences; j++) {
-                char letter = utils::toUpper(alig->sequences[j][i]);
+            for (j = 0; j < s.alig->originalNumberOfSequences; j++) {
+                char letter = utils::toUpper(s.alig->sequences[j][i]);
                 if ((letter == indet) || (letter == '-')) {
                     colgap[j] = 1;
                 } else {
@@ -403,17 +454,17 @@ namespace simd {
                     if ((letter < 'A') || (letter > 'Z')) {
                         debug.report(ErrorCode::IncorrectSymbol, new std::string[1]{std::string(1, letter)});
                         return false;
-                    } else if (simMatrix->vhash[letter - 'A'] == -1) {
+                    } else if (s.simMatrix->vhash[letter - 'A'] == -1) {
                         debug.report(ErrorCode::UndefinedSymbol, new std::string[1]{std::string(1, letter)});
                         return false;
                     } else {
-                        colnum[j] = simMatrix->vhash[letter - 'A'];
+                        colnum[j] = s.simMatrix->vhash[letter - 'A'];
                     }
                 }
             }
 
             // For each AAs/Nucleotides' pair in the column we compute its distance
-            for (j = 0, num = 0, den = 0; j < alig->originalNumberOfSequences; j++) {
+            for (j = 0, num = 0, den = 0; j < s.alig->originalNumberOfSequences; j++) {
                 // We don't compute the distance if the first element is
                 // a indeterminate (XN) or a gap (-) element.
                 if (colgap[j]) continue;
@@ -421,10 +472,10 @@ namespace simd {
                 // Get the index of the first residue
                 // and cache pointers to matrix rows
                 numA = colnum[j];
-                distRow = simMatrix->distMat[numA];
-                identityRow = matrixIdentity[j];
+                distRow = s.simMatrix->distMat[numA];
+                identityRow = s.matrixIdentity[j];
 
-                for (k = j + 1; k < alig->originalNumberOfSequences; k++) {
+                for (k = j + 1; k < s.alig->originalNumberOfSequences; k++) {
                     // We don't compute the distance if the second element is
                     //      a indeterminate (XN) or a gap (-) element
                     if (colgap[k]) continue;
@@ -439,10 +490,9 @@ namespace simd {
             }
 
             // If we are processing a column with only one AA/nucleotide, MDK = 0
-            if (den == 0)
-                MDK[i] = 0;
-            else
-            {
+            if (den == 0) {
+                s.MDK[i] = 0;
+            } else {
                 Q = num / den;
                 // If the MDK value is more than 1, we normalized this value to 1.
                 //      Only numbers higher than 0 yield exponents higher than 1
@@ -451,11 +501,17 @@ namespace simd {
                 // Take in mind that the Q is negative, so we must test if Q is LESSER
                 //      than one, not bigger.
                 if (Q < 0)
-                    MDK[i] = 1.F;
+                    s.MDK[i] = 1.F;
                 else
-                    MDK[i] = exp(-Q);
+                    s.MDK[i] = exp(-Q);
             }
         }
+
+        // Free the identity matrix now that it's not useful anymore
+        for (int i = 0; i < s.alig->originalNumberOfSequences; i++)
+            delete[] s.matrixIdentity[i];
+        delete[] s.matrixIdentity;
+        s.matrixIdentity = nullptr;
 
         return true;
     }

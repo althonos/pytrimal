@@ -79,91 +79,27 @@ public:
 
 namespace statistics {
     void SSESimilarity::calculateMatrixIdentity() {
-        // create a timer for this function
         StartTiming("void SSESimilarity::calculateMatrixIdentity() ");
-        // abort if identity matrix computation was already done
-        if (matrixIdentity != nullptr)
-            return;
-        // Allocate memory for the matrix identity
-        matrixIdentity = new float *[alig->originalNumberOfSequences];
-        for (int i = 0; i < alig->originalNumberOfSequences; i++) {
-            matrixIdentity[i] = new float[alig->originalNumberOfSequences];
-        }
-        // Run SIMD code with SSE
-        simd::calculateMatrixIdentity<SSEVector>(alig, matrixIdentity);
+        simd::calculateMatrixIdentity<SSEVector>(*this);
     }
 
     bool SSESimilarity::calculateVectors(bool cutByGap) {
-        // Create a timerLevel that will report times upon its destruction
-        //	which means the end of the current scope.
-        StartTiming("bool SSESimilarity::calculateVectors(int *gaps) ");
-
-        // A similarity matrix must be defined. If not, return false
-        if (simMatrix == nullptr)
-            return false;
-
-        // Calculate the matrix identity in case it's not done before
-        if (matrixIdentity == nullptr)
-            calculateMatrixIdentity();
-
-        // Create the variable gaps, in case we want to cut by gaps
-        int *gaps = nullptr;
-
-        // Retrieve the gaps values in case we want to set to 0 the similarity value
-        // in case the gaps value for that column is bigger or equal to 0.8F
-        if (cutByGap)
-        {
-            if (alig->Statistics->gaps == nullptr)
-                alig->Statistics->calculateGapStats();
-            gaps = alig->Statistics->gaps->getGapsWindow();
-        }
-
-        if (!simd::calculateSimilarityVectors<SSEVector>(alig, const_cast<const float**>(matrixIdentity), simMatrix, gaps, MDK)) 
-            return false;
-
-        for (int i = 0; i < alig->originalNumberOfSequences; i++)
-            delete[] matrixIdentity[i];
-        delete[] matrixIdentity;
-        matrixIdentity = nullptr;
-
-        return true;
+        StartTiming("bool SSESimilarity::calculateVectors(bool cutByGap) ");
+        return simd::calculateSimilarityVectors<SSEVector>(*this, cutByGap);
     }
 
     void SSEGaps::CalculateVectors() {
-        // create a timer for this function
-        StartTiming("bool SSEGaps::CalculateVectors(int *gaps) ");
-        // calculate gaps in SIMD with SSE
-        simd::calculateGapVectors<SSEVector>(alig, gapsInColumn);
-        // build histogram and find largest number of gaps
-        for (int i = 0; i < alig->originalNumberOfResidues; i++) {
-            totalGaps += gapsInColumn[i];
-            numColumnsWithGaps[gapsInColumn[i]]++;
-            if (gapsInColumn[i] > maxGaps)
-                maxGaps = gapsInColumn[i];
-        }
+        StartTiming("bool SSEGaps::CalculateVectors() ");
+        simd::calculateGapVectors<SSEVector>(*this);
     }
 }
 
 void SSECleaner::calculateSeqIdentity() {
-  // create a timer for this function
-  StartTiming("void SSECleaner::calculateSeqIdentity(void) ");
-  // create identities matrix to store identities scores
-  alig->identities = new float*[alig->originalNumberOfSequences];
-  for(int i = 0; i < alig->originalNumberOfSequences; i++) {
-      if (alig->saveSequences[i] == -1) continue;
-      alig->identities[i] = new float[alig->originalNumberOfSequences];
-      alig->identities[i][i] = 0;
-  }
-  // Run SIMD code with SSE
-  simd::calculateSeqIdentity<SSEVector>(alig, alig->identities);
+    StartTiming("void SSECleaner::calculateSeqIdentity() ");
+    simd::calculateSeqIdentity<SSEVector>(*this);
 }
 
 bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) {
-    // create a timer for this function
     StartTiming("bool SSECleaner::calculateSpuriousVector(float overlap, float *spuriousVector) ");
-    // abort if there is not output vector to write to
-    if (spuriousVector == nullptr)
-        return false;
-    // Run SIMD code with SSE
-    return simd::calculateSpuriousVector<SSEVector>(alig, overlap, spuriousVector);
+    return simd::calculateSpuriousVector<SSEVector>(*this, overlap, spuriousVector);
 }
