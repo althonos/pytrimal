@@ -62,8 +62,8 @@ namespace simd {
                     // unroll the internal loop
                     for (l = 0; l < UCHAR_MAX; l++, k += Vector::LANES) {
                         // load data for the sequences
-                        Vector seqi = Vector::load(&datai[k]);
-                        Vector seqj = Vector::load(&dataj[k]);
+                        Vector seqi = Vector::loadu(&datai[k]);
+                        Vector seqj = Vector::loadu(&dataj[k]);
                         // find which sequence characters are gap or indet
                         Vector gapsi = (seqi == ALLGAP) | (seqi == allindet);
                         Vector gapsj = (seqj == ALLGAP) | (seqj == allindet);
@@ -83,8 +83,8 @@ namespace simd {
                 // run remaining iterations in SIMD while possible
                 for (; ((int) (k + Vector::LANES)) < s.alig->originalNumberOfResidues; k += Vector::LANES) {
                     // load data for the sequences
-                    Vector seqi = Vector::load(&datai[k]);
-                    Vector seqj = Vector::load(&dataj[k]);
+                    Vector seqi = Vector::loadu(&datai[k]);
+                    Vector seqj = Vector::loadu(&dataj[k]);
                     // find which sequence characters are gap or indet
                     Vector gapsi = (seqi == ALLGAP) | (seqi == allindet);
                     Vector gapsj = (seqj == ALLGAP) | (seqj == allindet);
@@ -264,9 +264,9 @@ namespace simd {
                 for (k = 0; ((int) (k + Vector::LANES*UCHAR_MAX)) < c.alig->originalNumberOfResidues;) {
                     for (l = 0; l < UCHAR_MAX; l++, k += Vector::LANES) {
                         // load data for the sequences
-                        Vector seqi = Vector::loadu( (&datai[k]));
-                        Vector seqj = Vector::loadu( (&dataj[k]));
-                        Vector skip = Vector::load(  (&skipResidues[k]));
+                        Vector seqi = Vector::loadu(&datai[k]);
+                        Vector seqj = Vector::loadu(&dataj[k]);
+                        Vector skip = Vector::load(&skipResidues[k]);
                         Vector eq = (seqi == seqj);
                         // find which sequence characters are gap or indet
                         Vector gapsi = ((seqi == ALLGAP) | (seqi == allindet));
@@ -288,9 +288,9 @@ namespace simd {
                 for (; ((int) (k + Vector::LANES)) < c.alig->originalNumberOfResidues; k += Vector::LANES) {
                     // load data for the sequences; load is unaligned because
                     // string data is not guaranteed to be aligned.
-                    Vector seqi = Vector::loadu( (&datai[k]));
-                    Vector seqj = Vector::loadu( (&dataj[k]));
-                    Vector skip = Vector::load(  (&skipResidues[k]));
+                    Vector seqi = Vector::loadu(&datai[k]);
+                    Vector seqj = Vector::loadu(&dataj[k]);
+                    Vector skip = Vector::load(&skipResidues[k]);
                     Vector eq = (seqi == seqj);
                     // find which sequence characters are gap or indet
                         Vector gapsi = ((seqi == ALLGAP) | (seqi == allindet));
