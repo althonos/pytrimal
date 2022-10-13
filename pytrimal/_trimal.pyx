@@ -49,6 +49,8 @@ IF SSE2_BUILD_SUPPORT:
     from pytrimal.impl.sse cimport SSESimilarity, SSEGaps, SSECleaner
 IF NEON_BUILD_SUPPORT:
     from pytrimal.impl.neon cimport NEONSimilarity, NEONGaps, NEONCleaner
+IF AVX2_BUILD_SUPPORT:
+    from pytrimal.impl.avx cimport AVXSimilarity, AVXGaps, AVXCleaner
 
 # --- Python imports ---------------------------------------------------------
 
@@ -58,16 +60,20 @@ import threading
 # --- Constants --------------------------------------------------------------
 
 _TARGET_CPU           = TARGET_CPU
-_SSE2_RUNTIME_SUPPORT = False
 _SSE2_BUILD_SUPPORT   = False
-_NEON_RUNTIME_SUPPORT = False
+_SSE2_RUNTIME_SUPPORT = False
+_AVX2_BUILD_SUPPORT   = False
+_AVX2_RUNTIME_SUPPORT = False
 _NEON_BUILD_SUPPORT   = False
+_NEON_RUNTIME_SUPPORT = False
 
 IF TARGET_CPU == "x86" and TARGET_SYSTEM in ("freebsd", "linux_or_android", "macos", "windows"):
     from cpu_features.x86 cimport GetX86Info, X86Info
     cdef X86Info cpu_info = GetX86Info()
     _SSE2_BUILD_SUPPORT   = SSE2_BUILD_SUPPORT
     _SSE2_RUNTIME_SUPPORT = SSE2_BUILD_SUPPORT and cpu_info.features.sse2 != 0
+    _AVX2_BUILD_SUPPORT   = AVX2_BUILD_SUPPORT
+    _AVX2_RUNTIME_SUPPORT = AVX2_BUILD_SUPPORT and cpu_info.features.avx2 != 0
 ELIF TARGET_CPU == "arm":
     from cpu_features.arm cimport GetArmInfo, ArmInfo
     cdef ArmInfo arm_info = GetArmInfo()
@@ -78,7 +84,9 @@ ELIF TARGET_CPU == "aarch64":
     _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT # always runtime support on Aarch64
 
 
-if _SSE2_RUNTIME_SUPPORT:
+if _AVX2_RUNTIME_SUPPORT:
+    _BEST_BACKEND = simd_backend.AVX2
+elif _SSE2_RUNTIME_SUPPORT:
     _BEST_BACKEND = simd_backend.SSE2
 elif _NEON_RUNTIME_SUPPORT:
     _BEST_BACKEND = simd_backend.NEON
@@ -90,6 +98,7 @@ cdef enum simd_backend:
     GENERIC = 1
     SSE2 = 2
     NEON = 3
+    AVX2 = 4
 
 
 # --- Utilities --------------------------------------------------------------
@@ -1119,6 +1128,15 @@ cdef class BaseTrimmer:
                 IF SSE2_BUILD_SUPPORT:
                     if _SSE2_RUNTIME_SUPPORT:
                         self._backend = simd_backend.SSE2
+                IF AVX2_BUILD_SUPPORT:
+                    if _AVX2_RUNTIME_SUPPORT:
+                        self._backend = simd_backend.AVX2
+            elif backend == "avx":
+                IF not AVX2_BUILD_SUPPORT:
+                    raise RuntimeError("Extension was compiled without AVX2 support")
+                if not _AVX2_RUNTIME_SUPPORT:
+                    raise RuntimeError("Cannot run AVX2 instructions on this machine")
+                self._backend = simd_backend.AVX2
             elif backend == "sse":
                 IF not SSE2_BUILD_SUPPORT:
                     raise RuntimeError("Extension was compiled without SSE2 support")

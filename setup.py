@@ -422,11 +422,11 @@ class build_ext(_build_ext):
 
         # check if we can build platform-specific code
         if TARGET_CPU == "x86":
-            # if not self._simd_disabled["AVX2"] and self._check_avx2():
-            #     cython_args["compile_time_env"]["AVX2_BUILD_SUPPORT"] = True
-            #     self._simd_supported["AVX2"] = True
-            #     self._simd_flags["AVX2"].extend(self._avx2_flags())
-            #     self._simd_defines["AVX2"].append(("__AVX2__", 1))
+            if not self._simd_disabled["AVX2"] and self._check_avx2():
+                cython_args["compile_time_env"]["AVX2_BUILD_SUPPORT"] = True
+                self._simd_supported["AVX2"] = True
+                self._simd_flags["AVX2"].extend(self._avx2_flags())
+                self._simd_defines["AVX2"].append(("__AVX2__", 1))
             if not self._simd_disabled["SSE2"] and self._check_sse2():
                 cython_args["compile_time_env"]["SSE2_BUILD_SUPPORT"] = True
                 self._simd_supported["SSE2"] = True
@@ -791,6 +791,7 @@ setuptools.setup(
             platform_sources={
                 "SSE2": [os.path.join("pytrimal", "impl", "sse.cpp")],
                 "NEON": [os.path.join("pytrimal", "impl", "neon.cpp")],
+                "AVX2": [os.path.join("pytrimal", "impl", "avx.cpp")],
             },
             include_dirs=[
                 os.path.join("pytrimal", "patch"),
