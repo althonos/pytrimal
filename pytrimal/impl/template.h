@@ -339,12 +339,12 @@ namespace simd {
     template<class Vector>
     inline void calculateGapVectors(statistics::Gaps& g) {
         int i, j;
-        const __m128i ALLGAP = _mm_set1_epi8('-');
-        const __m128i ONES   = _mm_set1_epi8(1);
+        const Vector ALLGAP = Vector('-');
+        const Vector ONES   = Vector(1);
 
         // use temporary buffer for storing 8-bit partial sums
         uint8_t* gapsInColumn_u8 = aligned_array<uint8_t, Vector>(g.alig->originalNumberOfResidues);
-        memset(g.gapsInColumn,    0, sizeof(int)     * g.alig->originalNumberOfResidues);
+        memset(g.gapsInColumn,  0, sizeof(int)     * g.alig->originalNumberOfResidues);
         memset(gapsInColumn_u8, 0, sizeof(uint8_t) * g.alig->originalNumberOfResidues);
 
         // count gaps per column
@@ -353,13 +353,12 @@ namespace simd {
             if (g.alig->saveSequences[j] == -1)
                 continue;
             // process the whole sequence, 16 lanes at a time
-            const char* data = g.alig->sequences[j].data();
+            const uint8_t* data = reinterpret_cast<const uint8_t*>(g.alig->sequences[j].data());
             for (i = 0; ((int) (i + Vector::LANES)) < g.alig->originalNumberOfResidues; i += Vector::LANES) {
-                __m128i letters = _mm_loadu_si128((const __m128i*) &data[i]);
-                __m128i counts  = _mm_load_si128((const __m128i*) &gapsInColumn_u8[i]);
-                __m128i gaps    = _mm_and_si128(ONES, _mm_cmpeq_epi8(letters, ALLGAP));
-                __m128i updated = _mm_add_epi8(counts, gaps);
-                _mm_store_si128((__m128i*) &gapsInColumn_u8[i], updated);
+                Vector letters = Vector::loadu(&data[i]);
+                Vector counts  = Vector::load(&gapsInColumn_u8[i]);
+                counts += (ONES & (letters == ALLGAP));
+                counts.store(&gapsInColumn_u8[i]);
             }
             // count the remaining gap elements without SIMD
             for (; i < g.alig->originalNumberOfResidues; i++)
