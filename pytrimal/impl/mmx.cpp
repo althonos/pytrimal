@@ -74,7 +74,7 @@ public:
     __m64    hi      = _mm_unpackhi_pi16(_mm_setzero_si64(), vector);
     __m64    lo      = _mm_unpacklo_pi16(_mm_setzero_si64(), vector);
     __m64    partial = _mm_add_pi16(hi, lo);
-    uint64_t value   = _mm_cvtm64_si64(vector);
+    uint64_t value   = _mm_cvtm64_si64(partial);
     return (value & 0xFFFF) + (value >> 16);
   }
 
