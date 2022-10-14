@@ -16,7 +16,6 @@ from .. import _trimal, Alignment, OverlapTrimmer
 
 
 class TestOverlapTrimmer(unittest.TestCase):
-
     backend = None
 
     def assertTrimmedAlignmentEqual(self, trimmed, expected):
@@ -73,6 +72,10 @@ class TestOverlapTrimmer(unittest.TestCase):
         t1 = trimmer.trim(ali)
         t2 = pickled.trim(ali)
         self.assertTrimmedAlignmentEqual(t2, t1)
+
+
+class TestOverlapTrimmerGeneric(TestOverlapTrimmer):
+    backend = "generic"
 
 
 @unittest.skipUnless(_trimal._SSE2_RUNTIME_SUPPORT, "SSE2 not available")

@@ -11,6 +11,7 @@
 #include "utils.h"
 
 #include "neon.h"
+#include "template.h"
 
 class NEONVector {
 private:

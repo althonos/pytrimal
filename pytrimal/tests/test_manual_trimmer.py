@@ -15,7 +15,6 @@ from .. import _trimal, Alignment, ManualTrimmer
 
 
 class TestManualTrimmer(unittest.TestCase):
-
     backend = None
 
     def assertTrimmedAlignmentEqual(self, trimmed, expected):
@@ -112,6 +111,10 @@ class TestManualTrimmer(unittest.TestCase):
         t1 = trimmer.trim(ali)
         t2 = pickled.trim(ali)
         self.assertTrimmedAlignmentEqual(t2, t1)
+
+
+class TestManualTrimmerGeneric(TestManualTrimmer):
+    backend = "generic"
 
 
 @unittest.skipUnless(_trimal._SSE2_RUNTIME_SUPPORT, "SSE2 not available")

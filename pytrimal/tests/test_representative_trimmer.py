@@ -16,7 +16,6 @@ from .. import _trimal, Alignment, RepresentativeTrimmer
 
 
 class TestRepresentativeTrimmer(unittest.TestCase):
-
     backend = None
 
     def assertTrimmedAlignmentEqual(self, trimmed, expected):
@@ -94,6 +93,10 @@ class TestRepresentativeTrimmer(unittest.TestCase):
         t1 = trimmer.trim(ali)
         t2 = pickled.trim(ali)
         self.assertTrimmedAlignmentEqual(t2, t1)
+
+
+class TestRepresentativeTrimmerGeneric(TestRepresentativeTrimmer):
+    backend = "generic"
 
 
 @unittest.skipUnless(_trimal._SSE2_RUNTIME_SUPPORT, "SSE2 not available")
