@@ -18,6 +18,7 @@ import rich.progress
 sys.path.insert(0, os.path.realpath(os.path.join(__file__, "..", "..")))
 
 from pytrimal import (
+    _trimal,
     Alignment,
     BaseTrimmer,
     AutomaticTrimmer,
@@ -34,12 +35,16 @@ parser.add_argument("-d", "--data", required=True)
 parser.add_argument("-o", "--output", required=True)
 args = parser.parse_args()
 
-if platform.machine().startswith("x86"):
-    BACKENDS = ["sse", "generic", None]
-elif platform.machine().startswith("arm") or platform.machine() == "aarch64":
-    BACKENDS = ["neon", "generic", None]
-else:
-    BACKENDS = ["generic", None]
+
+BACKENDS = ["generic", None]
+if _trimal._SSE2_RUNTIME_SUPPORT:
+    BACKENDS.append("sse")
+if _trimal._AVX2_RUNTIME_SUPPORT:
+    BACKENDS.append("avx")
+if _trimal._MMX_RUNTIME_SUPPORT:
+    BACKENDS.append("mmx")
+if _trimal._NEON_RUNTIME_SUPPORT:
+    BACKENDS.append("neon")
 
 STATISTIC: Dict[str, Callable[["TRIMMER_BACKEND"], BaseTrimmer]] = {
     "Gaps": lambda backend: ManualTrimmer(gap_threshold=0.5, backend=backend),
@@ -52,9 +57,7 @@ STATISTIC: Dict[str, Callable[["TRIMMER_BACKEND"], BaseTrimmer]] = {
 }
 
 with rich.progress.Progress(transient=True) as progress:
-    warnings.showwarning = lambda msg, c, f, l, file=None, line=None: progress.print(
-        msg
-    )
+    warnings.showwarning = lambda msg, c, f, l, file=None, line=None: None
 
     results: Dict[str, List[Dict[str, object]]] = dict(results=[])
     examples = glob.glob(os.path.join(args.data, "example.*.AA.*.fasta"))
