@@ -287,14 +287,12 @@ class build_ext(_build_ext):
         return self._check_simd_generic(
             "MMX",
             self._mmx_flags(),
-
             program="""
                 #include <mmintrin.h>
                 int main() {{
-                    __m64 a = _mm_set1_pi16(-1);
-                          a = _mm_cmpeq_pi16(a, a);
+                    __m64 a = _mm_set1_pi16(1);
                     short x = (short) _m_to_int(a);
-                    return (x == 0xFFFF) ? 0 : 1;
+                    return (x == 1) ? 0 : 1;
                 }}
             """,
         )
