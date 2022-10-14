@@ -57,6 +57,8 @@ STATISTIC: Dict[str, Callable[["TRIMMER_BACKEND"], BaseTrimmer]] = {
 }
 
 with rich.progress.Progress(transient=True) as progress:
+    rich.print("[bold green]Benchmarking[/] backends: [cyan italic]{}[/]".format(" ".join(map(str, BACKENDS))))
+
     warnings.showwarning = lambda msg, c, f, l, file=None, line=None: None
 
     results: Dict[str, List[Dict[str, object]]] = dict(results=[])

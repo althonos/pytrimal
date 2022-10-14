@@ -9,15 +9,20 @@ import numpy
 import matplotlib.pyplot as plt
 import scipy.stats
 from numpy.polynomial import Polynomial
-from palettable.cartocolors.qualitative import Bold_4
+from palettable.cartocolors.qualitative import Bold_9
 
+
+COLORS = dict(zip(
+    ["None", "Generic", "MMX", "SSE", "AVX", "NEON"], 
+    Bold_9.hex_colors
+))
+ORDER = {x:i for i,x in enumerate(COLORS)}
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", required=True)
 parser.add_argument("-o", "--output")
 parser.add_argument("-s", "--show", action="store_true")
 args = parser.parse_args()
-
 
 with open(args.input) as f:
     data = json.load(f)
@@ -39,12 +44,9 @@ for i, (statistic, statistic_group) in enumerate(
     plt.title(statistic)
 
     statistic_group = sorted(
-        statistic_group, key=lambda r: (r["backend"], r["sequences"])
+        statistic_group, key=lambda r: (ORDER[r["backend"]], r["sequences"])
     )
-    for color, (backend, group) in zip(
-        Bold_4.hex_colors,
-        itertools.groupby(statistic_group, key=lambda r: r["backend"]),
-    ):
+    for backend, group in itertools.groupby(statistic_group, key=lambda r: r["backend"]):
         group = list(group)
         X = numpy.array([r["sequences"] for r in group])
         Y = numpy.array([r["mean"] for r in group])
@@ -55,13 +57,13 @@ for i, (statistic, statistic_group) in enumerate(
                 X,
                 Y,
                 marker="+",
-                color=color,
+                color=COLORS[backend],
                 label=f"{backend} (R²={reg.rvalue**2:.3f})",
             )
             plt.plot(
                 [0, max(X)],
                 [reg.intercept, reg.slope * max(X) + reg.intercept],
-                color=color,
+                color=COLORS[backend],
                 linestyle="--",
                 marker="",
             )
@@ -69,10 +71,10 @@ for i, (statistic, statistic_group) in enumerate(
             p = Polynomial.fit(X, Y, 2)
             pX = numpy.linspace(0, max(r["sequences"] for r in group), 1000)
             # reg = scipy.stats.linregress(X, Y)
-            # plt.plot([ 0, max(X) ], [ reg.intercept, reg.slope*max(X) + reg.intercept ], color=color, linestyle="--", marker="")
+            # plt.plot([ 0, max(X) ], [ reg.intercept, reg.slope*max(X) + reg.intercept ], color=COLORS[backend], linestyle="--", marker="")
             # ci = [1.96 * r["stddev"] / math.sqrt(len(r["times"])) for r in group]
-            plt.scatter(X, Y, marker="+", color=color, label=f"{backend}")
-            plt.plot(pX, p(pX), color=color, linestyle="--")
+            plt.scatter(X, Y, marker="+", color=COLORS[backend], label=f"{backend}")
+            plt.plot(pX, p(pX), color=COLORS[backend], linestyle="--")
 
     plt.legend()
     plt.xlabel("Number of sequences")
