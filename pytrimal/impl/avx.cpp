@@ -24,7 +24,10 @@ public:
   const static size_t SIZE = sizeof(__m256i);
 
   inline AVXVector() : vector(_mm256_setzero_si256()) {}
-  inline AVXVector(const int8_t value) : vector(_mm256_set1_epi8(value)) {}
+
+  inline static AVXVector duplicate(const uint8_t value) {
+    return AVXVector(_mm256_set1_epi8(value));
+  }
 
   inline static AVXVector load(const uint8_t *data) {
     return AVXVector(_mm256_load_si256((const __m256i *)data));

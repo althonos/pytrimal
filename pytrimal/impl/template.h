@@ -37,9 +37,9 @@ inline void calculateMatrixIdentity(statistics::Similarity &s) {
   char indet = s.alig->getAlignmentType() & SequenceTypes::AA ? 'X' : 'N';
 
   // prepare constant SIMD vectors
-  const Vector allindet = Vector(indet);
-  const Vector ALLGAP = Vector('-');
-  const Vector ONES = Vector(1);
+  const Vector ALLINDET = Vector::duplicate(indet);
+  const Vector ALLGAP = Vector::duplicate('-');
+  const Vector ONES = Vector::duplicate(1);
 
   // For each sequences' pair, compare identity
   for (i = 0; i < s.alig->originalNumberOfSequences; i++) {
@@ -67,8 +67,8 @@ inline void calculateMatrixIdentity(statistics::Similarity &s) {
           Vector seqi = Vector::loadu(&datai[k]);
           Vector seqj = Vector::loadu(&dataj[k]);
           // find which sequence characters are gap or indet
-          Vector gapsi = (seqi == ALLGAP) | (seqi == allindet);
-          Vector gapsj = (seqj == ALLGAP) | (seqj == allindet);
+          Vector gapsi = (seqi == ALLGAP) | (seqi == ALLINDET);
+          Vector gapsj = (seqj == ALLGAP) | (seqj == ALLINDET);
           // find which sequence characters are equal
           Vector eq = (seqi == seqj);
           // update counters
@@ -89,8 +89,8 @@ inline void calculateMatrixIdentity(statistics::Similarity &s) {
         Vector seqi = Vector::loadu(&datai[k]);
         Vector seqj = Vector::loadu(&dataj[k]);
         // find which sequence characters are gap or indet
-        Vector gapsi = (seqi == ALLGAP) | (seqi == allindet);
-        Vector gapsj = (seqj == ALLGAP) | (seqj == allindet);
+        Vector gapsi = (seqi == ALLGAP) | (seqi == ALLINDET);
+        Vector gapsj = (seqj == ALLGAP) | (seqj == ALLINDET);
         // find which sequence characters are equal
         Vector eq = (seqi == seqj);
         // update counters
@@ -133,9 +133,9 @@ inline bool calculateSpuriousVector(Cleaner &c, const float overlap,
   char indet = (c.alig->getAlignmentType() & SequenceTypes::AA) ? 'X' : 'N';
 
   // prepare constant SIMD vectors
-  const Vector allindet = Vector(indet);
-  const Vector ALLGAP = Vector('-');
-  const Vector ONES = Vector(1);
+  const Vector ALLINDET = Vector::duplicate(indet);
+  const Vector ALLGAP = Vector::duplicate('-');
+  const Vector ONES = Vector::duplicate(1);
 
   // allocate aligned memory for faster SIMD loads
   uint32_t *hits =
@@ -172,8 +172,8 @@ inline bool calculateSpuriousVector(Cleaner &c, const float overlap,
         const Vector seqi = Vector::loadu(&datai[k]);
         const Vector seqj = Vector::loadu(&dataj[k]);
         // find which sequence characters are gap or indet
-        const Vector gapsi = (seqi == ALLGAP) | (seqi == allindet);
-        const Vector gapsj = (seqj == ALLGAP) | (seqj == allindet);
+        const Vector gapsi = (seqi == ALLGAP) | (seqi == ALLINDET);
+        const Vector gapsj = (seqj == ALLGAP) | (seqj == ALLINDET);
         const Vector gaps = !(gapsi | gapsj);
         // find which sequence characters match
         const Vector eq = (seqi == seqj);
@@ -245,9 +245,9 @@ template <class Vector> inline void calculateSeqIdentity(Cleaner &c) {
   char indet = (c.alig->getAlignmentType() & SequenceTypes::AA) ? 'X' : 'N';
 
   // prepare constant SIMD vectors
-  const Vector allindet = Vector(indet);
-  const Vector ALLGAP = Vector('-');
-  const Vector ONES = Vector(1);
+  const Vector ALLINDET = Vector::duplicate(indet);
+  const Vector ALLGAP = Vector::duplicate('-');
+  const Vector ONES = Vector::duplicate(1);
 
   // create an index of residues to skip
   uint8_t *skipResidues = aligned_array<uint8_t, Vector>(
@@ -289,8 +289,8 @@ template <class Vector> inline void calculateSeqIdentity(Cleaner &c) {
           Vector skip = Vector::load(&skipResidues[k]);
           Vector eq = (seqi == seqj);
           // find which sequence characters are gap or indet
-          Vector gapsi = ((seqi == ALLGAP) | (seqi == allindet));
-          Vector gapsj = ((seqj == ALLGAP) | (seqj == allindet));
+          Vector gapsi = ((seqi == ALLGAP) | (seqi == ALLINDET));
+          Vector gapsj = ((seqj == ALLGAP) | (seqj == ALLINDET));
           // find position where not both characters are gap
           Vector mask = ONES.andnot(gapsi & gapsj).andnot(skip);
           // update counters
@@ -314,8 +314,8 @@ template <class Vector> inline void calculateSeqIdentity(Cleaner &c) {
         Vector skip = Vector::load(&skipResidues[k]);
         Vector eq = (seqi == seqj);
         // find which sequence characters are gap or indet
-        Vector gapsi = ((seqi == ALLGAP) | (seqi == allindet));
-        Vector gapsj = ((seqj == ALLGAP) | (seqj == allindet));
+        Vector gapsi = ((seqi == ALLGAP) | (seqi == ALLINDET));
+        Vector gapsj = ((seqj == ALLGAP) | (seqj == ALLINDET));
         // find position where not both characters are gap
         Vector mask = ONES.andnot(gapsi & gapsj).andnot(skip);
         // update counters
@@ -359,8 +359,8 @@ template <class Vector> inline void calculateSeqIdentity(Cleaner &c) {
 
 template <class Vector> inline void calculateGapVectors(statistics::Gaps &g) {
   int i, j;
-  const Vector ALLGAP = Vector('-');
-  const Vector ONES = Vector(1);
+  const Vector ALLGAP = Vector::duplicate('-');
+  const Vector ONES = Vector::duplicate(1);
 
   // use temporary buffer for storing 8-bit partial sums
   uint8_t *gapsInColumn_u8 =

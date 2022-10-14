@@ -23,7 +23,10 @@ public:
   const static size_t SIZE = sizeof(uint8x16_t);
 
   inline NEONVector() : vector(vdupq_n_u8(0)) {}
-  inline NEONVector(const int8_t value) : vector(vdupq_n_u8(value)) {}
+
+  inline static NEONVector duplicate(const uint8_t value) {
+    return NEONVector(vdupq_n_u8(value));
+  }
 
   inline static NEONVector load(const uint8_t *data) {
     return NEONVector(vld1q_u8(data));

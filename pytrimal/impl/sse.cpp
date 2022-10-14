@@ -24,7 +24,10 @@ public:
   const static size_t SIZE = sizeof(__m128i);
 
   inline SSEVector() : vector(_mm_setzero_si128()) {}
-  inline SSEVector(const int8_t value) : vector(_mm_set1_epi8(value)) {}
+
+  inline static SSEVector duplicate(const uint8_t value) {
+    return SSEVector(_mm_set1_epi8(value));
+  }
 
   inline static SSEVector load(const uint8_t *data) {
     return SSEVector(_mm_load_si128((const __m128i *)data));

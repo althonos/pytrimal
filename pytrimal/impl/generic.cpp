@@ -15,13 +15,17 @@
 class GenericVector {
 private:
   uint8_t vector;
+  inline GenericVector(const uint8_t value) : vector(value) {}
 
 public:
   const static size_t LANES = 1;
   const static size_t SIZE = sizeof(uint8_t);
 
   inline GenericVector() : vector(0) {}
-  inline GenericVector(const uint8_t value) : vector(value) {}
+
+  inline static GenericVector duplicate(const uint8_t value) {
+    return GenericVector(value);
+  }
 
   inline static GenericVector load(const uint8_t *data) {
     return GenericVector(*data);
@@ -31,12 +35,12 @@ public:
     return GenericVector(*data);
   }
 
-  inline void store(uint8_t *data) const { 
-    *data = vector; 
+  inline void store(uint8_t *data) const {
+    *data = vector;
   }
 
-  inline void storeu(uint8_t *data) const { 
-    *data = vector; 
+  inline void storeu(uint8_t *data) const {
+    *data = vector;
   }
 
   inline GenericVector &operator+=(const GenericVector &rhs) {
@@ -56,8 +60,8 @@ public:
     return GenericVector(vector | rhs.vector);
   }
 
-  inline GenericVector operator!() const { 
-    return GenericVector(~vector); 
+  inline GenericVector operator!() const {
+    return GenericVector(~vector);
   }
 
   inline GenericVector andnot(const GenericVector &rhs) const {
@@ -68,8 +72,8 @@ public:
     return vector;
   }
 
-  inline void clear() { 
-    vector = 0; 
+  inline void clear() {
+    vector = 0;
   }
 };
 
