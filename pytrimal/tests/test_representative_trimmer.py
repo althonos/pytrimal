@@ -99,6 +99,11 @@ class TestRepresentativeTrimmerGeneric(TestRepresentativeTrimmer):
     backend = "generic"
 
 
+@unittest.skipUnless(_trimal._MMX_RUNTIME_SUPPORT, "MMX not available")
+class TestRepresentativeTrimmerMMX(TestRepresentativeTrimmer):
+    backend = "mmx"
+
+
 @unittest.skipUnless(_trimal._SSE2_RUNTIME_SUPPORT, "SSE2 not available")
 class TestRepresentativeTrimmerSSE(TestRepresentativeTrimmer):
     backend = "sse"

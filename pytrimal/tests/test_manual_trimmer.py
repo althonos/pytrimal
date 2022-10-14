@@ -117,6 +117,11 @@ class TestManualTrimmerGeneric(TestManualTrimmer):
     backend = "generic"
 
 
+@unittest.skipUnless(_trimal._MMX_RUNTIME_SUPPORT, "MMX not available")
+class TestManualTrimmerMMX(TestManualTrimmer):
+    backend = "mmx"
+
+
 @unittest.skipUnless(_trimal._SSE2_RUNTIME_SUPPORT, "SSE2 not available")
 class TestManualTrimmerSSE(TestManualTrimmer):
     backend = "sse"

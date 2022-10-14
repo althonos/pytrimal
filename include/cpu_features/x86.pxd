@@ -1,6 +1,8 @@
 cdef extern from "cpuinfo_x86.h" namespace "cpu_features" nogil:
 
     ctypedef struct X86Features:
+        int mmx
+        
         int sse
         int sse2
         int sse3
