@@ -1219,6 +1219,12 @@ cdef class BaseTrimmer:
         """
         if self._backend == simd_backend.SSE2:
             return "sse"
+        elif self._backend == simd_backend.AVX2:
+            return "avx"
+        elif self._backend == simd_backend.MMX:
+            return "mmx"
+        elif self._backend == simd_backend.NEON:
+            return "neon"
         elif self._backend == simd_backend.GENERIC:
             return "generic"
         else:
