@@ -60,16 +60,16 @@ public:
   inline NEONVector operator!() const { return NEONVector(vmvnq_u8(vector)); }
 
   inline NEONVector andnot(const NEONVector &rhs) const {
-    return NEONVector(vbicq_u8(rhs.vector, vector));
+    return NEONVector(vbicq_u8(vector, rhs.vector));
   }
 
   inline uint16_t sum() const {
 #ifdef __aarch64__
     // Don't use `vaddvq_u8` because it can overflow, first add pairwise
     // into 16-bit lanes to avoid overflows
-    return vaddvq_u16(vpaddlq_u8(a));
+    return vaddvq_u16(vpaddlq_u8(vector));
 #else
-    uint64x2_t paired = vpaddlq_u32(vpaddlq_u16(vpaddlq_u8(a)));
+    uint64x2_t paired = vpaddlq_u32(vpaddlq_u16(vpaddlq_u8(vector)));
     return vgetq_lane_u64(paired, 0) + vgetq_lane_u64(paired, 1);
 #endif
   }
