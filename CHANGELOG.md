@@ -6,7 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.5.3...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.5.4...HEAD
+
+
+## [v0.5.4] - 2022-10-15
+[v0.5.4]: https://github.com/althonos/pytrimal/compare/v0.5.3...v0.5.4
+
+### Added
+- AVX2 and MMX implementations of the SIMD statistics computation.
+- Tests for all SIMD implementations supported on the local machine.
+### Changed
+- Refactor SIMD code using C++ templates and generic implementation.
+### Fixed
+- Broken rendering of function signatures in Sphinx documentation.
+- `residues_mask` and `sequences_mask` attributes of `TrimmedAlignment` not being documented ([#1](https://github.com/althonos/pytrimal/issues/1)).
 
 
 ## [v0.5.3] - 2022-10-04

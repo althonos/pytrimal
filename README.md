@@ -159,7 +159,7 @@ on a variable number of sequences from
 [`example.014.AA.EggNOG.COG0591.fasta`](https://github.com/inab/trimal/blob/trimAl/dataset/example.014.AA.EggNOG.COG0591.fasta),
 an alignment of 3583 sequences and 7287 columns.
 
-![Benchmarks](https://raw.githubusercontent.com/althonos/pytrimal/main/bench/v0.5.2.svg)
+![Benchmarks](https://raw.githubusercontent.com/althonos/pytrimal/main/bench/v0.5.4.svg)
 
 Each graph measures the computation time of a single trimAl statistic
 (see the [Statistics page](https://pytrimal.readthedocs.io/en/stable/statistics.html)
