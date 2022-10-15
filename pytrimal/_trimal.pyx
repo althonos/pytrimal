@@ -109,12 +109,17 @@ cdef enum simd_backend:
 
 # --- Utilities --------------------------------------------------------------
 
-cdef float _check_range(object value, str name, float min_value, float max_value) except *:
+ctypedef fused number:
+    int
+    float
+    ssize_t
+
+cdef number _check_range(number value, str name, number min_value, number max_value) except *:
     if value < min_value or value > max_value or isnan(value):
         raise ValueError(f"Invalid value for `{name}`: {value!r}")
     return value
 
-cdef int _check_positive(object value, str name) except *:
+cdef number _check_positive(number value, str name) except *:
     if value <= 0:
         raise ValueError(f"Invalid value for `{name}`: {value!r}")
     return value
@@ -1562,21 +1567,19 @@ cdef class ManualTrimmer(BaseTrimmer):
             raise ValueError("Cannot specify both `window` and a specific window argument")
 
         if gap_threshold is not None:
-            self._gap_threshold = 1 - _check_range(gap_threshold, "gap_threshold", 0, 1)
+            self._gap_threshold = 1 - _check_range[float](gap_threshold, "gap_threshold", 0, 1)
         if gap_absolute_threshold is not None:
-            if gap_absolute_threshold < 0:
-                raise ValueError(f"Invalid value for `gap_absolute_threshold`: {gap_absolute_threshold!r}")
-            self._gap_absolute_threshold = gap_absolute_threshold
+            self._gap_absolute_threshold = _check_positive[ssize_t](gap_absolute_threshold, "gap_absolute_threshold")
         if similarity_threshold is not None:
-            self._similarity_threshold = _check_range(similarity_threshold, "similarity_threshold", 0, 1)
+            self._similarity_threshold = _check_range[float](similarity_threshold, "similarity_threshold", 0, 1)
         if conservation_percentage is not None:
-            self._conservation_percentage = _check_range(conservation_percentage, "conservation_percentage", 0, 100)
+            self._conservation_percentage = _check_range[float](conservation_percentage, "conservation_percentage", 0, 100)
         if window is not None:
-            self._window = _check_positive(window, "window")
+            self._window = _check_positive[int](window, "window")
         if gap_window is not None:
-            self._gap_window = _check_positive(gap_window, "gap_window")
+            self._gap_window = _check_positive[int](gap_window, "gap_window")
         if similarity_window is not None:
-            self._similarity_window = _check_positive(similarity_window, "similarity_window")
+            self._similarity_window = _check_positive[int](similarity_window, "similarity_window")
 
     def __repr__(self):
         cdef str ty    = type(self).__name__
@@ -1712,8 +1715,8 @@ cdef class OverlapTrimmer(BaseTrimmer):
 
         """
         super().__init__(backend=backend)
-        self._sequence_overlap = _check_range(sequence_overlap, "sequence_overlap", 0, 100)
-        self._residue_overlap = _check_range(residue_overlap, "residue_overlap", 0, 1)
+        self._sequence_overlap = _check_range[float](sequence_overlap, "sequence_overlap", 0, 100)
+        self._residue_overlap = _check_range[float](residue_overlap, "residue_overlap", 0, 1)
 
     def __repr__(self):
         cdef str ty    = type(self).__name__
@@ -1798,9 +1801,9 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
         if clusters is not None and identity_threshold is not None:
             raise ValueError("Cannot specify both `clusters` and `identity_threshold`")
         if clusters is not None:
-            self._clusters = _check_positive(clusters, "clusters")
+            self._clusters = _check_positive[int](clusters, "clusters")
         if identity_threshold is not None:
-            self._identity_threshold = _check_range(identity_threshold, "identity_threshold", 0, 1)
+            self._identity_threshold = _check_range[float](identity_threshold, "identity_threshold", 0, 1)
 
     def __repr__(self):
         cdef str ty    = type(self).__name__
