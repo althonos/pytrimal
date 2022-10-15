@@ -1059,7 +1059,7 @@ cdef class TrimmedAlignment(Alignment):
 
         Returns:
             `~pytrimal.Alignment`: The untrimmed alignment that produced
-                this trimmed alignment.
+            this trimmed alignment.
 
         """
         assert self._ali is not NULL
@@ -1080,7 +1080,7 @@ cdef class TrimmedAlignment(Alignment):
 
         Returns:
             `~pytrimal.TrimmedAlignment`: The alignment where only terminal
-                residues have been trimmed.
+            residues have been trimmed.
 
         """
         assert self._ali is not NULL

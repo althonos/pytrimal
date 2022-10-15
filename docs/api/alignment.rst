@@ -20,7 +20,7 @@ Trimmed Alignment
 
 .. autoclass:: pytrimal.TrimmedAlignment(Alignment)
    :special-members: __init__
-   :members: names, sequences
+   :members:
 
 
 Attributes
