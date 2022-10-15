@@ -12,9 +12,18 @@
 namespace simd {
 
 template <class T, class Vector> T *aligned_array(size_t n) {
-  const size_t mask = Vector::SIZE - 1;
-  const size_t size = (n * sizeof(T) + mask) & (~mask);
-  return static_cast<T *>(aligned_alloc(Vector::SIZE, size));
+  T* ptr = nullptr;
+  if (Vector::SIZE > 1) {
+    const size_t mask = Vector::SIZE - 1;
+    const size_t size = (n * sizeof(T) + mask) & (~mask);
+    ptr = static_cast<T *>(aligned_alloc(Vector::SIZE, size));
+  } else {
+    const size_t size = (n * sizeof(T));
+    ptr = static_cast<T *>(malloc(size));
+  }
+  if (ptr == nullptr)
+    throw std::bad_alloc();
+  return ptr;
 }
 
 template <class Vector>
