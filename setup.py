@@ -344,7 +344,6 @@ class build_ext(_build_ext):
                         ),
                     )
                 ext.extra_objects.extend(objects)
-                ext.extra_link_args.extend(self._simd_flags[simd])
 
     def build_extension(self, ext):
         # show the compiler being used
