@@ -49,6 +49,21 @@ Steps to install on ArchLinux depend on your `AUR helper <https://wiki.archlinux
     $ aura -A python-pytrimal
 
 
+Piwheels
+^^^^^^^^
+
+PytrimAl works on Raspberry Pi platforms (with NEON vectorization enabled!), and 
+pre-built wheels are made available for `armv7l` platforms. Run the following 
+command to install them instead of compiling from source:
+
+.. code:: console
+
+   $ pip3 install pytrimal --extra-index-url https://www.piwheels.org/simple
+
+Check the `piwheels documentation <https://www.piwheels.org/faq.html>`_ for 
+more information.
+
+
 GitHub + ``pip``
 ^^^^^^^^^^^^^^^^
 
