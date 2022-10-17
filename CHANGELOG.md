@@ -6,7 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.5.4...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.5.5...HEAD
+
+
+## [v0.5.5] - 2022-10-17
+[v0.5.5]: https://github.com/althonos/pytrimal/compare/v0.5.4...v0.5.5
+
+### Fixed
+- `calculateSpuriousVector` method of SIMD implementations not being declared `override`.
+### Changed
+- Replaced `aligned_alloc` with `posix_memalign` for compatibility with MacOS.
 
 
 ## [v0.5.4] - 2022-10-15
