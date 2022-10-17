@@ -23,7 +23,7 @@ class AVXCleaner : public Cleaner {
 public:
   AVXCleaner(Alignment *parent) : Cleaner(parent) {}
   void calculateSeqIdentity() override;
-  bool calculateSpuriousVector(float overlap, float *spuriousVector);
+  bool calculateSpuriousVector(float overlap, float *spuriousVector) override;
 };
 
 #endif
