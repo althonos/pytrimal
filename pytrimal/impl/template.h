@@ -16,7 +16,9 @@ template <class T, class Vector> T *aligned_array(size_t n) {
   if (Vector::SIZE > 1) {
     const size_t mask = Vector::SIZE - 1;
     const size_t size = (n * sizeof(T) + mask) & (~mask);
-    ptr = static_cast<T *>(aligned_alloc(Vector::SIZE, size));
+    void* memptr = nullptr;
+    if (posix_memalign(&memptr, Vector::SIZE, size) == 0)
+      ptr = static_cast<T *>(memptr);
   } else {
     const size_t size = (n * sizeof(T));
     ptr = static_cast<T *>(malloc(size));
