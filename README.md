@@ -2,7 +2,7 @@
 
 *[Cython](https://cython.org/) bindings and Python interface to [trimAl](http://trimal.cgenomics.org/), a tool for automated alignment trimming. **Now with SIMD!***
 
-[![Actions](https://img.shields.io/github/workflow/status/althonos/pytrimal/Test/main?logo=github&style=flat-square&maxAge=300)](https://github.com/althonos/pytrimal/actions)
+[![Actions](https://img.shields.io/github/actions/workflow/status/althonos/pytrimal/test.yml?branch=main&logo=github&style=flat-square&maxAge=300)](https://github.com/althonos/pytrimal/actions)
 [![Coverage](https://img.shields.io/codecov/c/gh/althonos/pytrimal?style=flat-square&maxAge=3600&logo=codecov)](https://codecov.io/gh/althonos/pytrimal/)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg?style=flat-square&maxAge=2678400)](https://choosealicense.com/licenses/gpl-3.0/)
 [![PyPI](https://img.shields.io/pypi/v/pytrimal.svg?style=flat-square&maxAge=3600&logo=PyPI)](https://pypi.org/project/pytrimal)
