@@ -792,14 +792,12 @@ CPU_FEATURES = Library(
             "filesystem.c",
             "stack_line_reader.c",
             "string_view.c",
-            "copy.inl",
-            "define_introspection.inl",
-            "define_introspection_and_hwcaps.inl",
-            "equals.inl",
-            "impl_x86__base_implementation.inl",
         ]
     ],
-    include_dirs=[os.path.join("vendor", "cpu_features", "include")],
+    include_dirs=[
+        os.path.join("vendor", "cpu_features", "src"),
+        os.path.join("vendor", "cpu_features", "include")
+    ],
     define_macros=[("STACK_LINE_READER_BUFFER_SIZE", 1024)],
 )
 
