@@ -6,7 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.5.5...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.6.0...HEAD
+
+
+## [v0.6.0] - 2022-10-17
+[v0.6.0]: https://github.com/althonos/pytrimal/compare/v0.5.5...v0.6.0
+
+### Fixed
+- Overflow in `calculateSpuriousVector` for certain sequence block sizes.
+- MMX backend never being used unless explicitly required even when being the best supported backend.
+### Changed
+- Use `archspec` Python package instead of `cpu-features` library for CPU feature detection at runtime.
+- Use `importlib.resources.files` to load package data in `pytrimal.tests`.
 
 
 ## [v0.5.5] - 2022-10-17
