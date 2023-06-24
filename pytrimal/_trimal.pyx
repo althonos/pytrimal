@@ -92,6 +92,8 @@ if _AVX2_RUNTIME_SUPPORT:
     _BEST_BACKEND = simd_backend.AVX2
 elif _SSE2_RUNTIME_SUPPORT:
     _BEST_BACKEND = simd_backend.SSE2
+elif _MMX_RUNTIME_SUPPORT:
+    _BEST_BACKEND = simd_backend.MMX
 elif _NEON_RUNTIME_SUPPORT:
     _BEST_BACKEND = simd_backend.NEON
 else:
