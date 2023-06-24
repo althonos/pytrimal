@@ -4,31 +4,11 @@ import json
 import pickle
 import unittest
 
-try:
-    try:
-        import importlib.resources as importlib_resources
-    except ImportError:
-        import importlib_resources
-except ImportError:
-    importlib_resources = None
-
 from .. import _trimal, Alignment, OverlapTrimmer
+from ._base import TrimmerTestCase, files
 
 
-class TestOverlapTrimmer(unittest.TestCase):
-    backend = None
-
-    def assertTrimmedAlignmentEqual(self, trimmed, expected):
-        self.assertEqual(len(trimmed.names), len(expected.names))
-        self.assertEqual(len(trimmed.sequences), len(expected.sequences))
-        self.assertEqual(trimmed.names, expected.names)
-        for seq1, seq2 in zip(trimmed.sequences, expected.sequences):
-            self.assertEqual(seq1, seq2)
-
-    @staticmethod
-    def _load_alignment(name):
-        with importlib_resources.path("pytrimal.tests.data", name) as path:
-            return Alignment.load(path)
+class TestOverlapTrimmer(TrimmerTestCase, unittest.TestCase):
 
     def _test_overlap(self, seq, res):
         ali = self._load_alignment("ENOG411BWBU.fasta")
@@ -40,12 +20,12 @@ class TestOverlapTrimmer(unittest.TestCase):
         self.assertTrimmedAlignmentEqual(trimmed, expected)
 
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
-    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
+    @unittest.skipUnless(files, "importlib.resources.files not available")
     def test_seqoverlap80_resoverlap80(self):
         self._test_overlap(80, 80)
 
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
-    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
+    @unittest.skipUnless(files, "importlib.resources.files not available")
     def test_seqoverlap40_resoverlap60(self):
         self._test_overlap(40, 60)
 
