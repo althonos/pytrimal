@@ -54,12 +54,27 @@ IF NEON_BUILD_SUPPORT:
 IF AVX2_BUILD_SUPPORT:
     from pytrimal.impl.avx cimport AVXSimilarity, AVXGaps, AVXCleaner
 
+
 # --- Python imports ---------------------------------------------------------
 
 import os
 import threading
 
 import archspec.cpu
+
+include "_version.py"
+
+
+# --- Patch for PyPy 3.9 -----------------------------------------------------
+
+IF not HAS_PYINTERPRETERSTATE_GETID:
+    cdef extern from *:
+        """
+        int64_t PyInterpreterState_GetID(PyInterpreterState *interp) {
+            return 0;
+        }
+        """
+
 
 # --- Constants --------------------------------------------------------------
 
@@ -106,6 +121,7 @@ cdef enum simd_backend:
     NEON = 3
     AVX2 = 4
     MMX = 5
+
 
 # --- Utilities --------------------------------------------------------------
 
@@ -1840,7 +1856,6 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
 
 
 # -- Misc classes ------------------------------------------------------------
-
 
 cdef class SimilarityMatrix:
     """A similarity matrix for biological sequence characters.
