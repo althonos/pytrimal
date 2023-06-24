@@ -165,6 +165,7 @@ inline bool calculateSpuriousVector(Cleaner &c, const float overlap,
         reinterpret_cast<const uint8_t *>(c.alig->sequences[i].data());
 
     // compare sequence to other sequences for every position
+    unsigned int processedSequences = 0;
     for (int j = 0; j < c.alig->originalNumberOfSequences; j++) {
 
       // don't compare sequence to itself
@@ -208,7 +209,8 @@ inline bool calculateSpuriousVector(Cleaner &c, const float overlap,
       // we can process up to UCHAR_MAX sequences, otherwise hits_u8[k]
       // may overflow, so every UCHAR_MAX iterations we transfer the
       // partial hit counts from `hits_u8` to `hits`
-      if ((j % UCHAR_MAX) == 0) {
+      processedSequences++;
+      if ((processedSequences % UCHAR_MAX) == 0) {
         for (k = 0; k < c.alig->originalNumberOfResidues; k++)
           hits[k] += hits_u8[k];
         memset(hits_u8, 0, c.alig->originalNumberOfResidues * sizeof(uint8_t));
