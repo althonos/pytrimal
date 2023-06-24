@@ -576,14 +576,6 @@ class build_clib(_build_clib):
     # --- Build code ---
 
     def build_libraries(self, libraries):
-        # check for functions required for libcpu_features on OSX
-        if SYSTEM == "Darwin":
-            _patch_osx_compiler(self.compiler)
-            if self._check_function(
-                "sysctlbyname", "sys/sysctl.h", args="(NULL, NULL, 0, NULL, 0)"
-            ):
-                self.compiler.define_macro("HAVE_SYSCTLBYNAME", 1)
-
         # build each library only if the sources are outdated
         self.mkpath(self.build_clib)
         for library in libraries:
@@ -597,17 +589,6 @@ class build_clib(_build_clib):
         _eprint(
             "building", library.name, "with", self.compiler.compiler_type, "compiler"
         )
-
-        # detect hardware detection capabilities of CPU features
-        hwcaps = False
-        if self._check_function("getauxval", "sys/auxv.h", "(0)"):
-            library.define_macros.append(("HAVE_STRONG_GETAUXVAL", 1))
-            hwcaps = True
-        if self._check_function("dlclose", "dlfcn.h", "(0)"):
-            library.define_macros.append(("HAVE_DLFCN_H", 1))
-            hwcaps = True
-        if library.name == "cpu_features" and hwcaps and TARGET_SYSTEM in ("linux_or_android", "freebsd", "macos"):
-            library.sources.append(os.path.join("vendor", "cpu_features", "src", "hwcaps.c"))
 
         # add debug flags if we are building in debug mode
         if self.debug:
@@ -690,7 +671,7 @@ class clean(_clean):
 
     def run(self):
 
-        source_dir = os.path.join(os.path.dirname(__file__), "pymuscle5")
+        source_dir = os.path.join(os.path.dirname(__file__), "pytrimal")
 
         patterns = ["*.html"]
         if self.all:
@@ -782,27 +763,8 @@ TRIMAL = Library(
     ],
 )
 
-CPU_FEATURES = Library(
-    "cpu_features",
-    language="c",
-    sources=[
-        os.path.join("vendor", "cpu_features", "src", base)
-        for base in [
-            "impl_{}_{}.c".format(TARGET_CPU, TARGET_SYSTEM),
-            "filesystem.c",
-            "stack_line_reader.c",
-            "string_view.c",
-        ]
-    ],
-    include_dirs=[
-        os.path.join("vendor", "cpu_features", "src"),
-        os.path.join("vendor", "cpu_features", "include")
-    ],
-    define_macros=[("STACK_LINE_READER_BUFFER_SIZE", 1024)],
-)
-
 setuptools.setup(
-    libraries=[CPU_FEATURES, TRIMAL],
+    libraries=[TRIMAL],
     ext_modules=[
         Extension(
             "pytrimal._trimal",
@@ -825,12 +787,10 @@ setuptools.setup(
                 os.path.join("pytrimal", "patch"),
                 os.path.join("pytrimal", "fileobj"),
                 os.path.join("pytrimal", "impl"),
-                os.path.join("vendor", "cpu_features", "include"),
                 "pytrimal",
                 "include",
             ],
             libraries=[
-                "cpu_features",
                 "trimal",
             ],
             depends=[
