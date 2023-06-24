@@ -59,9 +59,12 @@ IF AVX2_BUILD_SUPPORT:
 import os
 import threading
 
+import archspec.cpu
+
 # --- Constants --------------------------------------------------------------
 
 _TARGET_CPU           = TARGET_CPU
+_HOST_CPU             = archspec.cpu.host()
 _SSE2_BUILD_SUPPORT   = False
 _SSE2_RUNTIME_SUPPORT = False
 _MMX_BUILD_SUPPORT    = False
@@ -72,23 +75,18 @@ _NEON_BUILD_SUPPORT   = False
 _NEON_RUNTIME_SUPPORT = False
 
 IF TARGET_CPU == "x86" and TARGET_SYSTEM in ("freebsd", "linux_or_android", "macos", "windows"):
-    from cpu_features.x86 cimport GetX86Info, X86Info
-    cdef X86Info cpu_info = GetX86Info()
     _MMX_BUILD_SUPPORT    = MMX_BUILD_SUPPORT
-    _MMX_RUNTIME_SUPPORT  = MMX_BUILD_SUPPORT  and cpu_info.features.mmx != 0
     _SSE2_BUILD_SUPPORT   = SSE2_BUILD_SUPPORT
-    _SSE2_RUNTIME_SUPPORT = SSE2_BUILD_SUPPORT and cpu_info.features.sse2 != 0
     _AVX2_BUILD_SUPPORT   = AVX2_BUILD_SUPPORT
-    _AVX2_RUNTIME_SUPPORT = AVX2_BUILD_SUPPORT and cpu_info.features.avx2 != 0
-ELIF TARGET_CPU == "arm":
-    from cpu_features.arm cimport GetArmInfo, ArmInfo
-    cdef ArmInfo arm_info = GetArmInfo()
+    _MMX_RUNTIME_SUPPORT  = "mmx" in _HOST_CPU.features
+    _SSE2_RUNTIME_SUPPORT = "sse2" in _HOST_CPU.features
+    _AVX2_RUNTIME_SUPPORT = "avx2" in _HOST_CPU.features
+ELIF TARGET_CPU == "arm" and TARGET_SYSTEM == "linux_or_android":
     _NEON_BUILD_SUPPORT   = NEON_BUILD_SUPPORT
-    _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT and arm_info.features.neon != 0
+    _NEON_RUNTIME_SUPPORT = "neon" in _HOST_CPU.features
 ELIF TARGET_CPU == "aarch64":
     _NEON_BUILD_SUPPORT   = NEON_BUILD_SUPPORT
-    _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT # always runtime support on Aarch64
-
+    _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT  # always runtime support on Aarch64
 
 if _AVX2_RUNTIME_SUPPORT:
     _BEST_BACKEND = simd_backend.AVX2
