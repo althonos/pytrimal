@@ -619,6 +619,10 @@ class build_clib(_build_clib):
     # --- Build code ---
 
     def build_libraries(self, libraries):
+        # remove universal compilation flags for OSX
+        if platform.system() == "Darwin":
+            _patch_osx_compiler(self.compiler)
+
         # build each library only if the sources are outdated
         self.mkpath(self.build_clib)
         for library in libraries:

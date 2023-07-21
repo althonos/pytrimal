@@ -50,18 +50,6 @@ jobs:
       uses: actions/checkout@v2
       with:
         submodules: true
-    - name: Cache Python requirements
-      uses: actions/cache@v2
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ matrix.python-version }}
-        restore-keys: ${{ runner.os }}-pip-${{ matrix.python-version }}
-    - name: Cache built C files
-      uses: actions/cache@v2
-      with:
-        path: build
-        key: ${{ runner.os }}-build-${{ matrix.python-version }}-${{ secrets.CACHE_VERSION }}
-        restore-keys: ${{ runner.os }}-build-${{ matrix.python-version }}-${{ secrets.CACHE_VERSION }}
     - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -69,7 +57,7 @@ jobs:
     - name: Update pip
       run: python -m pip install -U pip wheel setuptools
     - name: Install Python requirements
-      run: python -m pip install -r .github/workflows/requirements.txt
+      run: python -m pip install -r .github/workflows/requirements.txt --prefer-binary
     - name: Build C extension in debug mode
       run: python setup.py build_ext --inplace --debug
     - name: Test with coverage
@@ -88,7 +76,6 @@ jobs:
     runs-on: macos-latest
     env:
       OS: OSX
-      _PYTHON_HOST_PLATFORM: macosx-10.9-x86_64
     strategy:
       fail-fast: false
       matrix:
@@ -125,26 +112,18 @@ jobs:
       uses: actions/checkout@v2
       with:
         submodules: true
-    - name: Cache Python requirements
-      uses: actions/cache@v2
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ matrix.python-version }}
-        restore-keys: ${{ runner.os }}-pip-${{ matrix.python-version }}
-    - name: Cache built C files
-      uses: actions/cache@v2
-      with:
-        path: build
-        key: ${{ runner.os }}-build-${{ matrix.python-version }}-${{ secrets.CACHE_VERSION }}
-        restore-keys: ${{ runner.os }}-build-${{ matrix.python-version }}-${{ secrets.CACHE_VERSION }}
     - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Setup deployment target
+      shell: bash
+      if: ${{ startsWith(matrix.python-version, 'pypy') || matrix.python-version == '3.11' }}
+      run: echo "MACOSX_DEPLOYMENT_TARGET=10.12" >> $GITHUB_ENV
     - name: Update pip
       run: python -m pip install -U pip wheel setuptools
     - name: Install Python requirements
-      run: python -m pip install -r .github/workflows/requirements.txt
+      run: python -m pip install -r .github/workflows/requirements.txt --prefer-binary
     - name: Build C extension in debug mode
       run: python setup.py build_ext --inplace --debug
     - name: Test with coverage
