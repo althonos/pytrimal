@@ -28,7 +28,7 @@ Example:
     The trimmed alignment supports the same methods as the original
     alignment object:
 
-        >>> for sequence in zip(trimmed.sequences):
+        >>> for sequence in trimmed.sequences:
         ...     print(sequence)
         VWLFPWNGLQIHMMGII
         EWFFAWLGLEINMMVII
@@ -48,13 +48,6 @@ References:
 # --- C imports --------------------------------------------------------------
 
 cimport cython
-from _unicode cimport (
-    PyUnicode_New,
-    PyUnicode_READY,
-    PyUnicode_KIND,
-    PyUnicode_DATA,
-    PyUnicode_WRITE,
-)
 from cpython cimport Py_buffer
 from cpython.buffer cimport PyBUF_FORMAT, PyBUF_READ, PyBuffer_FillInfo
 from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
@@ -62,6 +55,12 @@ from cpython.list cimport PyList_New, PyList_SET_ITEM
 from cpython.mem cimport PyMem_Free, PyMem_Malloc
 from cpython.memoryview cimport PyMemoryView_FromMemory, PyMemoryView_GET_BUFFER
 from cpython.ref cimport Py_INCREF
+from cpython.unicode cimport (
+    PyUnicode_New,
+    PyUnicode_KIND,
+    PyUnicode_DATA,
+    PyUnicode_WRITE,
+)
 
 from libc.errno cimport errno
 from libc.math cimport NAN, isnan, sqrt
