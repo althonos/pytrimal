@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased]: https://github.com/althonos/pytrimal/compare/v0.6.0...HEAD
 
 
+## [v0.7.0] - 2023-07-21
+[v0.7.0]: https://github.com/althonos/pytrimal/compare/v0.6.0...v0.7.0
+
+### Changed
+- Bumped Cython dependency to `v3.0`.
+
+
 ## [v0.6.0] - 2022-10-17
 [v0.6.0]: https://github.com/althonos/pytrimal/compare/v0.5.5...v0.6.0
 
