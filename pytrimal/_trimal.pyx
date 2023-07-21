@@ -2,6 +2,41 @@
 # cython: language_level=3, linetrace=True, embedsignature=False, binding=False
 """Bindings to trimAl, a tool for automated alignment trimming.
 
+Example:
+    Create a multiple sequence alignment using the `~pytrimal.Alignment`
+    class constructor::
+
+        >>> import pytrimal
+        >>> msa = pytrimal.Alignment(
+        ...     names=[b"Sp8", b"Sp10", b"Sp26", b"Sp6", b"Sp17", b"Sp33"],
+        ...     sequences=[
+        ...         "-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII",
+        ...         "-------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII",
+        ...         "AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI",
+        ...         "-----ASGAILT-LGIYLFTLCAVIS--VSWYLAWLGLEINMMAII",
+        ...         "--FAYTAPDLL-LIGFLLKTVA-TFG--DTWFQLWQGLDLNKMPVF",
+        ...         "-------PTILNIAGLHMETDI-NFS--LAWFQAWGGLEINKQAIL",
+        ...     ],
+        ... )
+
+    Then use a trimmer to trim the alignment, for instance with the
+    *automated1* algorithm:
+
+        >>> trimmer = AutomaticTrimmer("automated1")
+        >>> trimmed = trimmer.trim(msa)
+
+    The trimmed alignment supports the same methods as the original
+    alignment object:
+
+        >>> for sequence in zip(trimmed.sequences):
+        ...     print(sequence)
+        VWLFPWNGLQIHMMGII
+        EWFFAWLGLEINMMVII
+        AAANAWLGLEINMMAQI
+        SWYLAWLGLEINMMAII
+        TWFQLWQGLDLNKMPVF
+        AWFQAWGGLEINKQAIL
+
 References:
     - Capella-Gutiérrez, Salvador, José M. Silla-Martínez, and Toni Gabaldón.
       *TrimAl: A Tool for Automated Alignment Trimming in Large-Scale
@@ -272,7 +307,7 @@ cdef class AlignmentSequences:
         cdef char*  data
         cdef size_t x      = 0
         cdef int    index_ = index
-        
+
         if index_ < 0:
             index_ += self._length
         if index_ < 0 or index_ >= self._length:
