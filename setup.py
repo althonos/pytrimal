@@ -411,6 +411,10 @@ class build_ext(_build_ext):
         if self.compiler.compiler_type == "msvc":
             ext.define_macros.append(("WIN32", 1))
 
+        # check `PyInterpreterState_GetID` is present
+        if self._check_getid():
+            ext.define_macros.append(("HAS_PYINTERPRETERSTATE_GETID", 1))
+
         # update link and include directories
         for name in ext.libraries:
             lib = self._clib_cmd.get_library(name)
@@ -446,7 +450,6 @@ class build_ext(_build_ext):
                 "nonecheck": False,
             },
             "compile_time_env": {
-                "HAS_PYINTERPRETERSTATE_GETID": self._check_getid(),
                 "SYS_IMPLEMENTATION_NAME": sys.implementation.name,
                 "SYS_VERSION_INFO_MAJOR": sys.version_info.major,
                 "SYS_VERSION_INFO_MINOR": sys.version_info.minor,

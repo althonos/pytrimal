@@ -45,13 +45,13 @@ cimport trimal.similarity_matrix
 
 from pytrimal.fileobj cimport pyreadbuf, pyreadintobuf, pywritebuf
 from pytrimal.impl.generic cimport GenericSimilarity, GenericGaps, GenericCleaner
-IF SSE2_BUILD_SUPPORT:
+if SSE2_BUILD_SUPPORT:
     from pytrimal.impl.sse cimport SSESimilarity, SSEGaps, SSECleaner
-IF MMX_BUILD_SUPPORT:
+if MMX_BUILD_SUPPORT:
     from pytrimal.impl.mmx cimport MMXSimilarity, MMXGaps, MMXCleaner
-IF NEON_BUILD_SUPPORT:
+if NEON_BUILD_SUPPORT:
     from pytrimal.impl.neon cimport NEONSimilarity, NEONGaps, NEONCleaner
-IF AVX2_BUILD_SUPPORT:
+if AVX2_BUILD_SUPPORT:
     from pytrimal.impl.avx cimport AVXSimilarity, AVXGaps, AVXCleaner
 
 
@@ -67,13 +67,14 @@ include "_version.py"
 
 # --- Patch for PyPy 3.9 -----------------------------------------------------
 
-IF not HAS_PYINTERPRETERSTATE_GETID:
-    cdef extern from *:
-        """
-        int64_t PyInterpreterState_GetID(PyInterpreterState *interp) {
-            return 0;
-        }
-        """
+cdef extern from *:
+    """
+    #ifndef HAS_PYINTERPRETERSTATE_GETID
+    int64_t PyInterpreterState_GetID(PyInterpreterState *interp) {
+        return 0;
+    }
+    #endif
+    """
 
 
 # --- Constants --------------------------------------------------------------
@@ -89,17 +90,17 @@ _AVX2_RUNTIME_SUPPORT = False
 _NEON_BUILD_SUPPORT   = False
 _NEON_RUNTIME_SUPPORT = False
 
-IF TARGET_CPU == "x86" and TARGET_SYSTEM in ("freebsd", "linux_or_android", "macos", "windows"):
+if TARGET_CPU == "x86" and TARGET_SYSTEM in ("freebsd", "linux_or_android", "macos", "windows"):
     _MMX_BUILD_SUPPORT    = MMX_BUILD_SUPPORT
     _SSE2_BUILD_SUPPORT   = SSE2_BUILD_SUPPORT
     _AVX2_BUILD_SUPPORT   = AVX2_BUILD_SUPPORT
     _MMX_RUNTIME_SUPPORT  = "mmx" in _HOST_CPU.features
     _SSE2_RUNTIME_SUPPORT = "sse2" in _HOST_CPU.features
     _AVX2_RUNTIME_SUPPORT = "avx2" in _HOST_CPU.features
-ELIF TARGET_CPU == "arm" and TARGET_SYSTEM == "linux_or_android":
+elif TARGET_CPU == "arm" and TARGET_SYSTEM == "linux_or_android":
     _NEON_BUILD_SUPPORT   = NEON_BUILD_SUPPORT
     _NEON_RUNTIME_SUPPORT = "neon" in _HOST_CPU.features
-ELIF TARGET_CPU == "aarch64":
+elif TARGET_CPU == "aarch64":
     _NEON_BUILD_SUPPORT   = NEON_BUILD_SUPPORT
     _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT  # always runtime support on Aarch64
 
@@ -266,7 +267,12 @@ cdef class AlignmentSequences:
         Return a single sequence in the alignment, creating a new string.
 
         """
-        cdef int index_ = index
+        cdef int    kind
+        cdef object seq
+        cdef char*  data
+        cdef size_t x      = 0
+        cdef int    index_ = index
+        
         if index_ < 0:
             index_ += self._length
         if index_ < 0 or index_ >= self._length:
@@ -275,22 +281,18 @@ cdef class AlignmentSequences:
             index_ = self._index_mapping[index_]
 
         assert index_ < self._ali.originalNumberOfSequences
-        IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MAJOR <= 7 and SYS_IMPLEMENTATION_NAME == "pypy":
-            cdef bytes    seq  = PyBytes_FromStringAndSize(NULL, self._ali.numberOfResidues)
-            cdef char*    data = PyBytes_AsString(seq)
-            cdef size_t   x    = 0
+        if SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MAJOR <= 7 and SYS_IMPLEMENTATION_NAME == "pypy":
+            seq  = PyBytes_FromStringAndSize(NULL, self._ali.numberOfResidues)
+            data = PyBytes_AsString(seq)
             for i in range(self._ali.originalNumberOfResidues):
                 if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
                     data[x] = self._ali.sequences[index_][i]
                     x += 1
             return seq.decode('ascii')
-        ELSE:
-            cdef str      seq  = PyUnicode_New(self._ali.numberOfResidues, 0x7f)
-            IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MINOR < 12:
-                PyUnicode_READY(seq)
-            cdef void*    data = PyUnicode_DATA(seq)
-            cdef int      kind = PyUnicode_KIND(seq)
-            cdef size_t   x    = 0
+        else:
+            seq  = PyUnicode_New(self._ali.numberOfResidues, 0x7f)
+            data = <char*> PyUnicode_DATA(seq)
+            kind = PyUnicode_KIND(seq)
             for i in range(self._ali.originalNumberOfResidues):
                 if self._ali.saveResidues is NULL or self._ali.saveResidues[i] != -1:
                     PyUnicode_WRITE(kind, data, x, self._ali.sequences[index_][i])
@@ -376,8 +378,12 @@ cdef class AlignmentResidues:
         Return a single residue column in the alignment, creating a new string.
 
         """
-        cdef int index_ = index
-        cdef int length = self._ali.numberOfResidues
+        cdef object col
+        cdef int    kind
+        cdef char*  data
+        cdef size_t x      = 0
+        cdef int    index_ = index
+        cdef int    length = self._ali.numberOfResidues
 
         if index_ < 0:
             index_ += length
@@ -387,22 +393,18 @@ cdef class AlignmentResidues:
             index_ = self._index_mapping[index_]
 
         assert index_ < self._ali.originalNumberOfResidues
-        IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MAJOR <= 7 and SYS_IMPLEMENTATION_NAME == "pypy":
-            cdef bytes    col  = PyBytes_FromStringAndSize(NULL, self._ali.numberOfSequences)
-            cdef char*    data = PyBytes_AsString(col)
-            cdef size_t   x    = 0
+        if SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MAJOR <= 7 and SYS_IMPLEMENTATION_NAME == "pypy":
+            col  = PyBytes_FromStringAndSize(NULL, self._ali.numberOfSequences)
+            data = PyBytes_AsString(col)
             for i in range(self._ali.originalNumberOfSequences):
                 if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
                     data[x] = self._ali.sequences[i][index_]
                     x += 1
             return col.decode('ascii')
-        ELSE:
-            cdef str      col = PyUnicode_New(self._ali.numberOfSequences, 0x7f)
-            IF SYS_VERSION_INFO_MAJOR <= 3 and SYS_VERSION_INFO_MINOR < 12:
-                PyUnicode_READY(col)
-            cdef void*    data = PyUnicode_DATA(col)
-            cdef int      kind = PyUnicode_KIND(col)
-            cdef size_t   x    = 0
+        else:
+            col = PyUnicode_New(self._ali.numberOfSequences, 0x7f)
+            data = <char*> PyUnicode_DATA(col)
+            kind = PyUnicode_KIND(col)
             for i in range(self._ali.originalNumberOfSequences):
                 if self._ali.saveSequences is NULL or self._ali.saveSequences[i] != -1:
                     PyUnicode_WRITE(kind, data, x, self._ali.sequences[i][index_])
@@ -554,9 +556,9 @@ cdef class Alignment:
         cdef istream*       stream    = NULL
         cdef Alignment      alignment = Alignment.__new__(Alignment)
 
-        IF SYS_VERSION_INFO_MAJOR == 3 and SYS_VERSION_INFO_MINOR < 6:
+        if SYS_VERSION_INFO_MAJOR == 3 and SYS_VERSION_INFO_MINOR < 6:
             TYPES = (str, bytes)
-        ELSE:
+        else:
             TYPES = (str, bytes, os.PathLike)
         if isinstance(file, TYPES):
             # check that file exists and is not a directory
@@ -681,9 +683,9 @@ cdef class Alignment:
         if handler is NULL:
             raise ValueError(f"Could not recognize alignment format: {format!r}")
 
-        IF SYS_VERSION_INFO_MAJOR == 3 and SYS_VERSION_INFO_MINOR < 6:
+        if SYS_VERSION_INFO_MAJOR == 3 and SYS_VERSION_INFO_MINOR < 6:
             TYPES = (str, bytes)
-        ELSE:
+        else:
             TYPES = (str, bytes, os.PathLike)
         if isinstance(file, TYPES):
             path_ = os.fsencode(file)
@@ -1149,61 +1151,61 @@ cdef class BaseTrimmer:
            The ``backend`` keyword argument.
 
         """
-        IF TARGET_CPU == "x86":
+        if TARGET_CPU == "x86":
             if backend =="detect":
                 self._backend = simd_backend.GENERIC
-                IF MMX_BUILD_SUPPORT:
-                    if _MMX_RUNTIME_SUPPORT:
-                        self._backend = simd_backend.MMX
-                IF SSE2_BUILD_SUPPORT:
-                    if _SSE2_RUNTIME_SUPPORT:
-                        self._backend = simd_backend.SSE2
-                IF AVX2_BUILD_SUPPORT:
-                    if _AVX2_RUNTIME_SUPPORT:
-                        self._backend = simd_backend.AVX2
+                if MMX_BUILD_SUPPORT and _MMX_RUNTIME_SUPPORT:
+                    self._backend = simd_backend.MMX
+                if SSE2_BUILD_SUPPORT and _SSE2_RUNTIME_SUPPORT:
+                    self._backend = simd_backend.SSE2
+                if AVX2_BUILD_SUPPORT and _AVX2_RUNTIME_SUPPORT:
+                    self._backend = simd_backend.AVX2
             elif backend == "mmx":
-                IF not MMX_BUILD_SUPPORT:
+                if not MMX_BUILD_SUPPORT:
                     raise RuntimeError("Extension was compiled without MMX support")
-                if not _MMX_RUNTIME_SUPPORT:
+                elif not _MMX_RUNTIME_SUPPORT:
                     raise RuntimeError("Cannot run MMX instructions on this machine")
-                self._backend = simd_backend.MMX
+                else:
+                    self._backend = simd_backend.MMX
             elif backend == "avx":
-                IF not AVX2_BUILD_SUPPORT:
+                if not AVX2_BUILD_SUPPORT:
                     raise RuntimeError("Extension was compiled without AVX2 support")
-                if not _AVX2_RUNTIME_SUPPORT:
+                elif not _AVX2_RUNTIME_SUPPORT:
                     raise RuntimeError("Cannot run AVX2 instructions on this machine")
-                self._backend = simd_backend.AVX2
+                else:
+                    self._backend = simd_backend.AVX2
             elif backend == "sse":
-                IF not SSE2_BUILD_SUPPORT:
+                if not SSE2_BUILD_SUPPORT:
                     raise RuntimeError("Extension was compiled without SSE2 support")
-                if not _SSE2_RUNTIME_SUPPORT:
+                elif not _SSE2_RUNTIME_SUPPORT:
                     raise RuntimeError("Cannot run SSE2 instructions on this machine")
-                self._backend = simd_backend.SSE2
+                else:
+                    self._backend = simd_backend.SSE2
             elif backend == "generic":
                 self._backend = simd_backend.GENERIC
             elif backend is None:
                 self._backend = simd_backend.NONE
             else:
                 raise ValueError(f"Unsupported backend on this architecture: {backend}")
-        ELIF TARGET_CPU == "arm" or TARGET_CPU == "aarch64":
+        elif TARGET_CPU == "arm" or TARGET_CPU == "aarch64":
             if backend == "detect":
                 self._backend = simd_backend.GENERIC
-                IF NEON_BUILD_SUPPORT:
-                    if _NEON_RUNTIME_SUPPORT:
-                        self._backend = simd_backend.NEON
+                if NEON_BUILD_SUPPORT and _NEON_RUNTIME_SUPPORT:
+                    self._backend = simd_backend.NEON
             elif backend == "neon":
-                IF not NEON_BUILD_SUPPORT:
+                if not NEON_BUILD_SUPPORT:
                     raise RuntimeError("Extension was compiled without NEON support")
-                if not _NEON_RUNTIME_SUPPORT:
+                elif not _NEON_RUNTIME_SUPPORT:
                     raise RuntimeError("Cannot run NEON instructions on this machine")
-                self._backend = simd_backend.NEON
+                else:
+                    self._backend = simd_backend.NEON
             elif backend == "generic":
                 self._backend = simd_backend.GENERIC
             elif backend is None:
                 self._backend = simd_backend.NONE
             else:
                 raise ValueError(f"Unsupported backend on this architecture: {backend}")
-        ELSE:
+        else:
             if backend == "detect" or backend == "generic":
                 self._backend = simd_backend.GENERIC
             elif backend is None:
@@ -1262,7 +1264,7 @@ cdef class BaseTrimmer:
             del manager.origAlig.Statistics.gaps
             manager.origAlig.Statistics.gaps = new GenericGaps(manager.origAlig)
             manager.origAlig.Statistics.gaps.CalculateVectors()
-        IF MMX_BUILD_SUPPORT:
+        if MMX_BUILD_SUPPORT:
             if self._backend == simd_backend.MMX:
                 del manager.origAlig.Statistics.similarity
                 manager.origAlig.Statistics.similarity = new MMXSimilarity(manager.origAlig)
@@ -1271,7 +1273,7 @@ cdef class BaseTrimmer:
                 del manager.origAlig.Statistics.gaps
                 manager.origAlig.Statistics.gaps = new MMXGaps(manager.origAlig)
                 manager.origAlig.Statistics.gaps.CalculateVectors()
-        IF AVX2_BUILD_SUPPORT:
+        if AVX2_BUILD_SUPPORT:
             if self._backend == simd_backend.AVX2:
                 del manager.origAlig.Statistics.similarity
                 manager.origAlig.Statistics.similarity = new AVXSimilarity(manager.origAlig)
@@ -1280,7 +1282,7 @@ cdef class BaseTrimmer:
                 del manager.origAlig.Statistics.gaps
                 manager.origAlig.Statistics.gaps = new AVXGaps(manager.origAlig)
                 manager.origAlig.Statistics.gaps.CalculateVectors()
-        IF SSE2_BUILD_SUPPORT:
+        if SSE2_BUILD_SUPPORT:
             if self._backend == simd_backend.SSE2:
                 del manager.origAlig.Statistics.similarity
                 manager.origAlig.Statistics.similarity = new SSESimilarity(manager.origAlig)
@@ -1289,7 +1291,7 @@ cdef class BaseTrimmer:
                 del manager.origAlig.Statistics.gaps
                 manager.origAlig.Statistics.gaps = new SSEGaps(manager.origAlig)
                 manager.origAlig.Statistics.gaps.CalculateVectors()
-        IF NEON_BUILD_SUPPORT:
+        if NEON_BUILD_SUPPORT:
             if self._backend == simd_backend.NEON:
                 del manager.origAlig.Statistics.similarity
                 manager.origAlig.Statistics.similarity = new NEONSimilarity(manager.origAlig)
@@ -1975,7 +1977,7 @@ cdef class SimilarityMatrix:
     def __len__(self):
         return self._smx.numPositions
 
-    IF SYS_IMPLEMENTATION_NAME == "cpython":
+    if SYS_IMPLEMENTATION_NAME == "cpython":
 
         def __getbuffer__(self, Py_buffer* buffer, int flags):
             # setup indexing information
