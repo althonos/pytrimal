@@ -33,6 +33,8 @@ API Reference
        pytrimal.BaseTrimmer
        pytrimal.AutomaticTrimmer
        pytrimal.ManualTrimmer
+       pytrimal.RepresentativeTrimmer
+       pytrimal.OverlapTrimmer
 
 
     SimilarityMatrix
