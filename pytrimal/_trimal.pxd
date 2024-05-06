@@ -9,7 +9,7 @@ cimport trimal
 cimport trimal.alignment
 cimport trimal.manager
 cimport trimal.similarity_matrix
-
+from scoring_matrices.lib cimport ScoringMatrix
 
 # --- Alignment classes ------------------------------------------------------
 
@@ -99,10 +99,7 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
 # -- Misc classes ------------------------------------------------------------
 
 
-cdef class SimilarityMatrix:
-    cdef Py_ssize_t                                _suboffsets[2]
-    cdef Py_ssize_t                                _shape[2]
-    cdef Py_ssize_t                                _strides[2]
+cdef class SimilarityMatrix(ScoringMatrix):
     cdef trimal.similarity_matrix.similarityMatrix _smx
 
     cpdef float similarity(self, str a, str b) except -1

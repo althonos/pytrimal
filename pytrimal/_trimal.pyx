@@ -65,7 +65,7 @@ from cpython.unicode cimport (
 from libc.errno cimport errno
 from libc.math cimport NAN, isnan, sqrt
 from libc.stdio cimport printf
-from libc.string cimport memset
+from libc.string cimport memset, memcpy
 from libcpp cimport bool
 from libcpp.string cimport string
 from iostream cimport istream, ostream, stringbuf, filebuf, ios_base
@@ -76,6 +76,7 @@ cimport trimal.format_handling
 cimport trimal.manager
 cimport trimal.report_system
 cimport trimal.similarity_matrix
+from scoring_matrices.lib cimport ScoringMatrix
 
 from pytrimal.fileobj cimport pyreadbuf, pyreadintobuf, pywritebuf
 from pytrimal.impl.generic cimport GenericSimilarity, GenericGaps, GenericCleaner
@@ -1893,7 +1894,7 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
 
 # -- Misc classes ------------------------------------------------------------
 
-cdef class SimilarityMatrix:
+cdef class SimilarityMatrix(ScoringMatrix):
     """A similarity matrix for biological sequence characters.
     """
 
@@ -1906,10 +1907,7 @@ cdef class SimilarityMatrix:
         Create a default amino-acid similarity matrix (BLOSUM62).
 
         """
-        cdef SimilarityMatrix matrix = cls.__new__(cls)
-        with nogil:
-            matrix._smx.defaultAASimMatrix()
-        return matrix
+        return cls.from_name("BLOSUM62")
 
     @classmethod
     def nt(cls, bool degenerated=False):
@@ -1922,17 +1920,31 @@ cdef class SimilarityMatrix:
                 matrix for degenerated nucleotides.
 
         """
-        cdef SimilarityMatrix matrix = cls.__new__(cls)
-        with nogil:
-            if degenerated:
-                matrix._smx.defaultNTDegeneratedSimMatrix()
-            else:
-                matrix._smx.defaultNTSimMatrix()
-        return matrix
+        cdef str                                       alphabet
+        cdef trimal.similarity_matrix.similarityMatrix sm
+
+        if degenerated:
+            alphabet = "ACGTURYKMSWBDHV"
+            sm.defaultNTDegeneratedSimMatrix()
+        else:
+            alphabet = "ACGTU"
+            sm.defaultNTSimMatrix()
+
+        matrix = [[0.0 for _ in alphabet] for _ in alphabet]
+        for i in range(len(alphabet)):
+            for j in range(len(alphabet)):
+                matrix[i][j] = sm.simMat[i][j]
+
+        return cls(matrix, alphabet=alphabet)
 
     # --- Magic methods ------------------------------------------------------
 
-    def __init__(self, str alphabet not None, object matrix not None):
+    def __init__(
+        self, 
+        object matrix not None, 
+        str alphabet not None = ScoringMatrix.DEFAULT_ALPHABET,
+        str name = None,
+    ):
         """__init__(alphabet, matrix)\n--
 
         Create a new similarity matrix from the given alphabet and data.
@@ -1947,95 +1959,60 @@ cdef class SimilarityMatrix:
             Chiaromonte, Yap and Miller (:pmid:`11928468`)::
 
                 >>> matrix = SimilarityMatrix(
-                ...     "ATCG",
                 ...     [[  91, -114,  -31, -123],
                 ...      [-114,  100, -125,  -31],
                 ...      [ -31, -125,  100, -114],
-                ...      [-123,  -31, -114,   91]]
+                ...      [-123,  -31, -114,   91]],
+                ...     alphabet="ATCG",
                 ... )
 
             Create a new similarity matrix using one of the matrices from
             the `Bio.Align.substitution_matrices` module::
 
                 >>> jones = Bio.Align.substitution_matrices.load('JONES')
-                >>> matrix = SimilarityMatrix(jones.alphabet, jones)
+                >>> matrix = SimilarityMatrix(jones, jones.alphabet)
 
         .. versionadded:: 0.1.2
 
         """
-        cdef int    i
-        cdef int    j
-        cdef int    k
-        cdef object row
-        cdef float  value
-        cdef float  sum
-        cdef str    letter
-        cdef int    length = len(matrix)
+        cdef size_t i
+        cdef size_t j
+        cdef size_t k
+        cdef float  total
 
-        if len(alphabet) != length:
-            raise ValueError("Alphabet must have the same length as matrix")
-        if not alphabet.isupper():
+        super().__init__(matrix, alphabet=alphabet, name=name)
+
+        # check alphabet constraints
+        if not self.alphabet.isupper():
             raise ValueError("Alphabet must only contain uppercase letters")
-        if not all(len(row) == length for row in matrix):
-            raise ValueError("`matrix` must be a square matrix")
-        if length > 28:
+        if len(self.alphabet) > 28:
             raise ValueError(f"Cannot use alphabet of more than 28 symbols: {alphabet!r}")
 
         # allocate memory
-        self._smx.memoryAllocation(length)
+        self._smx.memoryAllocation(self._size)
 
         # create the hashing vector with support for all ASCII codes
-        for i, letter in enumerate(alphabet):
+        for i, letter in enumerate(self.alphabet):
             j = ord(letter) - ord('A')
             if j < 0:
                 raise ValueError(f"Invalid symbol in alphabet: {letter!r}")
             self._smx.vhash[ord(letter) - ord('A')] = i
 
-        # create the similarity matrix
-        for i, row in enumerate(matrix):
-            for j, value in enumerate(row):
-                self._smx.simMat[i][j] = value
+        # copy the similarity matrix
+        for i in range(self._size):
+            memcpy(self._smx.simMat[i], self._matrix[i], sizeof(float) * self._size)
 
         # calculate Euclidean distance
         with nogil:
-            for j in range(length):
-                for i in range(j+1, length):
-                    sum = 0
-                    for k in range(length):
-                        sum += (
+            for j in range(self._size):
+                for i in range(j+1, self._size):
+                    total = 0
+                    for k in range(self._size):
+                        total += (
                             (self._smx.simMat[k][j] - self._smx.simMat[k][i])
                           * (self._smx.simMat[k][j] - self._smx.simMat[k][i])
                         )
-                    self._smx.distMat[i][j] = self._smx.distMat[j][i] = sqrt(sum)
-
-    def __len__(self):
-        return self._smx.numPositions
-
-    if SYS_IMPLEMENTATION_NAME == "cpython":
-
-        def __getbuffer__(self, Py_buffer* buffer, int flags):
-            # setup indexing information
-            self._shape[0] = self._smx.numPositions
-            self._shape[1] = self._smx.numPositions
-            self._suboffsets[0] = 0
-            self._suboffsets[1] = -1
-            self._strides[0] = sizeof(float*)
-            self._strides[1] = sizeof(float)
-            # update buffer information
-            if flags & PyBUF_FORMAT:
-                buffer.format = b"f"
-            else:
-                buffer.format = NULL
-            buffer.buf = self._smx.simMat
-            buffer.internal = NULL
-            buffer.itemsize = sizeof(float)
-            buffer.len = self._shape[0] * self._shape[1] * sizeof(float)
-            buffer.ndim = 2
-            buffer.obj = self
-            buffer.readonly = 1
-            buffer.shape = &self._shape[0]
-            buffer.suboffsets = &self._suboffsets[0]
-            buffer.strides = &self._strides[0]
+                    self._smx.distMat[i][j] = self._smx.distMat[j][i] = sqrt(total)
 
     # --- Functions ----------------------------------------------------------
 
