@@ -9,6 +9,7 @@ try:
 except ImportError:
     from typing_extensions import Literal  # type: ignore
 
+from scoring_matrices import ScoringMatrix
 from Bio.SeqRecord import SeqRecord
 from Bio.Align import MultipleSeqAlignment
 from pyhmmer.easel import TextMSA
@@ -196,12 +197,10 @@ class RepresentativeTrimmer(BaseTrimmer):
 
 # -- Misc classes ------------------------------------------------------------
 
-class SimilarityMatrix:
+class SimilarityMatrix(ScoringMatrix):
     @classmethod
     def aa(cls) -> SimilarityMatrix: ...
     @classmethod
     def nt(cls, degenerated: bool = False) -> SimilarityMatrix: ...
-    def __init__(self, alphabet: str, matrix: Sequence[Sequence[float]]) -> None: ...
-    def __len__(self) -> int: ...
     def distance(self, a: str, b: str) -> float: ...
     def similarity(self, a: str, b: str) -> float: ...

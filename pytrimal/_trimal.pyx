@@ -1896,6 +1896,10 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
 
 cdef class SimilarityMatrix(ScoringMatrix):
     """A similarity matrix for biological sequence characters.
+
+    .. versionchanged:: 0.8.0
+       Inherit from the `~scoring_matrices.ScoringMatrix` class.
+
     """
 
     # --- Class methods ------------------------------------------------------
@@ -1940,8 +1944,8 @@ cdef class SimilarityMatrix(ScoringMatrix):
     # --- Magic methods ------------------------------------------------------
 
     def __init__(
-        self, 
-        object matrix not None, 
+        self,
+        object matrix not None,
         str alphabet not None = ScoringMatrix.DEFAULT_ALPHABET,
         str name = None,
     ):
@@ -1950,9 +1954,11 @@ cdef class SimilarityMatrix(ScoringMatrix):
         Create a new similarity matrix from the given alphabet and data.
 
         Arguments:
-            alphabet (`str`): The alphabet of the similarity matrix.
             matrix (`~numpy.typing.ArrayLike`): The similarity matrix,
                 as a square matrix indexed by the alphabet characters.
+            alphabet (`str`): The alphabet used for indexing the rows
+                and columns of the similarity matrix.
+            name (`str` or `None`): The name of the scoring matrix, if any.
 
         Example:
             Create a new similarity matrix using the HOXD70 scores by
