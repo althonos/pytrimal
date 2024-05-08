@@ -29,7 +29,7 @@ __all__ = [
 ]
 
 __author__ = "Martin Larralde <martin.larralde@embl.de>"
-__license__ = "GPLv3"
+__license__ = "GPL-3.0-only"
 
 # Small addition to the docstring: we want to show a link redirecting to the
 # rendered version of the documentation, but this can only work when Python
