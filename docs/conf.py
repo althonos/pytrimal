@@ -24,6 +24,11 @@ import sys
 docssrc_dir = os.path.dirname(os.path.abspath(__file__))
 project_dir = os.path.dirname(docssrc_dir)
 
+# When building on ReadTheDocs, we can't provide a local version of the Cython
+# extensions, so we have to install the latest public version, and avoid
+# patching the PYTHONPATH with the local development folder
+if os.getenv("READTHEDOCS", "False") != "True":
+    sys.path.insert(0, project_dir)
 
 # -- Sphinx Setup ------------------------------------------------------------
 
@@ -192,6 +197,7 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "biopython": ("https://biopython.org/docs/latest/api/", None),
     "pyhmmer": ("https://pyhmmer.readthedocs.io/en/stable/", None),
+    "scoring-matrices": ("https://scoring-matrices.readthedocs.io/en/stable", None),
 }
 
 # -- Options for recommonmark extension --------------------------------------
@@ -213,9 +219,9 @@ nbsphinx_execute_arguments = [
 # -- Options for extlinks extension ------------------------------------------
 
 extlinks = {
-    "doi": ("https://doi.org/%s", "doi:"),
-    "pmid": ("https://pubmed.ncbi.nlm.nih.gov/%s", "PMID:"),
-    "pmc": ("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC%s", "PMC"),
-    "isbn": ("https://www.worldcat.org/isbn/%s", "ISBN:"),
-    "wiki": ("https://en.wikipedia.org/wiki/%s", "Wikipedia:"),
+    "doi": ("https://doi.org/%s", "doi:%s"),
+    "pmid": ("https://pubmed.ncbi.nlm.nih.gov/%s", "PMID:%s"),
+    "pmc": ("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC%s", "PMC%s"),
+    "isbn": ("https://www.worldcat.org/isbn/%s", "ISBN:%s"),
+    "wiki": ("https://en.wikipedia.org/wiki/%s", "%s"),
 }

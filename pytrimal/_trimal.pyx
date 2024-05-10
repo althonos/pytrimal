@@ -1949,7 +1949,7 @@ cdef class SimilarityMatrix(ScoringMatrix):
         str alphabet not None = ScoringMatrix.DEFAULT_ALPHABET,
         str name = None,
     ):
-        """__init__(alphabet, matrix)\n--
+        """__init__(self, matrix, alphabet=ScoringMatrix.DEFAULT_ALPHABET, name=None)\n--
 
         Create a new similarity matrix from the given alphabet and data.
 
@@ -1970,13 +1970,14 @@ cdef class SimilarityMatrix(ScoringMatrix):
                 ...      [ -31, -125,  100, -114],
                 ...      [-123,  -31, -114,   91]],
                 ...     alphabet="ATCG",
+                ...     name="HOXD70",
                 ... )
 
             Create a new similarity matrix using one of the matrices from
             the `Bio.Align.substitution_matrices` module::
 
                 >>> jones = Bio.Align.substitution_matrices.load('JONES')
-                >>> matrix = SimilarityMatrix(jones, jones.alphabet)
+                >>> matrix = SimilarityMatrix(jones, jones.alphabet, 'JONES')
 
         .. versionadded:: 0.1.2
 
