@@ -27,6 +27,18 @@ cdef extern from "Statistics/Mold.h" namespace "statistics" nogil:
         pass
 
 
+cdef extern from "Statistics/Overlap.h" namespace "statistics" nogil:
+
+    cdef cppclass Overlap:
+        pass
+
+
+cdef extern from "Statistics/Identity.h" namespace "statistics" nogil:
+
+    cdef cppclass Identity:
+        pass
+
+
 cdef extern from "Statistics/Similarity.h" namespace "statistics" nogil:
 
     cdef cppclass Similarity:
@@ -54,10 +66,19 @@ cdef extern from "Statistics/Similarity.h" namespace "statistics" nogil:
 
 cdef extern from "Statistics/Manager.h" namespace "statistics" nogil:
 
+    cdef enum ComputePlatform:
+        NONE
+        SSE2
+        AVX2
+        NEON
+
     cdef cppclass Manager:
+        ComputePlatform platform
         Gaps *gaps
         Similarity *similarity
         Consistency *consistency
+        Identity *identity
+        Overlap* overlap
         similarityMatrix* _similarityMatrix
         int ghWindow
         int shWindow

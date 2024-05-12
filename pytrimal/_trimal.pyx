@@ -76,18 +76,20 @@ cimport trimal.format_handling
 cimport trimal.manager
 cimport trimal.report_system
 cimport trimal.similarity_matrix
+cimport trimal.statistics
+from trimal.statistics cimport ComputePlatform
 from scoring_matrices.lib cimport ScoringMatrix
 
 from pytrimal.fileobj cimport pyreadbuf, pyreadintobuf, pywritebuf
-from pytrimal.impl.generic cimport GenericSimilarity, GenericGaps, GenericCleaner
-if SSE2_BUILD_SUPPORT:
-    from pytrimal.impl.sse cimport SSESimilarity, SSEGaps, SSECleaner
-if MMX_BUILD_SUPPORT:
-    from pytrimal.impl.mmx cimport MMXSimilarity, MMXGaps, MMXCleaner
-if NEON_BUILD_SUPPORT:
-    from pytrimal.impl.neon cimport NEONSimilarity, NEONGaps, NEONCleaner
-if AVX2_BUILD_SUPPORT:
-    from pytrimal.impl.avx cimport AVXSimilarity, AVXGaps, AVXCleaner
+# from pytrimal.impl.generic cimport GenericSimilarity, GenericGaps, GenericCleaner
+# if SSE2_BUILD_SUPPORT:
+#     from pytrimal.impl.sse cimport SSESimilarity, SSEGaps, SSECleaner
+# if MMX_BUILD_SUPPORT:
+#     from pytrimal.impl.mmx cimport MMXSimilarity, MMXGaps, MMXCleaner
+# if NEON_BUILD_SUPPORT:
+#     from pytrimal.impl.neon cimport NEONSimilarity, NEONGaps, NEONCleaner
+# if AVX2_BUILD_SUPPORT:
+#     from pytrimal.impl.avx cimport AVXSimilarity, AVXGaps, AVXCleaner
 
 
 # --- Python imports ---------------------------------------------------------
@@ -1275,66 +1277,79 @@ cdef class BaseTrimmer:
         .. versionadded:: 0.4.0
 
         """
-        if self._backend == simd_backend.SSE2:
+        cdef trimal.alignment.Alignment ali
+        cdef trimal.statistics.Manager* manager = new trimal.statistics.Manager(&ali)
+
+        if manager.platform == ComputePlatform.SSE2:
             return "sse"
-        elif self._backend == simd_backend.AVX2:
+        elif manager.platform == ComputePlatform.AVX2:
             return "avx"
-        elif self._backend == simd_backend.MMX:
-            return "mmx"
-        elif self._backend == simd_backend.NEON:
+        elif manager.platform == ComputePlatform.NEON:
             return "neon"
-        elif self._backend == simd_backend.GENERIC:
-            return "generic"
         else:
             return None
+
+        # if self._backend == simd_backend.SSE2:
+        #     return "sse"
+        # elif self._backend == simd_backend.AVX2:
+        #     return "avx"
+        # elif self._backend == simd_backend.MMX:
+        #     return "mmx"
+        # elif self._backend == simd_backend.NEON:
+        #     return "neon"
+        # elif self._backend == simd_backend.GENERIC:
+        #     return "generic"
+        # else:
+        #     return None
 
     # --- Utils --------------------------------------------------------------
 
     cdef void _setup_simd_code(self, trimal.manager.trimAlManager* manager) nogil:
-        if self._backend == simd_backend.GENERIC:
-            del manager.origAlig.Statistics.similarity
-            manager.origAlig.Statistics.similarity = new GenericSimilarity(manager.origAlig)
-            del manager.origAlig.Cleaning
-            manager.origAlig.Cleaning = new GenericCleaner(manager.origAlig)
-            del manager.origAlig.Statistics.gaps
-            manager.origAlig.Statistics.gaps = new GenericGaps(manager.origAlig)
-            manager.origAlig.Statistics.gaps.CalculateVectors()
-        if MMX_BUILD_SUPPORT:
-            if self._backend == simd_backend.MMX:
-                del manager.origAlig.Statistics.similarity
-                manager.origAlig.Statistics.similarity = new MMXSimilarity(manager.origAlig)
-                del manager.origAlig.Cleaning
-                manager.origAlig.Cleaning = new MMXCleaner(manager.origAlig)
-                del manager.origAlig.Statistics.gaps
-                manager.origAlig.Statistics.gaps = new MMXGaps(manager.origAlig)
-                manager.origAlig.Statistics.gaps.CalculateVectors()
-        if AVX2_BUILD_SUPPORT:
-            if self._backend == simd_backend.AVX2:
-                del manager.origAlig.Statistics.similarity
-                manager.origAlig.Statistics.similarity = new AVXSimilarity(manager.origAlig)
-                del manager.origAlig.Cleaning
-                manager.origAlig.Cleaning = new AVXCleaner(manager.origAlig)
-                del manager.origAlig.Statistics.gaps
-                manager.origAlig.Statistics.gaps = new AVXGaps(manager.origAlig)
-                manager.origAlig.Statistics.gaps.CalculateVectors()
-        if SSE2_BUILD_SUPPORT:
-            if self._backend == simd_backend.SSE2:
-                del manager.origAlig.Statistics.similarity
-                manager.origAlig.Statistics.similarity = new SSESimilarity(manager.origAlig)
-                del manager.origAlig.Cleaning
-                manager.origAlig.Cleaning = new SSECleaner(manager.origAlig)
-                del manager.origAlig.Statistics.gaps
-                manager.origAlig.Statistics.gaps = new SSEGaps(manager.origAlig)
-                manager.origAlig.Statistics.gaps.CalculateVectors()
-        if NEON_BUILD_SUPPORT:
-            if self._backend == simd_backend.NEON:
-                del manager.origAlig.Statistics.similarity
-                manager.origAlig.Statistics.similarity = new NEONSimilarity(manager.origAlig)
-                del manager.origAlig.Cleaning
-                manager.origAlig.Cleaning = new NEONCleaner(manager.origAlig)
-                del manager.origAlig.Statistics.gaps
-                manager.origAlig.Statistics.gaps = new NEONGaps(manager.origAlig)
-                manager.origAlig.Statistics.gaps.CalculateVectors()
+        pass
+        # if self._backend == simd_backend.GENERIC:
+        #     del manager.origAlig.Statistics.similarity
+        #     manager.origAlig.Statistics.similarity = new GenericSimilarity(manager.origAlig)
+        #     del manager.origAlig.Cleaning
+        #     manager.origAlig.Cleaning = new GenericCleaner(manager.origAlig)
+        #     del manager.origAlig.Statistics.gaps
+        #     manager.origAlig.Statistics.gaps = new GenericGaps(manager.origAlig)
+        #     manager.origAlig.Statistics.gaps.CalculateVectors()
+        # if MMX_BUILD_SUPPORT:
+        #     if self._backend == simd_backend.MMX:
+        #         del manager.origAlig.Statistics.similarity
+        #         manager.origAlig.Statistics.similarity = new MMXSimilarity(manager.origAlig)
+        #         del manager.origAlig.Cleaning
+        #         manager.origAlig.Cleaning = new MMXCleaner(manager.origAlig)
+        #         del manager.origAlig.Statistics.gaps
+        #         manager.origAlig.Statistics.gaps = new MMXGaps(manager.origAlig)
+        #         manager.origAlig.Statistics.gaps.CalculateVectors()
+        # if AVX2_BUILD_SUPPORT:
+        #     if self._backend == simd_backend.AVX2:
+        #         del manager.origAlig.Statistics.similarity
+        #         manager.origAlig.Statistics.similarity = new AVXSimilarity(manager.origAlig)
+        #         del manager.origAlig.Cleaning
+        #         manager.origAlig.Cleaning = new AVXCleaner(manager.origAlig)
+        #         del manager.origAlig.Statistics.gaps
+        #         manager.origAlig.Statistics.gaps = new AVXGaps(manager.origAlig)
+        #         manager.origAlig.Statistics.gaps.CalculateVectors()
+        # if SSE2_BUILD_SUPPORT:
+        #     if self._backend == simd_backend.SSE2:
+        #         del manager.origAlig.Statistics.similarity
+        #         manager.origAlig.Statistics.similarity = new SSESimilarity(manager.origAlig)
+        #         del manager.origAlig.Cleaning
+        #         manager.origAlig.Cleaning = new SSECleaner(manager.origAlig)
+        #         del manager.origAlig.Statistics.gaps
+        #         manager.origAlig.Statistics.gaps = new SSEGaps(manager.origAlig)
+        #         manager.origAlig.Statistics.gaps.CalculateVectors()
+        # if NEON_BUILD_SUPPORT:
+        #     if self._backend == simd_backend.NEON:
+        #         del manager.origAlig.Statistics.similarity
+        #         manager.origAlig.Statistics.similarity = new NEONSimilarity(manager.origAlig)
+        #         del manager.origAlig.Cleaning
+        #         manager.origAlig.Cleaning = new NEONCleaner(manager.origAlig)
+        #         del manager.origAlig.Statistics.gaps
+        #         manager.origAlig.Statistics.gaps = new NEONGaps(manager.origAlig)
+        #         manager.origAlig.Statistics.gaps.CalculateVectors()
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         pass
