@@ -1,2 +1,0 @@
-@@ -49,0 +49,1 @@
-+    Alignment *LoadAlignment(std::istream &input) override;

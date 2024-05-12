@@ -1,6 +1,0 @@
-@@ -64 +64 @@
--        ~Gaps();
-+        virtual ~Gaps();
-@@ -93 +93 @@
--        void CalculateVectors();
-+        virtual void CalculateVectors();

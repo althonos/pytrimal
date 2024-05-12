@@ -1,0 +1,9 @@
+@@ -167,7 +167,7 @@
+          * */
+         void printCorrespondence();
+ 
+-    private:
++    public:
+         /// Making Alignment a friend class allows us to have private constructor and destructors.\n
+         /// This gives us more control over the statistics classes, hinting that they shouldn't be created outside the scope of a newAlignmet.
+         friend class ::Alignment;

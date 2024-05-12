@@ -1,5 +1,0 @@
-@@ -45,0 +45,5 @@
-+Alignment* phylip40_m10_state::LoadAlignment(std::istream &input)
-+{
-+    return nullptr;
-+}

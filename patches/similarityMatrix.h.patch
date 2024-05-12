@@ -1,5 +1,17 @@
-@@ -50,0 +50,1 @@
-+public:
-@@ -57 +57 @@
+@@ -49,13 +49,14 @@
+  */
+     class similarityMatrix {
+ 
 -    private:
 +    public:
++    // private:
+         int *vhash;
+         float **simMat;
+         float **distMat;
+         int numPositions;
+ 
+-    private:
++    // private:
+         /**
+          * \brief Method to allocate memory for the similiarity matrix
+          * \param nPos Number of different possible residues in the alignment.\n

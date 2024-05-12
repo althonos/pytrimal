@@ -1,3 +1,18 @@
-@@ -280 +280 @@
+@@ -236,7 +236,7 @@
+ 
+ public:
+     bool processArguments(char* argv[]);
+-private: // Process Arguments Methods
++// private: // Process Arguments Methods
+     bool check_arguments_incompatibilities();
+         bool check_inFile_incompatibilities();
+         bool check_select_cols_and_seqs_incompatibilities();
+@@ -277,7 +277,7 @@
+     int perform();
+     void delete_variables();
+ 
 -private: // General, private, methods
-+public:
++// private: // General, private, methods
+     int innerPerform();
+     bool performCompareset();
+ 
