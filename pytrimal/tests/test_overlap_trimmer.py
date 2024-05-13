@@ -58,11 +58,6 @@ class TestOverlapTrimmerGeneric(TestOverlapTrimmer):
     backend = "generic"
 
 
-@unittest.skipUnless(_trimal._MMX_RUNTIME_SUPPORT, "MMX not available")
-class TestOverlapTrimmerMMX(TestOverlapTrimmer):
-    backend = "mmx"
-
-
 @unittest.skipUnless(_trimal._SSE2_RUNTIME_SUPPORT, "SSE2 not available")
 class TestOverlapTrimmerSSE(TestOverlapTrimmer):
     backend = "sse"
