@@ -1842,6 +1842,8 @@ cdef class SimilarityMatrix(ScoringMatrix):
 
     """
 
+    DEFAULT_ALPHABET = trimal.aminoAcidResidues.decode('ascii')
+
     # --- Class methods ------------------------------------------------------
 
     @classmethod
@@ -1851,7 +1853,9 @@ cdef class SimilarityMatrix(ScoringMatrix):
         Create a default amino-acid similarity matrix (BLOSUM62).
 
         """
-        return cls.from_name("BLOSUM62")
+        blosum62 = ScoringMatrix.from_name("BLOSUM62")
+        matrix = list(blosum62.shuffle(SimilarityMatrix.DEFAULT_ALPHABET))
+        return cls(matrix, alphabet=SimilarityMatrix.DEFAULT_ALPHABET, name="BLOSUM62")
 
     @classmethod
     def nt(cls, bool degenerated=False):
@@ -1868,10 +1872,10 @@ cdef class SimilarityMatrix(ScoringMatrix):
         cdef trimal.similarity_matrix.similarityMatrix sm
 
         if degenerated:
-            alphabet = "ACGTURYKMSWBDHV"
+            alphabet = trimal.degenerateNucleotideResidues.decode('ascii')
             sm.defaultNTDegeneratedSimMatrix()
         else:
-            alphabet = "ACGTU"
+            alphabet = trimal.nucleotideResidues.decode('ascii')
             sm.defaultNTSimMatrix()
 
         matrix = [[0.0 for _ in alphabet] for _ in alphabet]
@@ -1886,7 +1890,7 @@ cdef class SimilarityMatrix(ScoringMatrix):
     def __init__(
         self,
         object matrix not None,
-        str alphabet not None = ScoringMatrix.DEFAULT_ALPHABET,
+        str alphabet not None = SimilarityMatrix.DEFAULT_ALPHABET,
         str name = None,
     ):
         """__init__(self, matrix, alphabet=ScoringMatrix.DEFAULT_ALPHABET, name=None)\n--
@@ -1922,9 +1926,9 @@ cdef class SimilarityMatrix(ScoringMatrix):
         .. versionadded:: 0.1.2
 
         """
-        cdef size_t i
-        cdef size_t j
-        cdef size_t k
+        cdef ssize_t i
+        cdef ssize_t j
+        cdef ssize_t k
         cdef float  total
 
         super().__init__(matrix, alphabet=alphabet, name=name)

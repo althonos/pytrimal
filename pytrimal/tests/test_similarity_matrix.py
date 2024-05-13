@@ -26,7 +26,7 @@ class TestSimilarityMatrix(unittest.TestCase):
 
     def test_length(self):
         aa = SimilarityMatrix.aa()
-        self.assertEqual(len(aa), 24)
+        self.assertEqual(len(aa), 20)
         nt = SimilarityMatrix.nt()
         self.assertEqual(len(nt), 5)
         dn = SimilarityMatrix.nt(degenerated=True)
