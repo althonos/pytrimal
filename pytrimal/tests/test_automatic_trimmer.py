@@ -59,7 +59,6 @@ class TestAutomaticTrimmer(TrimmerTestCase, unittest.TestCase):
 
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(files, "importlib.resources.files not available")
-    @unittest.expectedFailure
     def test_noduplicateseqs_method(self):
         self._test_method("noduplicateseqs")
 
