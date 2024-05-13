@@ -9,13 +9,14 @@ from ._base import TrimmerTestCase, files
 
 
 class TestOverlapTrimmer(TrimmerTestCase, unittest.TestCase):
+    platform = None
 
     def _test_overlap(self, seq, res):
         ali = self._load_alignment("ENOG411BWBU.fasta")
         expected = self._load_alignment(
             "ENOG411BWBU.seq{}.res{}.fasta".format(seq, res)
         )
-        trimmer = OverlapTrimmer(sequence_overlap=seq, residue_overlap=res / 100, backend=self.backend)
+        trimmer = OverlapTrimmer(sequence_overlap=seq, residue_overlap=res / 100, platform=self.platform)
         trimmed = trimmer.trim(ali)
         self.assertTrimmedAlignmentEqual(trimmed, expected)
 
@@ -34,11 +35,11 @@ class TestOverlapTrimmer(TrimmerTestCase, unittest.TestCase):
         self.assertEqual(repr(trimmer), "OverlapTrimmer(80.0, 0.5)")
         trimmer = OverlapTrimmer(50, 1.0)
         self.assertEqual(repr(trimmer), "OverlapTrimmer(50.0, 1.0)")
-        trimmer = OverlapTrimmer(30, 0.25, backend=None)
-        self.assertEqual(repr(trimmer), "OverlapTrimmer(30.0, 0.25, backend=None)")
+        trimmer = OverlapTrimmer(30, 0.25, platform=None)
+        self.assertEqual(repr(trimmer), "OverlapTrimmer(30.0, 0.25, platform=None)")
 
     def test_pickle(self):
-        trimmer = OverlapTrimmer(40, 0.5, backend=self.backend)
+        trimmer = OverlapTrimmer(40, 0.5, platform=self.platform)
         pickled = pickle.loads(pickle.dumps(trimmer))
         ali = Alignment(
             names=[b"Sp8", b"Sp17", b"Sp10", b"Sp26"],
@@ -54,20 +55,16 @@ class TestOverlapTrimmer(TrimmerTestCase, unittest.TestCase):
         self.assertTrimmedAlignmentEqual(t2, t1)
 
 
-class TestOverlapTrimmerGeneric(TestOverlapTrimmer):
-    backend = "generic"
-
-
 @unittest.skipUnless(_trimal._SSE2_RUNTIME_SUPPORT, "SSE2 not available")
-class TestOverlapTrimmerSSE(TestOverlapTrimmer):
-    backend = "sse"
+class TestOverlapTrimmerSSE2(TestOverlapTrimmer):
+    platform = "sse2"
 
 
 @unittest.skipUnless(_trimal._AVX2_RUNTIME_SUPPORT, "AVX2 not available")
-class TestOverlapTrimmerAVX(TestOverlapTrimmer):
-    backend = "avx"
+class TestOverlapTrimmerAVX2(TestOverlapTrimmer):
+    platform = "avx2"
 
 
 @unittest.skipUnless(_trimal._NEON_RUNTIME_SUPPORT, "NEON not available")
 class TestOverlapTrimmerNEON(TestOverlapTrimmer):
-    backend = "neon"
+    platform = "neon"

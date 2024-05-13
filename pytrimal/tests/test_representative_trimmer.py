@@ -16,7 +16,7 @@ from .. import _trimal, Alignment, RepresentativeTrimmer
 
 
 class TestRepresentativeTrimmer(unittest.TestCase):
-    backend = None
+    platform = None
 
     def assertTrimmedAlignmentEqual(self, trimmed, expected):
         self.assertEqual(len(trimmed.names), len(expected.names))
@@ -43,7 +43,7 @@ class TestRepresentativeTrimmer(unittest.TestCase):
             )
 
         trimmer = RepresentativeTrimmer(
-            clusters=clusters, identity_threshold=identity_threshold, backend=self.backend
+            clusters=clusters, identity_threshold=identity_threshold, platform=self.platform
         )
         trimmed = trimmer.trim(ali)
 
@@ -73,13 +73,13 @@ class TestRepresentativeTrimmer(unittest.TestCase):
         )
         trimmer = RepresentativeTrimmer(clusters=2)
         self.assertEqual(repr(trimmer), "RepresentativeTrimmer(clusters=2)")
-        trimmer = RepresentativeTrimmer(clusters=3, backend=None)
+        trimmer = RepresentativeTrimmer(clusters=3, platform=None)
         self.assertEqual(
-            repr(trimmer), "RepresentativeTrimmer(clusters=3, backend=None)"
+            repr(trimmer), "RepresentativeTrimmer(clusters=3, platform=None)"
         )
 
     def test_pickle(self):
-        trimmer = RepresentativeTrimmer(clusters=3, backend=self.backend)
+        trimmer = RepresentativeTrimmer(clusters=3, platform=self.platform)
         pickled = pickle.loads(pickle.dumps(trimmer))
         ali = Alignment(
             names=[b"Sp8", b"Sp17", b"Sp10", b"Sp26"],
@@ -95,20 +95,16 @@ class TestRepresentativeTrimmer(unittest.TestCase):
         self.assertTrimmedAlignmentEqual(t2, t1)
 
 
-class TestRepresentativeTrimmerGeneric(TestRepresentativeTrimmer):
-    backend = "generic"
-
-
 @unittest.skipUnless(_trimal._SSE2_RUNTIME_SUPPORT, "SSE2 not available")
-class TestRepresentativeTrimmerSSE(TestRepresentativeTrimmer):
-    backend = "sse"
+class TestRepresentativeTrimmerSSE2(TestRepresentativeTrimmer):
+    platform = "sse2"
 
 
 @unittest.skipUnless(_trimal._AVX2_RUNTIME_SUPPORT, "AVX2 not available")
 class TestRepresentativeTrimmerAVX(TestRepresentativeTrimmer):
-    backend = "avx"
+    platform = "avx2"
 
 
 @unittest.skipUnless(_trimal._NEON_RUNTIME_SUPPORT, "NEON not available")
 class TestRepresentativeTrimmerNEON(TestRepresentativeTrimmer):
-    backend = "neon"
+    platform = "neon"

@@ -9,11 +9,12 @@ from ._base import TrimmerTestCase, files
 
 
 class TestAutomaticTrimmer(TrimmerTestCase, unittest.TestCase):
+    platform = None
 
     def _test_method(self, name):
         ali = self._load_alignment("ENOG411BWBU.fasta")
         expected = self._load_alignment("ENOG411BWBU.{}.fasta".format(name))
-        trimmer = AutomaticTrimmer(method=name, backend=self.backend)
+        trimmer = AutomaticTrimmer(method=name, platform=self.platform)
         trimmed = trimmer.trim(ali)
         self.assertTrimmedAlignmentEqual(trimmed, expected)
 
@@ -26,9 +27,9 @@ class TestAutomaticTrimmer(TrimmerTestCase, unittest.TestCase):
         self.assertEqual(repr(trimmer), "AutomaticTrimmer('strict')")
         trimmer = AutomaticTrimmer("automated1")
         self.assertEqual(repr(trimmer), "AutomaticTrimmer('automated1')")
-        trimmer = AutomaticTrimmer("noduplicateseqs", backend=None)
+        trimmer = AutomaticTrimmer("noduplicateseqs", platform=None)
         self.assertEqual(
-            repr(trimmer), "AutomaticTrimmer('noduplicateseqs', backend=None)"
+            repr(trimmer), "AutomaticTrimmer('noduplicateseqs', platform=None)"
         )
 
     @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
@@ -69,16 +70,16 @@ class TestAutomaticTrimmer(TrimmerTestCase, unittest.TestCase):
         with self._open_data("pam70.json", "rb") as f:
             pam70 = SimilarityMatrix(**json.load(f))
 
-        trimmer = AutomaticTrimmer("strict", backend=self.backend)
+        trimmer = AutomaticTrimmer("strict", platform=self.platform)
         trimmed = trimmer.trim(alignment, pam70)
 
     def test_invalid_characters(self):
         alignment = Alignment([b"seq1", b"seq2"], ["MKKBO", "MKKAY"])
-        trimmer = AutomaticTrimmer(method="strict", backend=self.backend)
+        trimmer = AutomaticTrimmer(method="strict", platform=self.platform)
         self.assertRaises(ValueError, trimmer.trim, alignment)
 
     def test_pickle(self):
-        trimmer = AutomaticTrimmer(method="automated1", backend=self.backend)
+        trimmer = AutomaticTrimmer(method="automated1", platform=self.platform)
         pickled = pickle.loads(pickle.dumps(trimmer))
         ali = Alignment(
             names=[b"Sp8", b"Sp17", b"Sp10", b"Sp26"],
@@ -94,20 +95,16 @@ class TestAutomaticTrimmer(TrimmerTestCase, unittest.TestCase):
         self.assertTrimmedAlignmentEqual(t2, t1)
 
 
-class TestAutomaticTrimmerGeneric(TestAutomaticTrimmer):
-    backend = "generic"
-
-
 @unittest.skipUnless(_trimal._SSE2_RUNTIME_SUPPORT, "SSE2 not available")
-class TestAutomaticTrimmerSSE(TestAutomaticTrimmer):
-    backend = "sse"
+class TestAutomaticTrimmerSSE2(TestAutomaticTrimmer):
+    platform = "sse2"
 
 
 @unittest.skipUnless(_trimal._AVX2_RUNTIME_SUPPORT, "AVX2 not available")
-class TestAutomaticTrimmerAVX(TestAutomaticTrimmer):
-    backend = "avx"
+class TestAutomaticTrimmerAVX2(TestAutomaticTrimmer):
+    platform = "avx2"
 
 
 @unittest.skipUnless(_trimal._NEON_RUNTIME_SUPPORT, "NEON not available")
 class TestAutomaticTrimmerNEON(TestAutomaticTrimmer):
-    backend = "neon"
+    platform = "neon"

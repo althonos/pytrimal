@@ -36,13 +36,11 @@ parser.add_argument("-o", "--output", required=True)
 args = parser.parse_args()
 
 
-BACKENDS = ["generic", None]
+BACKENDS = [None]
 if _trimal._SSE2_RUNTIME_SUPPORT:
-    BACKENDS.append("sse")
+    BACKENDS.append("sse2")
 if _trimal._AVX2_RUNTIME_SUPPORT:
-    BACKENDS.append("avx")
-if _trimal._MMX_RUNTIME_SUPPORT:
-    BACKENDS.append("mmx")
+    BACKENDS.append("avx2")
 if _trimal._NEON_RUNTIME_SUPPORT:
     BACKENDS.append("neon")
 

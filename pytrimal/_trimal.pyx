@@ -138,21 +138,13 @@ elif TARGET_CPU == "aarch64":
     _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT  # always runtime support on Aarch64
 
 if _AVX2_RUNTIME_SUPPORT:
-    _BEST_BACKEND = simd_backend.AVX2
+    _BEST_PLATFORM = ComputePlatform.AVX2
 elif _SSE2_RUNTIME_SUPPORT:
-    _BEST_BACKEND = simd_backend.SSE2
+    _BEST_PLATFORM = ComputePlatform.SSE2
 elif _NEON_RUNTIME_SUPPORT:
-    _BEST_BACKEND = simd_backend.NEON
+    _BEST_PLATFORM = ComputePlatform.NEON
 else:
-    _BEST_BACKEND = simd_backend.GENERIC
-
-cdef enum simd_backend:
-    NONE = 0
-    GENERIC = 1
-    SSE2 = 2
-    NEON = 3
-    AVX2 = 4
-
+    _BEST_PLATFORM = ComputePlatform.NONE
 
 # --- Utilities --------------------------------------------------------------
 
@@ -1167,159 +1159,114 @@ cdef class BaseTrimmer:
 
     # --- Magic methods ------------------------------------------------------
 
-    def __init__(self, *, str backend = "detect"):
-        """__init__(self, *, backend="detect")\n--
+    def __cinit__(self):
+        self._platform = ComputePlatform.NONE
+
+    def __init__(self, *, str platform = "detect"):
+        """__init__(self, *, platform="detect")\n--
 
         Create a new base trimmer.
 
         Keyword Arguments:
-            backend (`str`, *optional*): The SIMD extension backend to use
+            platform (`str`, *optional*): The compute platform to use
                 to accelerate computation of pairwise similarity statistics.
-                If `None` given, use the original code from trimAl.
+                If `None` given, use the original code from trimAl. By default, 
+                attempt to auto-detect the best available platform for the host 
+                CPU.
 
-        .. versionadded:: 0.2.0
-           The ``backend`` keyword argument.
+        .. versionchanged:: 0.8.0
+           Renamed ``backend`` keyword argument to ``platform``.
 
         """
         if TARGET_CPU == "x86":
-            if backend =="detect":
-                self._backend = simd_backend.GENERIC
+            if platform =="detect":
                 if SSE2_BUILD_SUPPORT and _SSE2_RUNTIME_SUPPORT:
-                    self._backend = simd_backend.SSE2
+                    self._platform = ComputePlatform.SSE2
                 if AVX2_BUILD_SUPPORT and _AVX2_RUNTIME_SUPPORT:
-                    self._backend = simd_backend.AVX2
-            elif backend == "avx":
+                    self._platform = ComputePlatform.AVX2
+            elif platform == "avx2":
                 if not AVX2_BUILD_SUPPORT:
                     raise RuntimeError("Extension was compiled without AVX2 support")
                 elif not _AVX2_RUNTIME_SUPPORT:
                     raise RuntimeError("Cannot run AVX2 instructions on this machine")
                 else:
-                    self._backend = simd_backend.AVX2
-            elif backend == "sse":
+                    self._platform = ComputePlatform.AVX2
+            elif platform == "sse2":
                 if not SSE2_BUILD_SUPPORT:
                     raise RuntimeError("Extension was compiled without SSE2 support")
                 elif not _SSE2_RUNTIME_SUPPORT:
                     raise RuntimeError("Cannot run SSE2 instructions on this machine")
                 else:
-                    self._backend = simd_backend.SSE2
-            elif backend == "generic":
-                self._backend = simd_backend.GENERIC
-            elif backend is None:
-                self._backend = simd_backend.NONE
+                    self._platform = ComputePlatform.SSE2
+            elif platform is None:
+                self._platform = ComputePlatform.NONE
             else:
-                raise ValueError(f"Unsupported backend on this architecture: {backend}")
+                raise ValueError(f"Unsupported platform on this architecture: {platform!r}")
         elif TARGET_CPU == "arm" or TARGET_CPU == "aarch64":
-            if backend == "detect":
-                self._backend = simd_backend.GENERIC
+            if platform == "detect":
+                self._platform = ComputePlatform.GENERIC
                 if NEON_BUILD_SUPPORT and _NEON_RUNTIME_SUPPORT:
-                    self._backend = simd_backend.NEON
-            elif backend == "neon":
+                    self._platform = ComputePlatform.NEON
+            elif platform == "neon":
                 if not NEON_BUILD_SUPPORT:
                     raise RuntimeError("Extension was compiled without NEON support")
                 elif not _NEON_RUNTIME_SUPPORT:
                     raise RuntimeError("Cannot run NEON instructions on this machine")
                 else:
-                    self._backend = simd_backend.NEON
-            elif backend == "generic":
-                self._backend = simd_backend.GENERIC
-            elif backend is None:
-                self._backend = simd_backend.NONE
+                    self._platform = ComputePlatform.NEON
+            elif platform is None:
+                self._platform = ComputePlatform.NONE
             else:
-                raise ValueError(f"Unsupported backend on this architecture: {backend}")
+                raise ValueError(f"Unsupported platform on this architecture: {platform!r}")
         else:
-            if backend == "detect" or backend == "generic":
-                self._backend = simd_backend.GENERIC
-            elif backend is None:
-                self._backend = simd_backend.NONE
+            if platform == "detect" or platform == "generic":
+                self._platform = ComputePlatform.GENERIC
+            elif platform is None:
+                self._platform = ComputePlatform.NONE
             else:
-                raise ValueError(f"Unsupported backend on this architecture: {backend}")
+                raise ValueError(f"Unsupported platform on this architecture: {platform!r}")
 
     def __repr__(self):
         cdef str ty  = type(self).__name__
         cdef str arg = ""
-        if self._backend != _BEST_BACKEND:
-            arg = f"backend={self.backend!r}"
+        if self._platform != _BEST_PLATFORM:
+            arg = f"platform={self.platform!r}"
         return f"{ty}({arg})"
 
     def __getstate__(self):
         return {
-            "backend": self.backend,
+            "platform": self.platform,
         }
 
     def __setstate__(self, dict state):
         try:
-            self.__init__(backend=state["backend"])
+            self.__init__(platform=state["platform"])
         except (ValueError, RuntimeError):
-            self.__init__(backend="detect")
+            self.__init__(platform="detect")
 
     # --- Properties ---------------------------------------------------------
 
     @property
-    def backend(self):
-        """`str` or `None`: The computation backend for this trimmer.
+    def platform(self):
+        """`str` or `None`: The compute platform for this trimmer.
 
-        .. versionadded:: 0.4.0
+        .. versionchanged:: 0.8.0
+           Renamed ``backend`` property to ``platform``.
 
         """
-        if self._backend == simd_backend.SSE2:
-            return "sse"
-        elif self._backend == simd_backend.AVX2:
-            return "avx"
-        elif self._backend == simd_backend.NEON:
+        if self._platform == ComputePlatform.SSE2:
+            return "sse2"
+        elif self._platform == ComputePlatform.AVX2:
+            return "avx2"
+        elif self._platform == ComputePlatform.NEON:
             return "neon"
-        elif self._backend == simd_backend.GENERIC:
-            return "generic"
-        else:
+        elif self._platform == ComputePlatform.NONE:
             return None
 
     # --- Utils --------------------------------------------------------------
 
     cdef void _setup_simd_code(self, trimal.alignment.Alignment* ali) nogil:
-
-        if self._backend == simd_backend.GENERIC:
-            ali.Statistics.platform = ComputePlatform.NONE
-        elif self._backend == simd_backend.SSE2:
-            ali.Statistics.platform = ComputePlatform.SSE2
-        elif self._backend == simd_backend.NEON:
-            ali.Statistics.platform = ComputePlatform.NEON
-        elif self._backend == simd_backend.AVX2:
-            ali.Statistics.platform = ComputePlatform.AVX2
-
-        # if self._backend == simd_backend.GENERIC:
-        #     del manager.origAlig.Statistics.similarity
-        #     manager.origAlig.Statistics.similarity = new GenericSimilarity(manager.origAlig)
-        #     del manager.origAlig.Cleaning
-        #     manager.origAlig.Cleaning = new GenericCleaner(manager.origAlig)
-        #     del manager.origAlig.Statistics.gaps
-        #     manager.origAlig.Statistics.gaps = new GenericGaps(manager.origAlig)
-        #     manager.origAlig.Statistics.gaps.CalculateVectors()
-        # if AVX2_BUILD_SUPPORT:
-        #     if self._backend == simd_backend.AVX2:
-        #         del manager.origAlig.Statistics.similarity
-        #         manager.origAlig.Statistics.similarity = new AVXSimilarity(manager.origAlig)
-        #         del manager.origAlig.Cleaning
-        #         manager.origAlig.Cleaning = new AVXCleaner(manager.origAlig)
-        #         del manager.origAlig.Statistics.gaps
-        #         manager.origAlig.Statistics.gaps = new AVXGaps(manager.origAlig)
-        #         manager.origAlig.Statistics.gaps.CalculateVectors()
-        # if SSE2_BUILD_SUPPORT:
-        #     if self._backend == simd_backend.SSE2:
-        #         del manager.origAlig.Statistics.similarity
-        #         manager.origAlig.Statistics.similarity = new SSESimilarity(manager.origAlig)
-        #         del manager.origAlig.Cleaning
-        #         manager.origAlig.Cleaning = new SSECleaner(manager.origAlig)
-        #         del manager.origAlig.Statistics.gaps
-        #         manager.origAlig.Statistics.gaps = new SSEGaps(manager.origAlig)
-        #         manager.origAlig.Statistics.gaps.CalculateVectors()
-        # if NEON_BUILD_SUPPORT:
-        #     if self._backend == simd_backend.NEON:
-        #         del manager.origAlig.Statistics.similarity
-        #         manager.origAlig.Statistics.similarity = new NEONSimilarity(manager.origAlig)
-        #         del manager.origAlig.Cleaning
-        #         manager.origAlig.Cleaning = new NEONCleaner(manager.origAlig)
-        #         del manager.origAlig.Statistics.gaps
-        #         manager.origAlig.Statistics.gaps = new NEONGaps(manager.origAlig)
-        #         manager.origAlig.Statistics.gaps.CalculateVectors()
+        ali.Statistics.platform = self._platform
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         pass
@@ -1445,8 +1392,8 @@ cdef class AutomaticTrimmer(BaseTrimmer):
 
     # --- Magic methods ------------------------------------------------------
 
-    def __init__(self, str method="strict", *, str backend="detect"):
-        """__init__(self, method="strict", *, backend="detect")\n--
+    def __init__(self, str method="strict", *, str platform="detect"):
+        """__init__(self, method="strict", *, platform="detect")\n--
 
         Create a new automatic alignment trimmer using the given method.
 
@@ -1456,22 +1403,24 @@ cdef class AutomaticTrimmer(BaseTrimmer):
                 supported values.
 
         Keyword Arguments:
-            backend (`str`, *optional*): The SIMD extension backend to use
+            platform (`str`, *optional*): The compute platform to use
                 to accelerate computation of pairwise similarity statistics.
-                If `None` given, use the original code from trimAl.
+                If `None` given, use the original code from trimAl. By default, 
+                attempt to auto-detect the best available platform for the host 
+                CPU.
 
         Raises:
             `ValueError`: When ``method`` is not one of the automatic
                 alignment trimming methods supported by trimAl.
 
-        .. versionadded:: 0.2.0
-           The ``backend`` keyword argument.
-
         .. versionadded:: 0.4.0
            The ``noduplicateseqs`` method.
 
+        .. versionchanged:: 0.8.0
+           Renamed ``backend`` keyword argument to ``platform``.
+
         """
-        super().__init__(backend=backend)
+        super().__init__(platform=platform)
 
         if method not in self.METHODS:
             raise ValueError(f"Invalid value for `method`: {method!r}")
@@ -1480,21 +1429,21 @@ cdef class AutomaticTrimmer(BaseTrimmer):
     def __repr__(self):
         cdef str ty    = type(self).__name__
         cdef list args = [repr(self.method)]
-        if self._backend != _BEST_BACKEND:
-            args.append(f"backend={self.backend!r}")
+        if self._platform != _BEST_PLATFORM:
+            args.append(f"platform={self.platform!r}")
         return f"{ty}({', '.join(args)})"
 
     def __getstate__(self):
         return {
             "method":  self.method,
-            "backend": self.backend,
+            "platform": self.platform,
         }
 
     def __setstate__(self, dict state):
         try:
-            BaseTrimmer.__init__(self, backend=state["backend"])
+            BaseTrimmer.__init__(self, platform=state["platform"])
         except (ValueError, RuntimeError):
-            BaseTrimmer.__init__(self, backend="detect")
+            BaseTrimmer.__init__(self, platform="detect")
         self.method = state["method"]
 
     # --- Utils --------------------------------------------------------------
@@ -1557,9 +1506,9 @@ cdef class ManualTrimmer(BaseTrimmer):
         object window                  = None,
         object gap_window              = None,
         object similarity_window       = None,
-        str    backend                 = "detect",
+        str    platform                 = "detect",
     ):
-        """__init__(self, *, gap_threshold=None, gap_absolute_threshold=None, similarity_threshold=None, conservation_percentage=None, window=None, gap_window=None, similarity_window=None, backend="detect")\n--
+        """__init__(self, *, gap_threshold=None, gap_absolute_threshold=None, similarity_threshold=None, conservation_percentage=None, window=None, gap_window=None, similarity_window=None, platform="detect")\n--
 
         Create a new manual alignment trimmer with the given parameters.
 
@@ -1583,12 +1532,11 @@ cdef class ManualTrimmer(BaseTrimmer):
             similarity_window (`int`, *optional*): The size of the
                 half-window to use when computing the *similarity* statistic
                 for an alignment. Incompatible with ``window``.
-            backend (`str`, *optional*): The SIMD extension backend to use
+            platform (`str`, *optional*): The compute platform to use
                 to accelerate computation of pairwise similarity statistics.
-                If `None` given, use the original code from trimAl.
-
-        .. versionadded:: 0.2.0
-           The ``backend`` keyword argument.
+                If `None` given, use the original code from trimAl. By default, 
+                attempt to auto-detect the best available platform for the host 
+                CPU.
 
         .. versionadded:: 0.2.2
            The keyword arguments for controling the half-window sizes.
@@ -1596,8 +1544,11 @@ cdef class ManualTrimmer(BaseTrimmer):
         .. versionchanged:: 0.4.0
            Removed ``consistency_threshold`` and ``consistency_window``.
 
+        .. versionchanged:: 0.8.0
+           Renamed ``backend`` keyword argument to ``platform``.
+
         """
-        super().__init__(backend=backend)
+        super().__init__(platform=platform)
 
         if gap_threshold is not None and gap_absolute_threshold is not None:
             raise ValueError("Cannot specify both `gap_threshold` and `gap_absolute_threshold`")
@@ -1636,13 +1587,13 @@ cdef class ManualTrimmer(BaseTrimmer):
             args.append(f"gap_window={self._gap_window!r}")
         if self._similarity_window != -1:
             args.append(f"similarity_window={self._similarity_window!r}")
-        if self._backend != _BEST_BACKEND:
-            args.append(f"backend={self.backend!r}")
+        if self._platform != _BEST_PLATFORM:
+            args.append(f"platform={self.platform!r}")
         return f"{ty}({', '.join(args)})"
 
     def __getstate__(self):
         return {
-            "backend":                 self.backend,
+            "platform":                 self.platform,
             "gap_threshold":           self._gap_threshold,
             "gap_absolute_threshold":  self._gap_absolute_threshold,
             "similarity_threshold":    self._similarity_threshold,
@@ -1654,9 +1605,9 @@ cdef class ManualTrimmer(BaseTrimmer):
 
     def __setstate__(self, dict state):
         try:
-            BaseTrimmer.__init__(self, backend=state["backend"])
+            BaseTrimmer.__init__(self, platform=state["platform"])
         except (ValueError, RuntimeError):
-            BaseTrimmer.__init__(self, backend="detect")
+            BaseTrimmer.__init__(self, platform="detect")
         self._gap_threshold           = state["gap_threshold"]
         self._gap_absolute_threshold  = state["gap_absolute_threshold"]
         self._similarity_threshold    = state["similarity_threshold"]
@@ -1733,9 +1684,9 @@ cdef class OverlapTrimmer(BaseTrimmer):
         float sequence_overlap,
         float residue_overlap,
         *,
-        str backend="detect"
+        str platform="detect"
     ):
-        """__init__(self, sequence_overlap, residue_overlap, *, backend="detect")\n--
+        """__init__(self, sequence_overlap, residue_overlap, *, platform="detect")\n--
 
         Create a new overlap trimmer with the given thresholds.
 
@@ -1747,34 +1698,36 @@ cdef class OverlapTrimmer(BaseTrimmer):
                 a column must contain to be considered a "good" position.
 
         Keyword Arguments:
-            backend (`str`, *optional*): The SIMD extension backend to use
+            platform (`str`, *optional*): The compute platform to use
                 to accelerate computation of pairwise similarity statistics.
-                If `None` given, use the original code from trimAl.
+                If `None` given, use the original code from trimAl. By default, 
+                attempt to auto-detect the best available platform for the host 
+                CPU.
 
         """
-        super().__init__(backend=backend)
+        super().__init__(platform=platform)
         self._sequence_overlap = _check_range[float](sequence_overlap, "sequence_overlap", 0, 100)
         self._residue_overlap = _check_range[float](residue_overlap, "residue_overlap", 0, 1)
 
     def __repr__(self):
         cdef str ty    = type(self).__name__
         cdef list args = [repr(self._sequence_overlap), repr(self._residue_overlap)]
-        if self._backend != _BEST_BACKEND:
-            args.append(f"backend={self.backend!r}")
+        if self._platform != _BEST_PLATFORM:
+            args.append(f"platform={self.platform!r}")
         return f"{ty}({', '.join(args)})"
 
     def __getstate__(self):
         return {
-            "backend":          self.backend,
+            "platform":          self.platform,
             "sequence_overlap": self._sequence_overlap,
             "residue_overlap":  self._residue_overlap,
         }
 
     def __setstate__(self, dict state):
         try:
-            BaseTrimmer.__init__(self, backend=state["backend"])
+            BaseTrimmer.__init__(self, platform=state["platform"])
         except (ValueError, RuntimeError):
-            BaseTrimmer.__init__(self, backend="detect")
+            BaseTrimmer.__init__(self, platform="detect")
         self._sequence_overlap = state["sequence_overlap"]
         self._residue_overlap  = state["residue_overlap"]
 
@@ -1810,9 +1763,9 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
         object clusters = None,
         object identity_threshold = None,
         *,
-        str backend="detect"
+        str platform="detect"
     ):
-        """__init__(self, clusters=None, identity_threshold=None, *, backend="detect")\n--
+        """__init__(self, clusters=None, identity_threshold=None, *, platform="detect")\n--
 
         Create a new representative alignment trimmer.
 
@@ -1825,9 +1778,11 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
                 for which to get representative sequences.
 
         Keyword Arguments:
-            backend (`str`, *optional*): The SIMD extension backend to use
+            platform (`str`, *optional*): The compute platform to use
                 to accelerate computation of pairwise similarity statistics.
-                If `None` given, use the original code from trimAl.
+                If `None` given, use the original code from trimAl. By default, 
+                attempt to auto-detect the best available platform for the host 
+                CPU.
 
         Raises:
             `ValueError`: When both ``clusters`` and ``identity_threshold``
@@ -1835,7 +1790,7 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
                 a valid range.
 
         """
-        super().__init__(backend=backend)
+        super().__init__(platform=platform)
         if clusters is not None and identity_threshold is not None:
             raise ValueError("Cannot specify both `clusters` and `identity_threshold`")
         if clusters is not None:
@@ -1850,22 +1805,22 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
             args.append(f"clusters={self._clusters!r}")
         elif self._identity_threshold != -1:
             args.append(f"identity_threshold={self._identity_threshold!r}")
-        if self._backend != _BEST_BACKEND:
-            args.append(f"backend={self.backend!r}")
+        if self._platform != _BEST_PLATFORM:
+            args.append(f"platform={self.platform!r}")
         return f"{ty}({', '.join(args)})"
 
     def __getstate__(self):
         return {
-            "backend":            self.backend,
+            "platform":            self.platform,
             "clusters":           self._clusters,
             "identity_threshold": self._identity_threshold,
         }
 
     def __setstate__(self, dict state):
         try:
-            BaseTrimmer.__init__(self, backend=state["backend"])
+            BaseTrimmer.__init__(self, platform=state["platform"])
         except (ValueError, RuntimeError):
-            BaseTrimmer.__init__(self, backend="detect")
+            BaseTrimmer.__init__(self, platform="detect")
         self._clusters           = state["clusters"]
         self._identity_threshold = state["identity_threshold"]
 

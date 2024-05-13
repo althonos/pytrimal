@@ -16,7 +16,7 @@ from pyhmmer.easel import TextMSA
 
 # --- Constants --------------------------------------------------------------
 
-TRIMMER_BACKEND = Literal["detect", "sse", "generic", None]
+COMPUTE_PLATFORM = Literal["sse2", "avx2", "neon", None]
 AUTOMATIC_TRIMMER_METHODS = Literal[
     "strict",
     "strictplus",
@@ -135,12 +135,12 @@ class TrimmedAlignment(Alignment):
 # -- Trimmer classes ---------------------------------------------------------
 
 class BaseTrimmer:
-    def __init__(self, *, backend: TRIMMER_BACKEND = "detect") -> None: ...
+    def __init__(self, *, platform: Union[COMPUTE_PLATFORM, Literal["detect"]] = "detect") -> None: ...
     def __repr__(self) -> str: ...
     def __getstate__(self) -> Dict[str, object]: ...
     def __setstate__(self, state: Dict[str, object]) -> None: ...
     @property
-    def backend(self) -> Optional[str]: ...
+    def platform(self) -> COMPUTE_PLATFORM: ...
     def trim(
         self, alignment: Alignment, matrix: Optional[SimilarityMatrix] = None
     ) -> TrimmedAlignment: ...
@@ -151,7 +151,7 @@ class AutomaticTrimmer(BaseTrimmer):
         self,
         method: AUTOMATIC_TRIMMER_METHODS = "strict",
         *,
-        backend: TRIMMER_BACKEND = "detect",
+        platform: Union[COMPUTE_PLATFORM, Literal["detect"]] = "detect",
     ) -> None: ...
 
 class ManualTrimmer(BaseTrimmer):
@@ -165,7 +165,7 @@ class ManualTrimmer(BaseTrimmer):
         window: Optional[int] = None,
         gap_window: Optional[int] = None,
         similarity_window: Optional[int] = None,
-        backend: TRIMMER_BACKEND = "detect",
+        platform: Union[COMPUTE_PLATFORM, Literal["detect"]] = "detect",
     ) -> None: ...
 
 class OverlapTrimmer(BaseTrimmer):
@@ -174,7 +174,7 @@ class OverlapTrimmer(BaseTrimmer):
         sequence_overlap: float,
         residue_overlap: float,
         *,
-        backend: TRIMMER_BACKEND = "detect",
+        platform: Union[COMPUTE_PLATFORM, Literal["detect"]] = "detect",
     ) -> None: ...
 
 class RepresentativeTrimmer(BaseTrimmer):
@@ -184,7 +184,7 @@ class RepresentativeTrimmer(BaseTrimmer):
         *,
         clusters: Literal[None] = None,
         identity_threshold: float,
-        backend: TRIMMER_BACKEND = "detect",
+        platform: Union[COMPUTE_PLATFORM, Literal["detect"]] = "detect",
     ) -> None: ...
     @typing.overload
     def __init__(
@@ -192,7 +192,7 @@ class RepresentativeTrimmer(BaseTrimmer):
         *,
         clusters: int,
         identity_threshold: Literal[None] = None,
-        backend: TRIMMER_BACKEND = "detect",
+        platform: Union[COMPUTE_PLATFORM, Literal["detect"]] = "detect",
     ) -> None: ...
 
 # -- Misc classes ------------------------------------------------------------

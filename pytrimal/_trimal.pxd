@@ -9,6 +9,7 @@ cimport trimal
 cimport trimal.alignment
 cimport trimal.manager
 cimport trimal.similarity_matrix
+from trimal.statistics cimport ComputePlatform
 from scoring_matrices.lib cimport ScoringMatrix
 
 # --- Alignment classes ------------------------------------------------------
@@ -55,7 +56,7 @@ cdef class TrimmedAlignment(Alignment):
 # -- Trimmer classes ---------------------------------------------------------
 
 cdef class BaseTrimmer:
-    cdef int _backend
+    cdef ComputePlatform _platform
 
     cdef void _setup_simd_code(self, trimal.alignment.Alignment* ali) nogil
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager)
