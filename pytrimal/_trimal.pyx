@@ -120,7 +120,7 @@ _AVX2_RUNTIME_SUPPORT = False
 _NEON_BUILD_SUPPORT   = False
 _NEON_RUNTIME_SUPPORT = False
 
-if TARGET_CPU == "x86" and TARGET_SYSTEM in ("freebsd", "linux_or_android", "macos", "windows"):
+if (TARGET_CPU == "x86" or TARGET_CPU == "x86_64") and TARGET_SYSTEM in ("freebsd", "linux_or_android", "macos", "windows"):
     cimport cpu_features.x86
     _info = cpu_features.x86.GetX86Info()
     _SSE2_BUILD_SUPPORT   = SSE2_BUILD_SUPPORT
@@ -1178,7 +1178,7 @@ cdef class BaseTrimmer:
            Renamed ``backend`` keyword argument to ``platform``.
 
         """
-        if TARGET_CPU == "x86":
+        if TARGET_CPU == "x86" or TARGET_CPU == "x86_64":
             if platform =="detect":
                 if SSE2_BUILD_SUPPORT and _SSE2_RUNTIME_SUPPORT:
                     self._platform = ComputePlatform.SSE2
@@ -1204,7 +1204,7 @@ cdef class BaseTrimmer:
                 raise ValueError(f"Unsupported platform on this architecture: {platform!r}")
         elif TARGET_CPU == "arm" or TARGET_CPU == "aarch64":
             if platform == "detect":
-                self._platform = ComputePlatform.GENERIC
+                self._platform = ComputePlatform.NONE
                 if NEON_BUILD_SUPPORT and _NEON_RUNTIME_SUPPORT:
                     self._platform = ComputePlatform.NEON
             elif platform == "neon":
@@ -1220,7 +1220,7 @@ cdef class BaseTrimmer:
                 raise ValueError(f"Unsupported platform on this architecture: {platform!r}")
         else:
             if platform == "detect" or platform == "generic":
-                self._platform = ComputePlatform.GENERIC
+                self._platform = ComputePlatform.NONE
             elif platform is None:
                 self._platform = ComputePlatform.NONE
             else:

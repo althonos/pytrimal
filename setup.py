@@ -11,6 +11,7 @@ import setuptools
 import setuptools.extension
 import subprocess
 import sys
+import sysconfig
 from distutils.command.clean import clean as _clean
 from distutils.errors import CompileError
 from setuptools.command.build_clib import build_clib as _build_clib
@@ -27,32 +28,6 @@ except ImportError as err:
 
 SETUP_FOLDER = os.path.realpath(os.path.join(__file__, os.pardir))
 INCLUDE_FOLDER = os.path.join(SETUP_FOLDER, "vendor", "trimal", "include")
-
-MACHINE = platform.machine()
-if re.match("^mips", MACHINE):
-    TARGET_CPU = "mips"
-elif re.match("^(aarch64|arm64)$", MACHINE):
-    TARGET_CPU = "aarch64"
-elif re.match("^arm", MACHINE):
-    TARGET_CPU = "arm"
-elif re.match("(x86_64)|(AMD64|amd64)|(^i.86$)", MACHINE):
-    TARGET_CPU = "x86"
-elif re.match("^(powerpc|ppc)", MACHINE):
-    TARGET_CPU = "ppc"
-else:
-    TARGET_CPU = None
-
-SYSTEM = platform.system()
-if SYSTEM == "Linux" or SYSTEM == "Java":
-    TARGET_SYSTEM = "linux_or_android"
-elif SYSTEM.endswith("FreeBSD"):
-    TARGET_SYSTEM = "freebsd"
-elif SYSTEM == "Darwin":
-    TARGET_SYSTEM = "macos"
-elif SYSTEM.startswith(("Windows", "MSYS", "MINGW", "CYGWIN")):
-    TARGET_SYSTEM = "windows"
-else:
-    TARGET_SYSTEM = None
 
 # --- Utils ------------------------------------------------------------------
 
@@ -80,6 +55,41 @@ def _patch_osx_compiler(compiler):
         if i is not None:
             flags.pop(i)
             flags.pop(i - 1)
+
+
+def _detect_target_machine(platform):
+    if platform == "win32":
+        return "x86"
+    return platform.rsplit("-", 1)[-1]
+
+
+def _detect_target_cpu(platform):
+    machine = _detect_target_machine(platform)
+    if re.match("^mips", machine):
+        return "mips"
+    elif re.match("^(aarch64|arm64)$", machine):
+        return "aarch64"
+    elif re.match("^arm", machine):
+        return "arm"
+    elif re.match("(x86_64)|AMD64|amd64", machine):
+        return "x86_64"
+    elif re.match("(x86)|(^i.86$)", machine):
+        return "x86"
+    elif re.match("^(powerpc|ppc)", machine):
+        return "ppc"
+    return None
+
+
+def _detect_target_system(platform):
+    if platform.startswith("win"):
+        return "windows"
+    elif platform.startswith("macos"):
+        return "macos"
+    elif platform.startswith("linux"):
+        return "linux_or_android"
+    elif platform.startswith("freebsd"):
+        return "freebsd"
+    return None
 
 
 def _apply_patch(s, patch, revert=False):
@@ -151,6 +161,13 @@ class build_ext(_build_ext):
 
     def finalize_options(self):
         _build_ext.finalize_options(self)
+        # check platform
+        if self.plat_name is None:
+            self.plat_name = sysconfig.get_platform()
+        # detect platform options
+        self.target_machine = _detect_target_machine(self.plat_name)
+        self.target_system = _detect_target_system(self.plat_name)
+        self.target_cpu = _detect_target_cpu(self.plat_name)
         # transfer arguments to the build_clib method
         self._clib_cmd = self.get_finalized_command("build_clib")
         self._clib_cmd.debug = self.debug
@@ -160,6 +177,10 @@ class build_ext(_build_ext):
         self._clib_cmd.include_dirs = self.include_dirs
         self._clib_cmd.compiler = self.compiler
         self._clib_cmd.parallel = self.parallel
+        self._clib_cmd.plat_name = self.plat_name
+        self._clib_cmd.target_machine = self.target_machine
+        self._clib_cmd.target_cpu = self.target_cpu
+        self._clib_cmd.target_system = self.target_system
 
     # --- Autotools-like helpers ---
 
@@ -272,8 +293,8 @@ class build_ext(_build_ext):
                 "SYS_VERSION_INFO_MINOR": sys.version_info.minor,
                 "SYS_VERSION_INFO_MICRO": sys.version_info.micro,
                 "DEFAULT_BUFFER_SIZE": io.DEFAULT_BUFFER_SIZE,
-                "TARGET_CPU": TARGET_CPU,
-                "TARGET_SYSTEM": TARGET_SYSTEM,
+                "TARGET_CPU": self.target_cpu,
+                "TARGET_SYSTEM": self.target_system,
                 "AVX2_BUILD_SUPPORT": False,
                 "NEON_BUILD_SUPPORT": False,
                 "SSE2_BUILD_SUPPORT": False,
@@ -350,11 +371,22 @@ class build_clib(_build_clib):
         self.disable_avx2 = False
         self.disable_sse2 = False
         self.disable_neon = False
+        self.target_machine = None
+        self.target_system = None
+        self.target_cpu = None
+        self.plat_name = None
 
     def finalize_options(self):
         _build_clib.finalize_options(self)
         if self.parallel is not None:
             self.parallel = int(self.parallel)
+        # check platform
+        if self.plat_name is None:
+            self.plat_name = sysconfig.get_platform()
+        # detect platform options
+        self.target_machine = _detect_target_machine(self.plat_name)
+        self.target_system = _detect_target_system(self.plat_name)
+        self.target_cpu = _detect_target_cpu(self.plat_name)
          # record SIMD-specific options
         self._simd_supported = dict(AVX2=False, SSE2=False, NEON=False)
         self._simd_defines = dict(AVX2=[], SSE2=[], NEON=[])
@@ -499,7 +531,7 @@ class build_clib(_build_clib):
         )
 
     def _neon_flags(self):
-        return ["-mfpu=neon"] if TARGET_CPU == "arm" else []
+        return ["-mfpu=neon"] if self.target_cpu == "arm" else []
 
     def _check_neon(self):
         return self._check_simd_generic(
@@ -566,7 +598,7 @@ class build_clib(_build_clib):
             _patch_osx_compiler(self.compiler)
 
         # check if we can build platform-specific code
-        if TARGET_CPU == "x86":
+        if self.target_cpu == "x86" or self.target_cpu == "x86_64":
             if not self._simd_disabled["AVX2"] and self._check_avx2():
                 self._simd_supported["AVX2"] = True
                 self._simd_flags["AVX2"].extend(self._avx2_flags())
@@ -575,7 +607,7 @@ class build_clib(_build_clib):
                 self._simd_supported["SSE2"] = True
                 self._simd_flags["SSE2"].extend(self._sse2_flags())
                 self._simd_defines["SSE2"].append(("__SSE2__", 1))
-        elif TARGET_CPU == "arm" or TARGET_CPU == "aarch64":
+        elif self.target_cpu == "arm" or self.target_cpu == "aarch64":
             if not self._simd_disabled["NEON"] and self._check_neon():
                 self._simd_supported["NEON"] = True
                 self._simd_flags["NEON"].extend(self._neon_flags())
