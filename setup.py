@@ -149,48 +149,8 @@ class build_ext(_build_ext):
 
     # --- Compatibility with `setuptools.Command`
 
-    user_options = _build_ext.user_options + [
-        (
-            "disable-avx2",
-            None,
-            "Force compiling the extension without AVX2 instructions",
-        ),
-        (
-            "disable-mmx",
-            None,
-            "Force compiling the extension without MMX instructions",
-        ),
-        (
-            "disable-sse2",
-            None,
-            "Force compiling the extension without SSE2 instructions",
-        ),
-        (
-            "disable-neon",
-            None,
-            "Force compiling the extension without NEON instructions",
-        ),
-    ]
-
-    def initialize_options(self):
-        _build_ext.initialize_options(self)
-        self.disable_avx2 = False
-        self.disable_mmx  = False
-        self.disable_sse2 = False
-        self.disable_neon = False
-
     def finalize_options(self):
         _build_ext.finalize_options(self)
-        # record SIMD-specific options
-        self._simd_supported = dict(AVX2=False, SSE2=False, NEON=False, MMX=False)
-        self._simd_defines = dict(AVX2=[], SSE2=[], NEON=[], MMX=[])
-        self._simd_flags = dict(AVX2=[], SSE2=[], NEON=[], MMX=[])
-        self._simd_disabled = {
-            "AVX2": self.disable_avx2,
-            "SSE2": self.disable_sse2,
-            "NEON": self.disable_neon,
-            "MMX": self.disable_mmx
-        }
         # transfer arguments to the build_clib method
         self._clib_cmd = self.get_finalized_command("build_clib")
         self._clib_cmd.debug = self.debug
@@ -202,117 +162,6 @@ class build_ext(_build_ext):
         self._clib_cmd.parallel = self.parallel
 
     # --- Autotools-like helpers ---
-
-    def _check_simd_generic(self, name, flags, program):
-        _eprint("checking whether compiler can build", name, "code", end="... ")
-
-        base = "have_{}".format(name)
-        testfile = os.path.join(self.build_temp, "{}.c".format(base))
-        binfile = self.compiler.executable_filename(base, output_dir=self.build_temp)
-        objects = []
-
-        self.mkpath(self.build_temp)
-        with open(testfile, "w") as f:
-            f.write(program)
-
-        try:
-            self.mkpath(self.build_temp)
-            objects = self.compiler.compile([testfile], extra_preargs=flags)
-            self.compiler.link_executable(objects, base, extra_preargs=flags, output_dir=self.build_temp)
-            subprocess.run([binfile], check=True)
-        except CompileError:
-            _eprint("no")
-            return False
-        except subprocess.CalledProcessError:
-            _eprint("yes, but cannot run code")
-            return True  # assume we are cross-compiling, and still build
-        else:
-            if not flags:
-                _eprint("yes")
-            else:
-                _eprint("yes, with {}".format(" ".join(flags)))
-            return True
-        finally:
-            os.remove(testfile)
-            for obj in filter(os.path.isfile, objects):
-                os.remove(obj)
-            if os.path.isfile(binfile):
-                os.remove(binfile)
-
-    def _avx2_flags(self):
-        if self.compiler.compiler_type == "msvc":
-            return ["/arch:AVX2"]
-        return ["-mavx", "-mavx2"]
-
-    def _check_avx2(self):
-        return self._check_simd_generic(
-            "AVX2",
-            self._avx2_flags(),
-            program="""
-                #include <immintrin.h>
-                int main() {{
-                    __m256i a = _mm256_set1_epi16(-1);
-                            a = _mm256_abs_epi16(a);
-                    short   x = _mm256_extract_epi16(a, 1);
-                    return (x == 1) ? 0 : 1;
-                }}
-            """,
-        )
-
-    def _sse2_flags(self):
-        if self.compiler.compiler_type == "msvc":
-            return ["/arch:SSE2"]
-        return ["-msse", "-msse2"]
-
-    def _check_sse2(self):
-        return self._check_simd_generic(
-            "SSE2",
-            self._sse2_flags(),
-            program="""
-                #include <emmintrin.h>
-                int main() {{
-                    __m128i a = _mm_set1_epi16(-1);
-                            a = _mm_and_si128(a, a);
-                    short   x = _mm_extract_epi16(a, 1);
-                    return (x == -1) ? 0 : 1;
-                }}
-            """,
-        )
-
-    def _mmx_flags(self):
-        return []
-
-    def _check_mmx(self):
-        return self._check_simd_generic(
-            "MMX",
-            self._mmx_flags(),
-            program="""
-                #include <mmintrin.h>
-                int main() {{
-                    __m64 a = _mm_set1_pi16(1);
-                    short x = (short) _m_to_int(a);
-                    return (x == 1) ? 0 : 1;
-                }}
-            """,
-        )
-
-    def _neon_flags(self):
-        return ["-mfpu=neon"] if TARGET_CPU == "arm" else []
-
-    def _check_neon(self):
-        return self._check_simd_generic(
-            "NEON",
-            self._neon_flags(),
-            program="""
-                #include <arm_neon.h>
-                int main() {{
-                    int16x8_t a = vdupq_n_s16(-1);
-                              a = vabsq_s16(a);
-                    short     x = vgetq_lane_s16(a, 1);
-                    return (x == 1) ? 0 : 1;
-                }}
-            """,
-        )
 
     def _check_getid(self):
         _eprint('checking whether `PyInterpreterState_GetID` is available')
@@ -426,7 +275,6 @@ class build_ext(_build_ext):
                 "TARGET_CPU": TARGET_CPU,
                 "TARGET_SYSTEM": TARGET_SYSTEM,
                 "AVX2_BUILD_SUPPORT": False,
-                "MMX_BUILD_SUPPORT":  False,
                 "NEON_BUILD_SUPPORT": False,
                 "SSE2_BUILD_SUPPORT": False,
             },
@@ -450,34 +298,15 @@ class build_ext(_build_ext):
         # compile the C library
         if not self.distribution.have_run.get("build_clib", False):
             self._clib_cmd.run()
+        
+        # check which SIMD features are supported
+        for simd in self._clib_cmd._simd_supported:
+            if self._clib_cmd._simd_supported[simd]:
+                cython_args["compile_time_env"][f"{simd}_BUILD_SUPPORT"] = True
 
         # add the include dirs
         for ext in self.extensions:
             ext.include_dirs.append(self._clib_cmd.build_clib)
-
-        # check if we can build platform-specific code
-        if TARGET_CPU == "x86":
-            if not self._simd_disabled["MMX"] and self._check_mmx():
-                cython_args["compile_time_env"]["MMX_BUILD_SUPPORT"] = True
-                self._simd_supported["MMX"] = True
-                self._simd_flags["MMX"].extend(self._mmx_flags())
-                self._simd_defines["MMX"].append(("__MMX__", 1))
-            if not self._simd_disabled["AVX2"] and self._check_avx2():
-                cython_args["compile_time_env"]["AVX2_BUILD_SUPPORT"] = True
-                self._simd_supported["AVX2"] = True
-                self._simd_flags["AVX2"].extend(self._avx2_flags())
-                self._simd_defines["AVX2"].append(("__AVX2__", 1))
-            if not self._simd_disabled["SSE2"] and self._check_sse2():
-                cython_args["compile_time_env"]["SSE2_BUILD_SUPPORT"] = True
-                self._simd_supported["SSE2"] = True
-                self._simd_flags["SSE2"].extend(self._sse2_flags())
-                self._simd_defines["SSE2"].append(("__SSE2__", 1))
-        elif TARGET_CPU == "arm" or TARGET_CPU == "aarch64":
-            if not self._simd_disabled["NEON"] and self._check_neon():
-                cython_args["compile_time_env"]["NEON_BUILD_SUPPORT"] = True
-                self._simd_supported["NEON"] = True
-                self._simd_flags["NEON"].extend(self._neon_flags())
-                self._simd_defines["NEON"].append(("__ARM_NEON__", 1))
 
         # cythonize the extensions (retaining platform-specific sources)
         self.extensions = cythonize(self.extensions, **cython_args)
@@ -1002,6 +831,7 @@ setuptools.setup(
                 os.path.join("pytrimal", "patch"),
                 os.path.join("pytrimal", "fileobj"),
                 os.path.join("pytrimal", "impl"),
+                os.path.join("vendor", "trimal", "vendor", "cpu_features", "include"),
                 "pytrimal",
                 "include",
             ],

@@ -84,8 +84,6 @@ from pytrimal.fileobj cimport pyreadbuf, pyreadintobuf, pywritebuf
 # from pytrimal.impl.generic cimport GenericSimilarity, GenericGaps, GenericCleaner
 # if SSE2_BUILD_SUPPORT:
 #     from pytrimal.impl.sse cimport SSESimilarity, SSEGaps, SSECleaner
-# if MMX_BUILD_SUPPORT:
-#     from pytrimal.impl.mmx cimport MMXSimilarity, MMXGaps, MMXCleaner
 # if NEON_BUILD_SUPPORT:
 #     from pytrimal.impl.neon cimport NEONSimilarity, NEONGaps, NEONCleaner
 # if AVX2_BUILD_SUPPORT:
@@ -96,8 +94,6 @@ from pytrimal.fileobj cimport pyreadbuf, pyreadintobuf, pywritebuf
 
 import os
 import threading
-
-import archspec.cpu
 
 include "_version.py"
 
@@ -117,26 +113,26 @@ cdef extern from *:
 # --- Constants --------------------------------------------------------------
 
 _TARGET_CPU           = TARGET_CPU
-_HOST_CPU             = archspec.cpu.host()
 _SSE2_BUILD_SUPPORT   = False
 _SSE2_RUNTIME_SUPPORT = False
-_MMX_BUILD_SUPPORT    = False
-_MMX_RUNTIME_SUPPORT  = False
 _AVX2_BUILD_SUPPORT   = False
 _AVX2_RUNTIME_SUPPORT = False
 _NEON_BUILD_SUPPORT   = False
 _NEON_RUNTIME_SUPPORT = False
 
 if TARGET_CPU == "x86" and TARGET_SYSTEM in ("freebsd", "linux_or_android", "macos", "windows"):
-    _MMX_BUILD_SUPPORT    = MMX_BUILD_SUPPORT
+    cimport cpu_features.x86
+    _info = cpu_features.x86.GetX86Info()
     _SSE2_BUILD_SUPPORT   = SSE2_BUILD_SUPPORT
     _AVX2_BUILD_SUPPORT   = AVX2_BUILD_SUPPORT
-    _MMX_RUNTIME_SUPPORT  = "mmx" in _HOST_CPU.features
-    _SSE2_RUNTIME_SUPPORT = "sse2" in _HOST_CPU.features
-    _AVX2_RUNTIME_SUPPORT = "avx2" in _HOST_CPU.features
+    _SSE2_RUNTIME_SUPPORT = SSE2_BUILD_SUPPORT and _info["features"]["sse2"] != 0
+    _AVX2_RUNTIME_SUPPORT = AVX2_BUILD_SUPPORT and _info["features"]["avx2"] != 0
+
 elif TARGET_CPU == "arm" and TARGET_SYSTEM == "linux_or_android":
+    cimport cpu_features.arm
+    _info = cpu_features.arm.GetArmInfo()
     _NEON_BUILD_SUPPORT   = NEON_BUILD_SUPPORT
-    _NEON_RUNTIME_SUPPORT = "neon" in _HOST_CPU.features
+    _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT and _info["features"]["neon"] != 0
 elif TARGET_CPU == "aarch64":
     _NEON_BUILD_SUPPORT   = NEON_BUILD_SUPPORT
     _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT  # always runtime support on Aarch64
@@ -145,8 +141,6 @@ if _AVX2_RUNTIME_SUPPORT:
     _BEST_BACKEND = simd_backend.AVX2
 elif _SSE2_RUNTIME_SUPPORT:
     _BEST_BACKEND = simd_backend.SSE2
-elif _MMX_RUNTIME_SUPPORT:
-    _BEST_BACKEND = simd_backend.MMX
 elif _NEON_RUNTIME_SUPPORT:
     _BEST_BACKEND = simd_backend.NEON
 else:
@@ -158,7 +152,6 @@ cdef enum simd_backend:
     SSE2 = 2
     NEON = 3
     AVX2 = 4
-    MMX = 5
 
 
 # --- Utilities --------------------------------------------------------------
@@ -1191,19 +1184,10 @@ cdef class BaseTrimmer:
         if TARGET_CPU == "x86":
             if backend =="detect":
                 self._backend = simd_backend.GENERIC
-                if MMX_BUILD_SUPPORT and _MMX_RUNTIME_SUPPORT:
-                    self._backend = simd_backend.MMX
                 if SSE2_BUILD_SUPPORT and _SSE2_RUNTIME_SUPPORT:
                     self._backend = simd_backend.SSE2
                 if AVX2_BUILD_SUPPORT and _AVX2_RUNTIME_SUPPORT:
                     self._backend = simd_backend.AVX2
-            elif backend == "mmx":
-                if not MMX_BUILD_SUPPORT:
-                    raise RuntimeError("Extension was compiled without MMX support")
-                elif not _MMX_RUNTIME_SUPPORT:
-                    raise RuntimeError("Cannot run MMX instructions on this machine")
-                else:
-                    self._backend = simd_backend.MMX
             elif backend == "avx":
                 if not AVX2_BUILD_SUPPORT:
                     raise RuntimeError("Extension was compiled without AVX2 support")
@@ -1277,35 +1261,30 @@ cdef class BaseTrimmer:
         .. versionadded:: 0.4.0
 
         """
-        cdef trimal.alignment.Alignment ali
-        cdef trimal.statistics.Manager* manager = new trimal.statistics.Manager(&ali)
-
-        if manager.platform == ComputePlatform.SSE2:
+        if self._backend == simd_backend.SSE2:
             return "sse"
-        elif manager.platform == ComputePlatform.AVX2:
+        elif self._backend == simd_backend.AVX2:
             return "avx"
-        elif manager.platform == ComputePlatform.NEON:
+        elif self._backend == simd_backend.NEON:
             return "neon"
+        elif self._backend == simd_backend.GENERIC:
+            return "generic"
         else:
             return None
 
-        # if self._backend == simd_backend.SSE2:
-        #     return "sse"
-        # elif self._backend == simd_backend.AVX2:
-        #     return "avx"
-        # elif self._backend == simd_backend.MMX:
-        #     return "mmx"
-        # elif self._backend == simd_backend.NEON:
-        #     return "neon"
-        # elif self._backend == simd_backend.GENERIC:
-        #     return "generic"
-        # else:
-        #     return None
-
     # --- Utils --------------------------------------------------------------
 
-    cdef void _setup_simd_code(self, trimal.manager.trimAlManager* manager) nogil:
-        pass
+    cdef void _setup_simd_code(self, trimal.alignment.Alignment* ali) nogil:
+
+        if self._backend == simd_backend.GENERIC:
+            ali.Statistics.platform = ComputePlatform.NONE
+        elif self._backend == simd_backend.SSE2:
+            ali.Statistics.platform = ComputePlatform.SSE2
+        elif self._backend == simd_backend.NEON:
+            ali.Statistics.platform = ComputePlatform.NEON
+        elif self._backend == simd_backend.AVX2:
+            ali.Statistics.platform = ComputePlatform.AVX2
+
         # if self._backend == simd_backend.GENERIC:
         #     del manager.origAlig.Statistics.similarity
         #     manager.origAlig.Statistics.similarity = new GenericSimilarity(manager.origAlig)
@@ -1314,15 +1293,6 @@ cdef class BaseTrimmer:
         #     del manager.origAlig.Statistics.gaps
         #     manager.origAlig.Statistics.gaps = new GenericGaps(manager.origAlig)
         #     manager.origAlig.Statistics.gaps.CalculateVectors()
-        # if MMX_BUILD_SUPPORT:
-        #     if self._backend == simd_backend.MMX:
-        #         del manager.origAlig.Statistics.similarity
-        #         manager.origAlig.Statistics.similarity = new MMXSimilarity(manager.origAlig)
-        #         del manager.origAlig.Cleaning
-        #         manager.origAlig.Cleaning = new MMXCleaner(manager.origAlig)
-        #         del manager.origAlig.Statistics.gaps
-        #         manager.origAlig.Statistics.gaps = new MMXGaps(manager.origAlig)
-        #         manager.origAlig.Statistics.gaps.CalculateVectors()
         # if AVX2_BUILD_SUPPORT:
         #     if self._backend == simd_backend.AVX2:
         #         del manager.origAlig.Statistics.similarity
@@ -1402,7 +1372,7 @@ cdef class BaseTrimmer:
 
         with nogil:
             # setup computation of optimized statistics with SIMD
-            self._setup_simd_code(&manager)
+            self._setup_simd_code(alignment._ali)
             # set flags
             manager.set_window_size()
             if manager.blockSize != -1:
