@@ -646,11 +646,23 @@ class build_clib(_build_clib):
         if self.compiler.compiler_type == "msvc":
             library.define_macros.append(("WIN32", 1))
 
-        # add SIMD flags
+        # add library-specific SIMD flags and sources
         if library.name == "trimal":
             for simd in self._simd_supported:
                 if self._simd_supported[simd]:
                     library.define_macros.append((f"HAVE_{simd}", 1))
+        elif library.name == "cpu_features":
+            if self.target_cpu == "x86" or self.target_cpu == "x86_64":
+                _cpu = "x86"
+            else:
+                _cpu = self.target_cpu
+            if self.target_system == "macos":
+                _os = "macos" if _cpu == "x86" else "macos_or_iphone"
+            else:
+                _os = self.target_system
+            library.sources.append(
+                os.path.join("vendor", "trimal", "vendor", "cpu_features", "src", f"impl_{_cpu}_{_os}.c")
+            )
 
         # expose all private members and copy headers to build directory
         for header in library.depends:
@@ -743,7 +755,6 @@ CPU_FEATURES = Library(
         os.path.join("vendor", "trimal", "vendor", "cpu_features", "src", "stack_line_reader.c"),
         os.path.join("vendor", "trimal", "vendor", "cpu_features", "src", "string_view.c"),
         # os.path.join("vendor", "trimal", "vendor", "cpu_features", "src", "hwcaps.c"),
-        *glob.glob(os.path.join("vendor", "trimal", "vendor", "cpu_features", "src", "impl_*.c")),
     ],
     include_dirs=[
         os.path.join("vendor", "trimal", "vendor", "cpu_features", "include"),
