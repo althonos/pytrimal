@@ -24,9 +24,9 @@ jobs:
         - pp38-manylinux_aarch64
         - pp39-manylinux_aarch64
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - name: Set up QEMU
       id: qemu
       uses: docker/setup-qemu-action@v2
@@ -65,9 +65,9 @@ jobs:
         - pp38-manylinux_x86_64
         - pp39-manylinux_x86_64
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
@@ -105,9 +105,9 @@ jobs:
         - pp38-macosx_x86_64
         - pp39-macosx_x86_64
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
@@ -140,9 +140,9 @@ jobs:
         - cp311-macosx_arm64
         - cp312-macosx_arm64
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
@@ -180,9 +180,9 @@ jobs:
   #       - pp38-win_amd64
   #       - pp39-win_amd64
   #   steps:
-  #   - uses: actions/checkout@v3
+  #   - uses: actions/checkout@v4
   #     with:
-  #       submodules: true
+  #       submodules: recursive
   #   - uses: actions-rs/toolchain@v1
   #     with:
   #       toolchain: stable
@@ -208,9 +208,9 @@ jobs:
     name: Build source distribution
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - name: Set up Python 3.11
       uses: actions/setup-python@v2
       with:
@@ -277,9 +277,9 @@ jobs:
     needs: upload
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - name: Release a Changelog
       uses: rasmus-saks/release-a-changelog-action@v1.0.1
       with:
@@ -294,9 +294,9 @@ jobs:
     - upload
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - name: Set up Python 3.10
       uses: actions/setup-python@v2
       with:

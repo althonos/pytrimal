@@ -73,12 +73,10 @@ cdef class ManualTrimmer(BaseTrimmer):
     cdef float   _gap_threshold
     cdef ssize_t _gap_absolute_threshold
     cdef float   _similarity_threshold
-    cdef float   _consistency_threshold
     cdef float   _conservation_percentage
     cdef int     _window
     cdef int     _gap_window
     cdef int     _similarity_window
-    cdef int     _consistency_window
 
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager)
 

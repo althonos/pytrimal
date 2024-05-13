@@ -50,9 +50,9 @@ jobs:
           python-impl: PyPy
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -115,9 +115,9 @@ jobs:
           python-impl: PyPy
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -178,9 +178,9 @@ jobs:
   #         python-impl: PyPy
   #   steps:
   #   - name: Checkout code
-  #     uses: actions/checkout@v2
+  #     uses: actions/checkout@v4
   #     with:
-  #       submodules: true
+  #       submodules: recursive
   #   - name: Cache built C files
   #     uses: actions/cache@v2
   #     with:
