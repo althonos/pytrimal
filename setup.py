@@ -736,7 +736,7 @@ class clean(_clean):
 
 CPU_FEATURES = Library(
     "cpu_features",
-    language="c++",
+    language="c",
     define_macros=[("STACK_LINE_READER_BUFFER_SIZE", 1024)],
     sources=[
         os.path.join("vendor", "trimal", "vendor", "cpu_features", "src", "filesystem.c"),
