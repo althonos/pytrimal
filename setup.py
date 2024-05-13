@@ -658,6 +658,7 @@ class build_clib(_build_clib):
                 _cpu = self.target_cpu
             if self.target_system == "macos":
                 _os = "macos" if _cpu == "x86" else "macos_or_iphone"
+                library.define_macros.append(("HAVE_SYSCTLBYNAME", 1))
             else:
                 _os = self.target_system
             library.sources.append(
