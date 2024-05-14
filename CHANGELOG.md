@@ -6,7 +6,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.8.0-alpha1...HEAD
+
+
+## [v0.8.0-alpha1] - 2024-05-14
+[v0.8.0-alpha1]: https://github.com/althonos/pytrimal/compare/v0.7.0...v0.8.0-alpha1
+
+### Changed
+- Update vendored trimAl to `d89ffc3` (`2.0_RC`).
+- Use `scoring-matrices` package to get a base for the `SimilarityMatrix` class.
+- Rename `backend` to `platform` for all trimmer classes.
+- Use trimAl platform-specific code to accelerate computations.
+
+### Fixed
+- Missing trimmer classes in API documentation.
+
+### Removed
+- Outdated platform-specific code.
+- `archspec` dependency (replaced by `cpu_features` used internally in trimAl).
 
 
 ## [v0.7.0] - 2023-07-21

@@ -474,7 +474,7 @@ class build_clib(_build_clib):
         except CompileError:
             _eprint("no")
             return False
-        except subprocess.CalledProcessError:
+        except (subprocess.CalledProcessError, OSError):
             _eprint("yes, but cannot run code")
             return True  # assume we are cross-compiling, and still build
         else:

@@ -289,6 +289,7 @@ jobs:
     environment: Arch Linux User Repository
     runs-on: ubuntu-latest
     name: Update AUR package
+    if: "!contains(github.ref, 'rc') && !contains(github.ref, 'alpha')"
     needs:
     - sdist
     - upload
