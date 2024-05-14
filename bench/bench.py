@@ -27,7 +27,7 @@ from pytrimal import (
 )
 
 if typing.TYPE_CHECKING:
-    from pytrimal._trimal import TRIMMER_BACKEND
+    from pytrimal._trimal import COMPUTE_PLATFORM
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-r", "--runs", default=3, type=int)
@@ -36,26 +36,26 @@ parser.add_argument("-o", "--output", required=True)
 args = parser.parse_args()
 
 
-BACKENDS = [None]
+PLATFORMS = [None]
 if _trimal._SSE2_RUNTIME_SUPPORT:
-    BACKENDS.append("sse2")
+    PLATFORMS.append("sse2")
 if _trimal._AVX2_RUNTIME_SUPPORT:
-    BACKENDS.append("avx2")
+    PLATFORMS.append("avx2")
 if _trimal._NEON_RUNTIME_SUPPORT:
-    BACKENDS.append("neon")
+    PLATFORMS.append("neon")
 
-STATISTIC: Dict[str, Callable[["TRIMMER_BACKEND"], BaseTrimmer]] = {
-    "Gaps": lambda backend: ManualTrimmer(gap_threshold=0.5, backend=backend),
-    "Similarity": lambda backend: ManualTrimmer(
-        similarity_threshold=0.5, backend=backend
+STATISTIC: Dict[str, Callable[["COMPUTE_PLATFORM"], BaseTrimmer]] = {
+    "Gaps": lambda platform: ManualTrimmer(gap_threshold=0.5, platform=platform),
+    "Similarity": lambda platform: ManualTrimmer(
+        similarity_threshold=0.5, platform=platform
     ),
-    "Overlap": lambda backend: OverlapTrimmer(
-        sequence_overlap=60, residue_overlap=0.5, backend=backend
+    "Overlap": lambda platform: OverlapTrimmer(
+        sequence_overlap=60, residue_overlap=0.5, platform=platform
     ),
 }
 
 with rich.progress.Progress(transient=True) as progress:
-    rich.print("[bold green]Benchmarking[/] backends: [cyan italic]{}[/]".format(" ".join(map(str, BACKENDS))))
+    rich.print("[bold green]Benchmarking[/]: [cyan italic]{}[/]".format(" ".join(map(str, PLATFORMS))))
 
     warnings.showwarning = lambda msg, c, f, l, file=None, line=None: None
 
@@ -70,9 +70,9 @@ with rich.progress.Progress(transient=True) as progress:
     task0 = progress.add_task(total=len(STATISTIC), description="Statistic (...)")
     for statistic, get_trimmer in progress.track(STATISTIC.items(), task_id=task0):
         progress.update(task_id=task0, description=f"Statistic ({statistic})")
-        task1 = progress.add_task(total=len(BACKENDS), description=" Backend (...)")
-        for backend in progress.track(BACKENDS, task_id=task1):
-            progress.update(task_id=task1, description=f" Backend ({backend})")
+        task1 = progress.add_task(total=len(PLATFORMS), description=" Platform (...)")
+        for backend in progress.track(PLATFORMS, task_id=task1):
+            progress.update(task_id=task1, description=f" Platform ({backend})")
             trimmer = get_trimmer(backend)
             task2 = progress.add_task(
                 total=len(subsets), description=f"  Subset (0/{len(example.sequences)})"

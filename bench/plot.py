@@ -13,7 +13,7 @@ from palettable.cartocolors.qualitative import Bold_9
 
 
 COLORS = dict(zip(
-    ["None", "Generic", "MMX", "SSE", "AVX", "NEON"], 
+    ["None", "Generic", "MMX", "SSE2", "AVX2", "NEON"], 
     Bold_9.hex_colors
 ))
 ORDER = {x:i for i,x in enumerate(COLORS)}
