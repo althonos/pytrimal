@@ -1265,9 +1265,6 @@ cdef class BaseTrimmer:
 
     # --- Utils --------------------------------------------------------------
 
-    cdef void _setup_simd_code(self, trimal.alignment.Alignment* ali) nogil:
-        ali.Statistics.platform = self._platform
-
     cdef void _configure_manager(self, trimal.manager.trimAlManager* manager):
         pass
 
@@ -1319,7 +1316,7 @@ cdef class BaseTrimmer:
 
         with nogil:
             # setup computation of optimized statistics with SIMD
-            self._setup_simd_code(alignment._ali)
+            alignment._ali.Statistics.platform = self._platform
             # set flags
             manager.set_window_size()
             if manager.blockSize != -1:
