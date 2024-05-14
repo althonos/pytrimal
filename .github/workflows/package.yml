@@ -38,7 +38,7 @@ jobs:
         CIBW_ARCHS: aarch64
         CIBW_BUILD: ${{ matrix.python-tag }}
         CIBW_BUILD_VERBOSITY: 2
-        CIBW_BEFORE_BUILD: pip install cython
+        CIBW_BEFORE_BUILD: "pip install -r {project}/.github/workflows/requirements.txt"
         CIBW_TEST_COMMAND: python -m unittest pytrimal.tests -vv
         CIBW_TEST_REQUIRES: importlib-resources
       with:
@@ -77,7 +77,7 @@ jobs:
       env:
         CIBW_ARCHS: x86_64
         CIBW_BUILD: ${{ matrix.python-tag }}
-        CIBW_BEFORE_BUILD: pip install cython
+        CIBW_BEFORE_BUILD: "pip install -r {project}/.github/workflows/requirements.txt"
         CIBW_BUILD_VERBOSITY: 2
         CIBW_TEST_COMMAND: python -m unittest pytrimal.tests -vv
         CIBW_TEST_REQUIRES: importlib-resources
@@ -117,7 +117,7 @@ jobs:
       env:
         CIBW_ARCHS: x86_64
         CIBW_BUILD: ${{ matrix.python-tag }}
-        CIBW_BEFORE_BUILD: pip install cython
+        CIBW_BEFORE_BUILD: "pip install -r {project}/.github/workflows/requirements.txt"
         CIBW_BUILD_VERBOSITY: 2
         CIBW_TEST_COMMAND: python -m unittest pytrimal.tests -vv
         CIBW_TEST_REQUIRES: importlib-resources
@@ -153,7 +153,7 @@ jobs:
       env:
         CIBW_ARCHS: arm64
         CIBW_BUILD: ${{ matrix.python-tag }}
-        CIBW_BEFORE_BUILD: pip install cython
+        CIBW_BEFORE_BUILD: "pip install -r {project}/.github/workflows/requirements.txt"
         CIBW_BUILD_VERBOSITY: 2
         CIBW_TEST_COMMAND: python -m unittest pytrimal.tests -vv
         CIBW_TEST_REQUIRES: importlib-resources
@@ -192,7 +192,7 @@ jobs:
   #     env:
   #       CIBW_ARCHS: AMD64
   #       CIBW_BUILD: ${{ matrix.python-tag }}
-  #       CIBW_BEFORE_BUILD: pip install cython
+  #       CIBW_BEFORE_BUILD: "pip install -r {project}/.github/workflows/requirements.txt"
   #       CIBW_BUILD_VERBOSITY: 2
   #       CIBW_TEST_COMMAND: python -m unittest pytrimal.tests -vv
   #       CIBW_TEST_REQUIRES: importlib-resources
