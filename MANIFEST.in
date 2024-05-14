@@ -11,7 +11,8 @@ recursive-include pytrimal/tests/data *
 recursive-include vendor/trimal         README.md LICENSE AUTHORS CHANGELOG CMakeLists.txt
 recursive-include vendor/trimal/source  *.cpp
 recursive-include vendor/trimal/include *.h *.txt
-recursive-include vendor/trimal/dataset *
+recursive-include vendor/trimal/dataset example.001.AA.clw example.091.AA.strNOG.ENOG411BWBU.fasta
+recursive-include vendor/trimal/vendor  *
 
 recursive-include pytrimal            *.py *.pyi *.pyx *.pxd *.h py.typed
 recursive-exclude pytrimal            *.cpp *.html
