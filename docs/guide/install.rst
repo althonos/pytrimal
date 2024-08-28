@@ -3,9 +3,9 @@ Installation
 
 .. note::
 
-    Wheels are provided for Linux, OSX and Windows x86-64, as well
-    as Linx Aarch64, but other machines will have to build the wheel from the
-    source distribution. Building ``pytrimal`` involves compiling trimAl,
+    Wheels are provided for Linux, MacOS and Windows x86-64, as well
+    as Linux and MacOS Aarch64, but other machines will have to build the wheel 
+    from the source distribution. Building ``pytrimal`` involves compiling trimAl,
     which requires a C++ compiler to be available on the local machine.
 
 
