@@ -3,36 +3,18 @@ Multiple Sequence Alignment
 
 .. currentmodule:: pytrimal
 
-
-Alignments
-^^^^^^^^^^
-
-Alignment
----------
-
 .. autoclass:: pytrimal.Alignment
    :special-members: __init__
    :members:
-
-
-Trimmed Alignment
------------------
 
 .. autoclass:: pytrimal.TrimmedAlignment(Alignment)
    :special-members: __init__
    :members:
 
-
-Attributes
-^^^^^^^^^^
-
-AlignmentSequences
-------------------
-
 .. autoclass:: pytrimal.AlignmentSequences
-
-
-AlignmentResidues
------------------
+   :special-members: __getitem__, __len__
+   :members:
 
 .. autoclass:: pytrimal.AlignmentResidues
+   :special-members: __getitem__, __len__
+   :members:

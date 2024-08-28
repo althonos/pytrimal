@@ -12,5 +12,5 @@ if you have an interesting example to provide.
 .. toctree::
    :maxdepth: 2
 
-   Basic examples from the trimAl documentation <basic>
+   Basic examples from trimAl <basic>
    Trimming an alignment to build an HMM <hmmer>

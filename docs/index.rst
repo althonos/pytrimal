@@ -62,18 +62,39 @@ PytrimAl is a Python module that provides bindings to trimAl using
 `Cython <https://cython.org/>`_. It directly interacts with the trimAl
 internals, which has the following advantages:
 
-- **single dependency**: PytrimAl is distributed as a Python package, so you
-  can add it as a dependency to your project, and stop worrying about the
-  trimAl binary being present on the end-user machine.
-- **no intermediate files**: Everything happens in memory, in a Python object
-  you control, so you don't have to invoke the trimAl CLI using a
-  sub-process and temporary files. `Alignment` objects can be created
-  directly from Python code.
-- **friendly interface**: The different trimming methods are implement as
-  Python classes that can be configured independently.
-- **error management**: Errors occuring in trimAl are converted
-  transparently into Python exceptions, including an informative
-  error message.
+.. grid:: 1 2 3 3
+   :gutter: 1
+
+   .. grid-item-card:: :fas:`battery-full` Batteries-included
+
+      Just add ``pytrimal`` as a ``pip`` or ``conda`` dependency, no need
+      for the trimAl binary or any external dependency.
+
+   .. grid-item-card:: :fas:`screwdriver-wrench` Flexible
+
+      Create input `~pytrimal.Alignment` objects programmatically through 
+      the :doc:`Python API <api/index>`.
+
+   .. grid-item-card:: :fas:`microchip` Efficient
+
+      Use the full power of your CPU with :wiki:`SIMD` instructions to 
+      compute alignment statistics, selected with dynamic dispatch
+      on the runtime platform.
+
+   .. grid-item-card:: :fas:`check` Consistent
+
+      Get the same results as the most recent trimAl version 
+      (``2.0``, unreleased), tested on a set of gold-standard alignments.
+
+   .. grid-item-card:: :fas:`toolbox` Feature-complete
+
+      Access all the features of the :doc:`original CLI <guide/examples/basic>` 
+      through the :doc:`Python API <api/index>`.
+
+   .. grid-item-card:: :fas:`circle-exclamation` Fault-tolerant
+
+      Recover errors occuring in trimAl as Python exceptions, including 
+      an informative error message.
 
 
 Setup

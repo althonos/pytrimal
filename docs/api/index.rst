@@ -4,9 +4,9 @@ API Reference
 .. toctree::
    :hidden:
 
-   alignment <alignment>
-   trimmer <trimmer>
-   similarity_matrix <similarity_matrix>
+   Alignment <alignment>
+   Trimmers <trimmer>
+   Similarity Matrix <similarity_matrix>
 
 
 .. currentmodule:: pytrimal
@@ -22,6 +22,8 @@ API Reference
 
         pytrimal.Alignment
         pytrimal.TrimmedAlignment
+        pytrimal.AlignmentResidues
+        pytrimal.AlignmentSequences
 
 
     Trimmer

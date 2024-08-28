@@ -94,6 +94,7 @@ from pytrimal.fileobj cimport pyreadbuf, pyreadintobuf, pywritebuf
 
 import os
 import threading
+from scoring_matrices.lib import ScoringMatrix
 
 include "_version.py"
 
@@ -259,10 +260,7 @@ cdef class AlignmentSequences:
     # --- Utils --------------------------------------------------------------
 
     cdef AlignmentSequences _slice(self, int start, int stop, int stride):
-        """_slice(self, start, stop, stride)\n--
-
-        Return a view of a subset of the alignment sequences, without copy.
-
+        """Return a view of a subset of the alignment sequences, without copy.
         """
         cdef object             indices = range(start, stop, stride)
         cdef int                newlen  = len(indices)
@@ -284,10 +282,7 @@ cdef class AlignmentSequences:
         return view
 
     cdef str _sequence(self, int index):
-        """_sequence(self, index)\n--
-
-        Return a single sequence in the alignment, creating a new string.
-
+        """Return a single sequence in the alignment, creating a new string.
         """
         cdef int    kind
         cdef object seq
@@ -370,10 +365,7 @@ cdef class AlignmentResidues:
     # --- Utils --------------------------------------------------------------
 
     cdef AlignmentResidues _slice(self, int start, int stop, int stride):
-        """_slice(self, start, stop, stride)\n--
-
-        Return a view of a subset of the alignment residues, without copy.
-
+        """Return a view of a subset of the alignment residues, without copy.
         """
         cdef object            indices = range(start, stop, stride)
         cdef int               newlen  = len(indices)
@@ -395,10 +387,7 @@ cdef class AlignmentResidues:
         return view
 
     cdef str _column(self, int index):
-        """_column(self, index)\n--
-
-        Return a single residue column in the alignment, creating a new string.
-
+        """Return a single residue column in the alignment, creating a new string.
         """
         cdef object col
         cdef int    kind
@@ -442,9 +431,7 @@ cdef class Alignment:
 
     @classmethod
     def from_biopython(cls, object alignment not None):
-        """from_biopython(cls, alignment)\n--
-
-        Create a new `Alignment` from an iterable of Biopython records.
+        """Create a new `Alignment` from an iterable of Biopython records.
 
         Arguments:
             alignment (iterable of `~Bio.SeqRecord.SeqRecord`): An iterable
@@ -469,9 +456,7 @@ cdef class Alignment:
         return cls(names=names, sequences=sequences)
 
     def to_biopython(self):
-        """to_biopython(self)\n--
-
-        Create a new `~Bio.Align.MultipleSeqAlignment` from this `Alignment`.
+        """Create a new `~Bio.Align.MultipleSeqAlignment` from this `Alignment`.
 
         Returns:
             `~Bio.Align.MultipleSeqAlignment`: A multiple sequence alignment
@@ -497,9 +482,7 @@ cdef class Alignment:
 
     @classmethod
     def from_pyhmmer(cls, object alignment not None):
-        """from_pyhmmer(cls, alignment)\n--
-
-        Create a new `Alignment` from a `pyhmmer.easel.TextMSA`.
+        """Create a new `Alignment` from a `pyhmmer.easel.TextMSA`.
 
         Arguments:
             alignment (`~pyhmmer.easel.TextMSA`): A PyHMMER object storing
@@ -514,9 +497,7 @@ cdef class Alignment:
         return cls(names=alignment.names, sequences=alignment.alignment)
 
     def to_pyhmmer(self):
-        """to_pyhmmer(self)\n--
-
-        Create a new `~pyhmmer.easel.TextMSA` from this `Alignment`.
+        """Create a new `~pyhmmer.easel.TextMSA` from this `Alignment`.
 
         Returns:
             `~pyhmmer.easel.TextMSA`: A PyHMMER multiple sequence alignment
@@ -541,9 +522,7 @@ cdef class Alignment:
 
     @classmethod
     def load(cls, object file not None, str format = None):
-        """load(cls, file, format=None)\n--
-
-        Load a multiple sequence alignment from a file.
+        """Load a multiple sequence alignment from a file.
 
         Arguments:
             path (`str`, `bytes`, `os.PathLike` or file-like object): The
@@ -629,9 +608,7 @@ cdef class Alignment:
         return alignment
 
     cpdef void dump(self, object file, str format="fasta") except *:
-        """dump(self, file, format="fasta")\n--
-
-        Dump the alignment to a file or a file-like object.
+        """Dump the alignment to a file or a file-like object.
 
         Arguments:
             file (`str`, `bytes`, `os.PathLike` or file-like object): The
@@ -727,9 +704,7 @@ cdef class Alignment:
             fbuffer.close()
 
     cpdef str dumps(self, str format="fasta", str encoding="utf-8"):
-        """dumps(self, format="fasta", encoding="utf-8")\n--
-
-        Dump the alignment to a string in the provided format.
+        """Dump the alignment to a string in the provided format.
 
         Arguments:
             format (`str`): The format of the alignment. See
@@ -779,7 +754,7 @@ cdef class Alignment:
             PyMem_Free(self._residues_mapping)
 
     def __init__(self, object names not None, object sequences not None):
-        """__init__(self, names, sequences)\n--
+        """__init__(self, names, sequences)\n--\n
 
         Create a new alignment with the given names and sequences.
 
@@ -904,10 +879,7 @@ cdef class Alignment:
     # --- Functions ----------------------------------------------------------
 
     cpdef Alignment copy(self):
-        """copy(self)\n--
-
-        Create a copy of this alignment.
-
+        """Create a copy of this alignment.
         """
         assert self._ali is not NULL
         cdef Alignment copy = (type(self)).__new__(type(self))
@@ -975,7 +947,7 @@ cdef class TrimmedAlignment(Alignment):
         object sequences_mask = None,
         object residues_mask = None,
     ):
-        """__init__(self, names, sequences, sequences_mask=None, residues_mask=None)\n--
+        """__init__(self, names, sequences, sequences_mask=None, residues_mask=None)\n--\n
 
         Create a new alignment with the given names, sequences and masks.
 
@@ -1098,9 +1070,7 @@ cdef class TrimmedAlignment(Alignment):
     # --- Functions ----------------------------------------------------------
 
     cpdef Alignment original_alignment(self):
-        """original_alignment(self)\n--
-
-        Rebuild the original alignment from which this object was obtained.
+        """Rebuild the original alignment from which this object was obtained.
 
         Returns:
             `~pytrimal.Alignment`: The untrimmed alignment that produced
@@ -1119,9 +1089,7 @@ cdef class TrimmedAlignment(Alignment):
         return orig
 
     cpdef TrimmedAlignment terminal_only(self):
-        """terminal_only(self)\n--
-
-        Get a trimmed alignment where only the terminal residues are removed.
+        """Get a trimmed alignment where only the terminal residues are removed.
 
         Returns:
             `~pytrimal.TrimmedAlignment`: The alignment where only terminal
@@ -1136,10 +1104,7 @@ cdef class TrimmedAlignment(Alignment):
         return term_only
 
     cpdef TrimmedAlignment copy(self):
-        """copy(self)\n--
-
-        Create a copy of this trimmed alignment.
-
+        """Create a copy of this trimmed alignment.
         """
         cdef TrimmedAlignment copy = TrimmedAlignment.__new__(TrimmedAlignment)
         copy._ali = new trimal.alignment.Alignment(self._ali[0])
@@ -1163,7 +1128,7 @@ cdef class BaseTrimmer:
         self._platform = ComputePlatform.NONE
 
     def __init__(self, *, str platform = "detect"):
-        """__init__(self, *, platform="detect")\n--
+        """__init__(self, *, platform="detect")\n--\n
 
         Create a new base trimmer.
 
@@ -1271,9 +1236,7 @@ cdef class BaseTrimmer:
     # --- Functions ----------------------------------------------------------
 
     cpdef TrimmedAlignment trim(self, Alignment alignment, SimilarityMatrix matrix = None):
-        """trim(self, alignment, matrix=None)\n--
-
-        Trim the provided alignment.
+        """Trim the provided alignment.
 
         Arguments:
             alignment (`~pytrimal.Alignment`): A multiple sequence
@@ -1390,7 +1353,7 @@ cdef class AutomaticTrimmer(BaseTrimmer):
     # --- Magic methods ------------------------------------------------------
 
     def __init__(self, str method="strict", *, str platform="detect"):
-        """__init__(self, method="strict", *, platform="detect")\n--
+        """__init__(self, method="strict", *, platform="detect")\n--\n
 
         Create a new automatic alignment trimmer using the given method.
 
@@ -1505,7 +1468,7 @@ cdef class ManualTrimmer(BaseTrimmer):
         object similarity_window       = None,
         str    platform                 = "detect",
     ):
-        """__init__(self, *, gap_threshold=None, gap_absolute_threshold=None, similarity_threshold=None, conservation_percentage=None, window=None, gap_window=None, similarity_window=None, platform="detect")\n--
+        """__init__(self, *, gap_threshold=None, gap_absolute_threshold=None, similarity_threshold=None, conservation_percentage=None, window=None, gap_window=None, similarity_window=None, platform="detect")\n--\n
 
         Create a new manual alignment trimmer with the given parameters.
 
@@ -1683,7 +1646,7 @@ cdef class OverlapTrimmer(BaseTrimmer):
         *,
         str platform="detect"
     ):
-        """__init__(self, sequence_overlap, residue_overlap, *, platform="detect")\n--
+        """__init__(self, sequence_overlap, residue_overlap, *, platform="detect")\n--\n
 
         Create a new overlap trimmer with the given thresholds.
 
@@ -1762,7 +1725,7 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
         *,
         str platform="detect"
     ):
-        """__init__(self, clusters=None, identity_threshold=None, *, platform="detect")\n--
+        """__init__(self, clusters=None, identity_threshold=None, *, platform="detect")\n--\n
 
         Create a new representative alignment trimmer.
 
@@ -1845,10 +1808,7 @@ cdef class SimilarityMatrix(ScoringMatrix):
 
     @classmethod
     def aa(cls):
-        """aa(cls)\n--
-
-        Create a default amino-acid similarity matrix (BLOSUM62).
-
+        """Create a default amino-acid similarity matrix (BLOSUM62).
         """
         blosum62 = ScoringMatrix.from_name("BLOSUM62")
         matrix = list(blosum62.shuffle(SimilarityMatrix.DEFAULT_ALPHABET))
@@ -1856,9 +1816,7 @@ cdef class SimilarityMatrix(ScoringMatrix):
 
     @classmethod
     def nt(cls, bool degenerated=False):
-        """nt(cls, degenerated=False)\n--
-
-        Create a default nucleotide similarity matrix.
+        """Create a default nucleotide similarity matrix.
 
         Arguments:
             degenerated (`bool`): Set to `True` to create a similarity
@@ -1890,7 +1848,7 @@ cdef class SimilarityMatrix(ScoringMatrix):
         str alphabet not None = SimilarityMatrix.DEFAULT_ALPHABET,
         str name = None,
     ):
-        """__init__(self, matrix, alphabet=ScoringMatrix.DEFAULT_ALPHABET, name=None)\n--
+        """__init__(self, matrix, alphabet="ARNDCQEGHILKMFPSTWYVBZX*", name=None)\n--\n
 
         Create a new similarity matrix from the given alphabet and data.
 
@@ -1965,9 +1923,7 @@ cdef class SimilarityMatrix(ScoringMatrix):
     # --- Functions ----------------------------------------------------------
 
     cpdef float similarity(self, str a, str b) except -1:
-        """similarity(self, a, b)\n--
-
-        Return the similarity between two sequence characters.
+        """Return the similarity between two sequence characters.
 
         Example:
             >>> mx = SimilarityMatrix.nt()
@@ -2004,9 +1960,7 @@ cdef class SimilarityMatrix(ScoringMatrix):
         return self._smx.simMat[numa][numb]
 
     cpdef float distance(self, str a, str b) except -1:
-        """distance(self, a, b)\n--
-
-        Return the distance between two sequence characters.
+        """Return the distance between two sequence characters.
 
         Example:
             >>> mx = SimilarityMatrix.nt(degenerated=True)
