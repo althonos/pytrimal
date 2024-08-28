@@ -15,9 +15,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - python-version: 3.6
-          python-release: v3.6
-          python-impl: CPython
+        #- python-version: 3.6
+        #  python-release: v3.6
+        #  python-impl: CPython
         - python-version: 3.7
           python-release: v3.7
           python-impl: CPython
@@ -36,9 +36,9 @@ jobs:
         - python-version: '3.12'
           python-release: v3.12
           python-impl: CPython
-        - python-version: pypy-3.6
-          python-release: v3.6
-          python-impl: PyPy
+        #- python-version: pypy-3.6
+        #  python-release: v3.6
+        #  python-impl: PyPy
         - python-version: pypy-3.7
           python-release: v3.7
           python-impl: PyPy
@@ -57,7 +57,7 @@ jobs:
       with:
         submodules: recursive
     - name: Setup Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install Python requirements
@@ -84,9 +84,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - python-version: 3.6
-          python-release: v3.6
-          python-impl: CPython
+        #- python-version: 3.6
+        #  python-release: v3.6
+        #  python-impl: CPython
         - python-version: 3.7
           python-release: v3.7
           python-impl: CPython
@@ -186,7 +186,7 @@ jobs:
   #       key: ${{ runner.os }}-build-${{ matrix.python-version }}-${{ secrets.CACHE_VERSION }}
   #       restore-keys: ${{ runner.os }}-build-${{ matrix.python-version }}-${{ secrets.CACHE_VERSION }}
   #   - name: Setup Python ${{ matrix.python-version }}
-  #     uses: actions/setup-python@v2
+  #     uses: actions/setup-python@v4
   #     with:
   #       python-version: ${{ matrix.python-version }}
   #       architecture: x64

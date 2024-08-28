@@ -215,7 +215,7 @@ jobs:
       with:
         submodules: recursive
     - name: Set up Python 3.12
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.12'
     - name: Install build requirements
@@ -235,7 +235,7 @@ jobs:
     - sdist
     steps:
     - name: Setup Python 3.12
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.12'
     - name: Download built wheels
@@ -284,7 +284,7 @@ jobs:
       with:
         submodules: recursive
     - name: Release a Changelog
-      uses: rasmus-saks/release-a-changelog-action@v1.0.1
+      uses: rasmus-saks/release-a-changelog-action@v1.2.0
       with:
         github-token: '${{ secrets.GITHUB_TOKEN }}'
 
@@ -302,7 +302,7 @@ jobs:
       with:
         submodules: recursive
     - name: Set up Python 3.12
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.12'
     - name: Download built wheels
@@ -310,6 +310,8 @@ jobs:
       with:
           name: wheels
           path: dist
+    - name: Install setuptools
+      run: python -m pip install setuptools
     - name: Extract package version
       run: echo PKGVER=$(python setup.py --version) >> $GITHUB_ENV
     - name: Compute SHA256 of source distribution
