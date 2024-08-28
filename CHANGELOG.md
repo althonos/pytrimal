@@ -9,17 +9,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [Unreleased]: https://github.com/althonos/pytrimal/compare/v0.8.0-alpha1...HEAD
 
 
-## [v0.8.0-alpha1] - 2024-05-14
-[v0.8.0-alpha1]: https://github.com/althonos/pytrimal/compare/v0.7.0...v0.8.0-alpha1
+## [v0.8.0] - 2024-08-28
+[v0.8.0]: https://github.com/althonos/pytrimal/compare/v0.7.0...v0.8.0
 
 ### Changed
 - Update vendored trimAl to `d89ffc3` (`2.0_RC`).
 - Use `scoring-matrices` package to get a base for the `SimilarityMatrix` class.
 - Rename `backend` to `platform` for all trimmer classes.
 - Use trimAl platform-specific code to accelerate computations.
+- Migrate documentation to `pydata-sphinx-theme`.
 
 ### Fixed
 - Missing trimmer classes in API documentation.
+- Pin supported versions of `scoring-matrices` package to `~=0.2.0`.
 
 ### Removed
 - Outdated platform-specific code.
