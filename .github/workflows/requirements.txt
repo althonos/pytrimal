@@ -1,4 +1,4 @@
-coverage ~=6.0
+# coverage ~=6.0
 cython ~=3.0
 scoring-matrices ~=0.2.0
 scikit-build-core

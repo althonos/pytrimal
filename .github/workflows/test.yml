@@ -62,20 +62,21 @@ jobs:
       run: python -m pip install -r .github/workflows/requirements.txt --prefer-binary
     - name: Build C extension in debug mode
       run: python -m pip install --no-build-isolation -e . -v
-    - name: Test with coverage
-      run: python -m coverage run -m unittest pytrimal.tests -vv
-    - name: Upload to Codecov
-      if: matrix.python-impl == 'CPython'
-      uses: codecov/codecov-action@v5
-      with:
-        flags: ${{ matrix.python-impl }},${{ matrix.python-release }},${{ env.OS }}
-        name: test-python-${{ matrix.python-version }}
-        fail_ci_if_error: true
-        token: ${{ secrets.CODECOV_TOKEN }}
+    - name: Test without coverage
+      # run: python -m coverage run -m unittest pytrimal.tests -vv
+      run: python -m unittest pytrimal.tests -vv
+    # - name: Upload to Codecov
+    #   if: matrix.python-impl == 'CPython'
+    #   uses: codecov/codecov-action@v5
+    #   with:
+    #     flags: ${{ matrix.python-impl }},${{ matrix.python-release }},${{ env.OS }}
+    #     name: test-python-${{ matrix.python-version }}
+    #     fail_ci_if_error: true
+    #     token: ${{ secrets.CODECOV_TOKEN }}
 
   test_osx:
     name: Test (OSX)
-    runs-on: macos-latest
+    runs-on: macos-13
     env:
       OS: OSX
     strategy:
@@ -132,16 +133,17 @@ jobs:
       run: arch -x86_64 python -m pip install -r .github/workflows/requirements.txt --prefer-binary
     - name: Build C extension in debug mode
       run: arch -x86_64 python -m pip install --no-build-isolation -e . -v
-    - name: Test with coverage
-      run: arch -x86_64 python -m coverage run -m unittest pytrimal.tests -vv
-    - name: Upload to Codecov
-      if: matrix.python-impl == 'CPython'
-      uses: codecov/codecov-action@v5
-      with:
-        flags: ${{ matrix.python-impl }},${{ matrix.python-release }},${{ env.OS }}
-        name: test-python-${{ matrix.python-version }}
-        fail_ci_if_error: true
-        token: ${{ secrets.CODECOV_TOKEN }}
+    - name: Test without coverage
+      # run: arch -x86_64 python -m coverage run -m unittest pytrimal.tests -vv
+      run: arch -x86_64 python -m unittest pytrimal.tests -vv
+    # - name: Upload to Codecov
+    #   if: matrix.python-impl == 'CPython'
+    #   uses: codecov/codecov-action@v5
+    #   with:
+    #     flags: ${{ matrix.python-impl }},${{ matrix.python-release }},${{ env.OS }}
+    #     name: test-python-${{ matrix.python-version }}
+    #     fail_ci_if_error: true
+    #     token: ${{ secrets.CODECOV_TOKEN }}
 
   # test_windows:
   #   name: Test (Windows)
