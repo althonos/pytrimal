@@ -54,8 +54,9 @@ jobs:
       with:
         submodules: recursive
     - name: Setup Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
+        architecture: x64
         python-version: ${{ matrix.python-version }}
     - name: Install Python requirements
       run: python -m pip install -r .github/workflows/requirements.txt --prefer-binary
@@ -123,8 +124,9 @@ jobs:
       with:
         submodules: recursive
     - name: Setup Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
+        architecture: x64
         python-version: ${{ matrix.python-version }}
     - name: Install Python requirements
       run: python -m pip install -r .github/workflows/requirements.txt --prefer-binary
@@ -186,7 +188,7 @@ jobs:
   #       key: ${{ runner.os }}-build-${{ matrix.python-version }}-${{ secrets.CACHE_VERSION }}
   #       restore-keys: ${{ runner.os }}-build-${{ matrix.python-version }}-${{ secrets.CACHE_VERSION }}
   #   - name: Setup Python ${{ matrix.python-version }}
-  #     uses: actions/setup-python@v4
+  #     uses: actions/setup-python@v5
   #     with:
   #       python-version: ${{ matrix.python-version }}
   #       architecture: x64

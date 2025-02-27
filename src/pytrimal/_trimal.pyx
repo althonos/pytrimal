@@ -88,8 +88,7 @@ import os
 import threading
 from scoring_matrices.lib import ScoringMatrix
 
-include "_version.py"
-
+__version__ = PROJECT_VERSION
 
 # --- Constants --------------------------------------------------------------
 
