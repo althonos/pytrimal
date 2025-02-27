@@ -9,6 +9,12 @@ set_property(GLOBAL PROPERTY PYTHON_EXTENSIONS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE
 # Make project C++ 11
 set(CMAKE_CXX_STANDARD 11)
 
+# --- Detect SIMD --------------------------------------------------------------
+
+include("src/scripts/cmake/FindAVX2.cmake")
+include("src/scripts/cmake/FindNEON.cmake")
+include("src/scripts/cmake/FindSSE2.cmake")
+
 # --- Setup include folders ----------------------------------------------------
 
 include("src/scripts/cmake/CythonExtension.cmake")
