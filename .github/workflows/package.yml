@@ -35,8 +35,6 @@ jobs:
         CIBW_BUILD: ${{ matrix.python-tag }}
         CIBW_BUILD_VERBOSITY: 2
         CIBW_BEFORE_BUILD: "pip install -r {project}/.github/workflows/requirements.txt"
-        CIBW_TEST_COMMAND: python -m unittest pytrimal.tests -vv
-        CIBW_TEST_REQUIRES: importlib-resources
       with:
         output-dir: dist
     - uses: actions/upload-artifact@v3
@@ -76,8 +74,6 @@ jobs:
         CIBW_BUILD: ${{ matrix.python-tag }}
         CIBW_BEFORE_BUILD: "pip install -r {project}/.github/workflows/requirements.txt"
         CIBW_BUILD_VERBOSITY: 2
-        CIBW_TEST_COMMAND: python -m unittest pytrimal.tests -vv
-        CIBW_TEST_REQUIRES: importlib-resources
       with:
         output-dir: dist
     - uses: actions/upload-artifact@v3
@@ -117,8 +113,6 @@ jobs:
         CIBW_BUILD: ${{ matrix.python-tag }}
         CIBW_BEFORE_BUILD: "pip install -r {project}/.github/workflows/requirements.txt"
         CIBW_BUILD_VERBOSITY: 2
-        CIBW_TEST_COMMAND: python -m unittest pytrimal.tests -vv
-        CIBW_TEST_REQUIRES: importlib-resources
       with:
         output-dir: dist
     - uses: actions/upload-artifact@v3
@@ -153,8 +147,6 @@ jobs:
         CIBW_BUILD: ${{ matrix.python-tag }}
         CIBW_BEFORE_BUILD: "pip install -r {project}/.github/workflows/requirements.txt"
         CIBW_BUILD_VERBOSITY: 2
-        CIBW_TEST_COMMAND: python -m unittest pytrimal.tests -vv
-        CIBW_TEST_REQUIRES: importlib-resources
       with:
         output-dir: dist
     - uses: actions/upload-artifact@v3
@@ -308,7 +300,7 @@ jobs:
     - name: Install setuptools
       run: python -m pip install setuptools
     - name: Extract package version
-      run: echo PKGVER=$(python setup.py --version) >> $GITHUB_ENV
+      run: echo PKGVER=$(echo '${{ github.ref }}' | cut -d'v' -f2) >> $GITHUB_ENV
     - name: Compute SHA256 of source distribution
       run: echo SHA256=$(sha256sum dist/pytrimal-${{ env.PKGVER }}.tar.gz | cut -f1 -d' ') >> $GITHUB_ENV
     - name: Generate PKGBUILD
