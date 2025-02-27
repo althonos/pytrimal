@@ -10,148 +10,81 @@ jobs:
   wheel-linux-aarch64:
     name: Build Linux wheels (Aarch64)
     runs-on: ubuntu-22.04-arm
-    strategy:
-      matrix:
-        python-tag:
-        - cp36-manylinux_aarch64
-        - cp37-manylinux_aarch64
-        - cp38-manylinux_aarch64
-        - cp39-manylinux_aarch64
-        - cp310-manylinux_aarch64
-        - cp311-manylinux_aarch64
-        - cp312-manylinux_aarch64
-        - pp37-manylinux_aarch64
-        - pp38-manylinux_aarch64
-        - pp39-manylinux_aarch64
-        - pp310-manylinux_aarch64
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
       with:
-        submodules: recursive
+        submodules: true
     - name: Build manylinux wheels
-      uses: pypa/cibuildwheel@v2.16.2
+      uses: pypa/cibuildwheel@v2.22.0
       env:
         CIBW_ARCHS: aarch64
-        CIBW_BUILD: ${{ matrix.python-tag }}
+        CIBW_BUILD: 'cp*-manylinux_aarch64'
         CIBW_BUILD_VERBOSITY: 2
-        CIBW_BEFORE_BUILD: "pip install -r {project}/.github/workflows/requirements.txt"
       with:
         output-dir: dist
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: wheels-manylinux_aarch64
         path: dist/*
 
   wheel-linux-x86_64:
     name: Build Linux wheels (x86-64)
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-tag:
-        - cp36-manylinux_x86_64
-        - cp37-manylinux_x86_64
-        - cp38-manylinux_x86_64
-        - cp39-manylinux_x86_64
-        - cp310-manylinux_x86_64
-        - cp311-manylinux_x86_64
-        - cp312-manylinux_x86_64
-        - pp37-manylinux_x86_64
-        - pp38-manylinux_x86_64
-        - pp39-manylinux_x86_64
-        - pp310-manylinux_x86_64
     steps:
     - uses: actions/checkout@v4
       with:
-        submodules: recursive
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
+        submodules: true
     - name: Build manylinux wheels
-      uses: pypa/cibuildwheel@v2.16.2
+      uses: pypa/cibuildwheel@v2.22.0
       env:
         CIBW_ARCHS: x86_64
-        CIBW_BUILD: ${{ matrix.python-tag }}
-        CIBW_BEFORE_BUILD: "pip install -r {project}/.github/workflows/requirements.txt"
+        CIBW_BUILD: 'cp*-manylinux_x86_64'
         CIBW_BUILD_VERBOSITY: 2
       with:
         output-dir: dist
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: wheels-manylinux_x86_64
         path: dist/*
 
   wheel-macos-x86_64:
     name: Build MacOS wheels (x86-64)
-    runs-on: macOS-12
-    strategy:
-      matrix:
-        python-tag:
-        - cp36-macosx_x86_64
-        - cp37-macosx_x86_64
-        - cp38-macosx_x86_64
-        - cp39-macosx_x86_64
-        - cp310-macosx_x86_64
-        - cp311-macosx_x86_64
-        - cp312-macosx_x86_64
-        - pp37-macosx_x86_64
-        - pp38-macosx_x86_64
-        - pp39-macosx_x86_64
-        - pp310-macosx_x86_64
+    runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v4
       with:
-        submodules: recursive
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
+        submodules: true
     - name: Build manylinux wheels
-      uses: pypa/cibuildwheel@v2.16.2
+      uses: pypa/cibuildwheel@v2.22.0
       env:
         CIBW_ARCHS: x86_64
-        CIBW_BUILD: ${{ matrix.python-tag }}
-        CIBW_BEFORE_BUILD: "pip install -r {project}/.github/workflows/requirements.txt"
+        CIBW_BUILD: 'cp*-macosx_x86_64'
         CIBW_BUILD_VERBOSITY: 2
       with:
         output-dir: dist
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: wheels-macosx_x86_64
         path: dist/*
 
   wheel-macos-aarch64:
     name: Build MacOS wheels (Aarch64)
-    runs-on: macOS-12
-    strategy:
-      matrix:
-        python-tag:
-        - cp38-macosx_arm64
-        - cp39-macosx_arm64
-        - cp310-macosx_arm64
-        - cp311-macosx_arm64
-        - cp312-macosx_arm64
+    runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v4
       with:
-        submodules: recursive
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
-        target: aarch64-apple-darwin
+        submodules: true
     - name: Build manylinux wheels
-      uses: pypa/cibuildwheel@v2.16.2
+      uses: pypa/cibuildwheel@v2.22.0
       env:
         CIBW_ARCHS: arm64
-        CIBW_BUILD: ${{ matrix.python-tag }}
-        CIBW_BEFORE_BUILD: "pip install -r {project}/.github/workflows/requirements.txt"
+        CIBW_BUILD: 'cp*-macosx_arm64'
         CIBW_BUILD_VERBOSITY: 2
       with:
         output-dir: dist
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: wheels-macosx_arm64
         path: dist/*
 
   # wheel-win32-x86_64:
@@ -200,19 +133,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        submodules: recursive
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v4
+        submodules: true
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.12'
+        python-version: '3.13'
     - name: Install build requirements
       run: python -m pip install -r .github/workflows/requirements.txt
     - name: Build source distribution
-      run: python setup.py sdist
-    - name: Store built source distribution
-      uses: actions/upload-artifact@v2
+      run: python -m build --sdist
+    - name: Store built wheels
+      uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: sdist
         path: dist/*
 
   test-sdist:
@@ -222,18 +155,18 @@ jobs:
     - sdist
     steps:
     - name: Setup Python 3.12
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.12'
-    - name: Download built wheels
-      uses: actions/download-artifact@v2
+    - name: Download source distribution
+      uses: actions/download-artifact@v4
       with:
-          name: wheels
-          path: dist/
+        name: sdist
+        path: dist/
     - name: Update pip to latest version
-      run: python -m pip install -U pip setuptools wheel
+      run: python -m pip install -r .github/workflows/requirements.txt
     - name: Install built wheel
-      run: python -m pip install --no-binary pytrimal --find-links=dist pytrimal
+      run: python -m pip install --no-binary pyhmmer --find-links=dist pytrimal
     - name: Run tests without coverage
       run: python -m unittest pytrimal.tests -vv
 
