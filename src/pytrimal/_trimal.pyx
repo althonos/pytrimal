@@ -80,7 +80,7 @@ cimport trimal.statistics
 from trimal.statistics cimport ComputePlatform
 from scoring_matrices.lib cimport ScoringMatrix
 
-from pytrimal.fileobj cimport pyreadbuf, pyreadintobuf, pywritebuf
+from pystreambuf cimport pyreadbuf, pyreadintobuf, pywritebuf
 # from pytrimal.impl.generic cimport GenericSimilarity, GenericGaps, GenericCleaner
 # if SSE2_BUILD_SUPPORT:
 #     from pytrimal.impl.sse cimport SSESimilarity, SSEGaps, SSECleaner

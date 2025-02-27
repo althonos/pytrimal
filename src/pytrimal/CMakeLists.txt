@@ -1,0 +1,1 @@
+cython_extension(_trimal LINKS libtrimal pystreambuf)
