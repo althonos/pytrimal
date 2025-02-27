@@ -99,18 +99,6 @@ from scoring_matrices.lib import ScoringMatrix
 include "_version.py"
 
 
-# --- Patch for PyPy 3.9 -----------------------------------------------------
-
-cdef extern from *:
-    """
-    #ifndef HAS_PYINTERPRETERSTATE_GETID
-    int64_t PyInterpreterState_GetID(PyInterpreterState *interp) {
-        return 0;
-    }
-    #endif
-    """
-
-
 # --- Constants --------------------------------------------------------------
 
 _TARGET_CPU           = TARGET_CPU
