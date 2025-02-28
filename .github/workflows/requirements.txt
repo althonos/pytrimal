@@ -1,6 +1,6 @@
 # coverage ~=6.0
 cython ~=3.0
-scoring-matrices ~=0.2.0
+scoring-matrices ~=0.3.0
 scikit-build-core
 build
 importlib-resources ; python_version < '3.7'
