@@ -80,15 +80,7 @@ cimport trimal.statistics
 from trimal.statistics cimport ComputePlatform
 from scoring_matrices.lib cimport ScoringMatrix
 
-from pytrimal.fileobj cimport pyreadbuf, pyreadintobuf, pywritebuf
-# from pytrimal.impl.generic cimport GenericSimilarity, GenericGaps, GenericCleaner
-# if SSE2_BUILD_SUPPORT:
-#     from pytrimal.impl.sse cimport SSESimilarity, SSEGaps, SSECleaner
-# if NEON_BUILD_SUPPORT:
-#     from pytrimal.impl.neon cimport NEONSimilarity, NEONGaps, NEONCleaner
-# if AVX2_BUILD_SUPPORT:
-#     from pytrimal.impl.avx cimport AVXSimilarity, AVXGaps, AVXCleaner
-
+from pystreambuf cimport pyreadbuf, pyreadintobuf, pywritebuf
 
 # --- Python imports ---------------------------------------------------------
 
@@ -96,24 +88,12 @@ import os
 import threading
 from scoring_matrices.lib import ScoringMatrix
 
-include "_version.py"
-
-
-# --- Patch for PyPy 3.9 -----------------------------------------------------
-
-cdef extern from *:
-    """
-    #ifndef HAS_PYINTERPRETERSTATE_GETID
-    int64_t PyInterpreterState_GetID(PyInterpreterState *interp) {
-        return 0;
-    }
-    #endif
-    """
-
+__version__ = PROJECT_VERSION
 
 # --- Constants --------------------------------------------------------------
 
 _TARGET_CPU           = TARGET_CPU
+_TARGET_SYSTEM        = TARGET_SYSTEM
 _SSE2_BUILD_SUPPORT   = False
 _SSE2_RUNTIME_SUPPORT = False
 _AVX2_BUILD_SUPPORT   = False
@@ -121,15 +101,21 @@ _AVX2_RUNTIME_SUPPORT = False
 _NEON_BUILD_SUPPORT   = False
 _NEON_RUNTIME_SUPPORT = False
 
-if (TARGET_CPU == "x86" or TARGET_CPU == "x86_64") and TARGET_SYSTEM in ("freebsd", "linux_or_android", "macos", "windows"):
+if TARGET_CPU == "x86": 
     cimport cpu_features.x86
     _info = cpu_features.x86.GetX86Info()
     _SSE2_BUILD_SUPPORT   = SSE2_BUILD_SUPPORT
     _AVX2_BUILD_SUPPORT   = AVX2_BUILD_SUPPORT
     _SSE2_RUNTIME_SUPPORT = SSE2_BUILD_SUPPORT and _info["features"]["sse2"] != 0
     _AVX2_RUNTIME_SUPPORT = AVX2_BUILD_SUPPORT and _info["features"]["avx2"] != 0
-
-elif TARGET_CPU == "arm" and TARGET_SYSTEM == "linux_or_android":
+elif TARGET_CPU == "x86_64":
+    cimport cpu_features.x86
+    _info = cpu_features.x86.GetX86Info()
+    _SSE2_BUILD_SUPPORT   = SSE2_BUILD_SUPPORT
+    _AVX2_BUILD_SUPPORT   = AVX2_BUILD_SUPPORT
+    _SSE2_RUNTIME_SUPPORT = SSE2_BUILD_SUPPORT  # always runtime support on x86-64
+    _AVX2_RUNTIME_SUPPORT = AVX2_BUILD_SUPPORT and _info["features"]["avx2"] != 0
+elif TARGET_CPU == "arm":
     cimport cpu_features.arm
     _info = cpu_features.arm.GetArmInfo()
     _NEON_BUILD_SUPPORT   = NEON_BUILD_SUPPORT

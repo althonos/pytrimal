@@ -1,6 +1,4 @@
 # noqa: D104
-from ._version import __version__  # isort: skip
-
 from . import _trimal
 from ._trimal import (
     Alignment,
@@ -15,6 +13,7 @@ from ._trimal import (
     TrimmedAlignment,
 )
 
+__version__ = _trimal.__version__
 __doc__ = _trimal.__doc__
 __all__ = [
     "Alignment",

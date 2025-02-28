@@ -1,1 +1,0 @@
-../../../vendor/trimal/dataset/example.001.AA.clw
