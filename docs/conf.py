@@ -6,13 +6,13 @@
 
 # -- Imports -----------------------------------------------------------------
 
-import configparser
 import datetime
 import os
 import re
 import semantic_version
 import shutil
 import sys
+import urllib.request
 
 # -- Path setup --------------------------------------------------------------
 
@@ -29,15 +29,11 @@ project_dir = os.path.dirname(docssrc_dir)
 if os.getenv("READTHEDOCS", "False") != "True":
     sys.path.insert(0, project_dir)
 
-# -- Sphinx Setup ------------------------------------------------------------
-
-
-def setup(app):
-    # Add custom stylesheet
-    app.add_css_file("css/main.css")
-    # app.add_js_file("js/apitoc.js")
-    # app.add_js_file("js/example-admonition.js")
-
+# Download the *See Also* cards from a centralized location so it can be kept
+# up-to-date across all projects
+with urllib.request.urlopen("https://gist.githubusercontent.com/althonos/5d6bf5a512d64dc951c42a91d5fc3fb3/raw/related.rst") as src:
+    with open("related.rst", "wb") as dst:
+        shutil.copyfileobj(src, dst)
 
 # -- Project information -----------------------------------------------------
 
@@ -53,15 +49,6 @@ copyright = "{}, {}".format("2022" if year == 2022 else "2022-{}".format(year), 
 semver = semantic_version.Version.coerce(pytrimal.__version__)
 version = str(semver.truncate(level="patch"))
 release = str(semver)
-
-# extract the project URLs from ``setup.cfg``
-cfgparser = configparser.ConfigParser()
-cfgparser.read(os.path.join(project_dir, "setup.cfg"))
-project_urls = dict(
-    map(str.strip, line.split(" = ", 1))
-    for line in cfgparser.get("metadata", "project_urls").splitlines()
-    if line.strip()
-)
 
 # patch the docstring so that we don't show the link to redirect
 # to the docs (we don't want to see it when reading the docs already, duh!)
