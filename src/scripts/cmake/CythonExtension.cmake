@@ -23,10 +23,6 @@ string(TOLOWER "${Python_INTERPRETER_ID}" SYS_IMPLEMENTATION_NAME)
 
 # --- Prepare Cython directives and constants ----------------------------------
 
-message(STATUS "HAVE_SSE2: ${HAVE_SSE2}")
-message(STATUS "HAVE_AVX2: ${HAVE_AVX2}")
-message(STATUS "HAVE_NEON: ${HAVE_NEON}")
-
 set(CYTHON_DIRECTIVES
     -X cdivision=True
     -X nonecheck=False
