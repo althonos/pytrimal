@@ -6,7 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.8.0-alpha1...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.8.1...HEAD
+
+
+## [v0.8.1] - 2025-05-06
+[v0.8.1]: https://github.com/althonos/pytrimal/compare/v0.8.0...v0.8.1
+
+### Changed
+- Use CMake and `scikit-build-core` instead of `setuptools` to build package.
+- Bump `scoring-matrices` package to `v0.3.0`.
+
+### Fixed
+- Runtime detection of SSE2 on x86-64 Windows platforms.
 
 
 ## [v0.8.0] - 2024-08-28

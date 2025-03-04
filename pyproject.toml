@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "pytrimal"
-version = "0.8.0"
+version = "0.8.1"
 description = "Cython bindings and Python interface to trimAl, a tool for automated alignment trimming."
 readme = "README.md"
 requires-python = ">=3.7"
@@ -50,7 +50,7 @@ test = ["importlib-resources ; python_version < '3.9'"]
 
 [tool.scikit-build]
 build-dir = "build/{build_type}"
-sdist.exclude = ["backup", "vendor/trimal/dataset"]
+sdist.exclude = ["backup", "build", "vendor/trimal/dataset"]
 sdist.include = [
   "vendor/trimal/dataset/example.091.AA.strNOG.ENOG411BWBU.fasta",
   "vendor/trimal/dataset/example.001.AA.clw",
@@ -73,16 +73,6 @@ cmake.define.CMAKE_CXX_COMPILER_LAUNCHER = "sccache"
 if.env.MOLD = true
 cmake.define.CMAKE_LINKER_TYPE = "mold"
 
-[[tool.scikit-build-overrides]]
-if.platform-system = "^darwin"
-if.platform-machine = "^arm64"
-cmake.define.CMAKE_APPLE_SILICON_PROCESSOR = "arm64"
-
-[[tool.scikit-build-overrides]]
-if.platform-system = "^darwin"
-if.platform-machine = "^x86_64"
-cmake.define.CMAKE_APPLE_SILICON_PROCESSOR = "x86_64"
-
 [tool.cibuildwheel]
 before-build = "pip install scikit-build-core cython>=3.0 scoring-matrices~=0.3.0"
 build-frontend = { name = "pip", args = ["--no-build-isolation"] }
@@ -90,6 +80,14 @@ build-verbosity = 1
 test-command = "python -m unittest pytrimal.tests -v"
 test-extras = ["test"]
 free-threaded-support = false
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx_x86_64"
+config-settings = { cmake.define.CMAKE_HOST_SYSTEM_NAME = "Darwin", cmake.define.CMAKE_HOST_SYSTEM_PROCESSOR = "x86_64", cmake.define.CMAKE_APPLE_SILICON_PROCESSOR = "x86_64" }
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx_arm64"
+config-settings = { cmake.define.CMAKE_HOST_SYSTEM_NAME = "Darwin", cmake.define.CMAKE_HOST_SYSTEM_PROCESSOR = "arm64", cmake.define.CMAKE_APPLE_SILICON_PROCESSOR = "arm64" }
 
 [tool.coverage.run]
 plugins = ["Cython.Coverage"]

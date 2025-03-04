@@ -120,7 +120,7 @@ elif TARGET_CPU == "arm":
     _info = cpu_features.arm.GetArmInfo()
     _NEON_BUILD_SUPPORT   = NEON_BUILD_SUPPORT
     _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT and _info["features"]["neon"] != 0
-elif TARGET_CPU == "aarch64":
+elif TARGET_CPU == "aarch64" or TARGET_CPU == "arm64":
     _NEON_BUILD_SUPPORT   = NEON_BUILD_SUPPORT
     _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT  # always runtime support on Aarch64
 
