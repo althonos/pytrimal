@@ -108,7 +108,7 @@ if TARGET_CPU == "x86":
     _AVX2_BUILD_SUPPORT   = AVX2_BUILD_SUPPORT
     _SSE2_RUNTIME_SUPPORT = SSE2_BUILD_SUPPORT and _info["features"]["sse2"] != 0
     _AVX2_RUNTIME_SUPPORT = AVX2_BUILD_SUPPORT and _info["features"]["avx2"] != 0
-elif TARGET_CPU == "x86_64":
+elif TARGET_CPU == "x86_64" or TARGET_CPU == "amd64":
     cimport cpu_features.x86
     _info = cpu_features.x86.GetX86Info()
     _SSE2_BUILD_SUPPORT   = SSE2_BUILD_SUPPORT
