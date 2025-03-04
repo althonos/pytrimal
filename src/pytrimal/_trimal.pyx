@@ -182,8 +182,8 @@ cdef extern from "<ios>":
     std::ios_base::openmode READMODE = std::ios_base::in;
     std::ios_base::openmode WRITEMODE = std::ios_base::out | std::ios_base::trunc;
     """
-    ios_base.openmode READMODE
-    ios_base.openmode WRITEMODE
+    const ios_base.openmode READMODE
+    const ios_base.openmode WRITEMODE
 
 
 # --- Alignment classes ------------------------------------------------------
