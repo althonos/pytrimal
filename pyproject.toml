@@ -73,6 +73,16 @@ cmake.define.CMAKE_CXX_COMPILER_LAUNCHER = "sccache"
 if.env.MOLD = true
 cmake.define.CMAKE_LINKER_TYPE = "mold"
 
+[[tool.scikit-build-overrides]]
+if.platform-system = "^darwin"
+if.platform-machine = "^arm64"
+cmake.define.CMAKE_APPLE_SILICON_PROCESSOR = "arm64"
+
+[[tool.scikit-build-overrides]]
+if.platform-system = "^darwin"
+if.platform-machine = "^x86_64"
+cmake.define.CMAKE_APPLE_SILICON_PROCESSOR = "x86_64"
+
 [tool.cibuildwheel]
 before-build = "pip install scikit-build-core cython>=3.0 scoring-matrices~=0.3.0"
 build-frontend = { name = "pip", args = ["--no-build-isolation"] }
