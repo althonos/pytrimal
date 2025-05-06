@@ -5,7 +5,6 @@ file(COPY_FILE ./trimal/source/reportsystem.cpp ${CMAKE_CURRENT_BINARY_DIR}/trim
 set(TRIMAL_SOURCES
     "source/Cleaner.cpp"
     "source/FormatHandling/BaseFormatHandler.cpp"
-    "include/Statistics/Manager.h"
     "include/Statistics/similarityMatrix.h"
     "include/trimalManager.h"
 )

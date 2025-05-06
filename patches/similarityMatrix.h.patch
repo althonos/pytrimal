@@ -1,17 +1,16 @@
-@@ -49,13 +49,14 @@
+@@ -49,13 +49,13 @@ namespace statistics {
   */
      class similarityMatrix {
  
 -    private:
 +    public:
-+    // private:
          int *vhash;
          float **simMat;
          float **distMat;
          int numPositions;
  
 -    private:
-+    // private:
++    public:
          /**
           * \brief Method to allocate memory for the similiarity matrix
           * \param nPos Number of different possible residues in the alignment.\n
