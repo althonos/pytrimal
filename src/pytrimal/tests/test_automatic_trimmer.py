@@ -41,8 +41,12 @@ class TestAutomaticTrimmer(TrimmerTestCase, unittest.TestCase):
         self._test_method("strictplus")
 
     @unittest.skipUnless(files, "importlib.resources.files not available")
-    def test_automatic1_method(self):
+    def test_automated1_method(self):
         self._test_method("automated1")
+
+    @unittest.skipUnless(files, "importlib.resources.files not available")
+    def test_automated2_method(self):
+        self._test_method("automated2")
 
     @unittest.skipUnless(files, "importlib.resources.files not available")
     def test_noallgaps_method(self):
