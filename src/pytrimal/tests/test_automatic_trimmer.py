@@ -3,6 +3,7 @@ import pickle
 import sys
 import json
 import unittest
+import warnings
 
 from .. import _trimal, Alignment, AutomaticTrimmer, SimilarityMatrix
 from ._base import TrimmerTestCase, files
@@ -71,9 +72,11 @@ class TestAutomaticTrimmer(TrimmerTestCase, unittest.TestCase):
         trimmed = trimmer.trim(alignment, pam70)
 
     def test_invalid_characters(self):
-        alignment = Alignment([b"seq1", b"seq2"], ["MKKBO", "MKKAY"])
-        trimmer = AutomaticTrimmer(method="strict", platform=self.platform)
-        self.assertRaises(ValueError, trimmer.trim, alignment)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            alignment = Alignment([b"seq1", b"seq2"], ["MKKBO", "MKKAY"])
+            trimmer = AutomaticTrimmer(method="strict", platform=self.platform)
+            self.assertRaises(ValueError, trimmer.trim, alignment)
 
     def test_pickle(self):
         trimmer = AutomaticTrimmer(method="automated1", platform=self.platform)
