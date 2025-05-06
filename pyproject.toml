@@ -50,6 +50,7 @@ test = ["importlib-resources ; python_version < '3.9'"]
 
 [tool.scikit-build]
 build-dir = "build/{build_type}"
+sdist.exclude = ["backup"]
 
 [tool.scikit-build.editable]
 rebuild = true

@@ -1,5 +1,6 @@
 file(COPY ../vendor/trimal DESTINATION .)
-file(COPY ./trimal DESTINATION .)
+file(COPY_FILE ./trimal/CMakeLists.txt ${CMAKE_CURRENT_BINARY_DIR}/trimal/CMakeLists.txt)
+file(COPY_FILE ./trimal/source/reportsystem.cpp ${CMAKE_CURRENT_BINARY_DIR}/trimal/source/reportsystem.cpp)
 
 set(TRIMAL_SOURCES
     "source/Cleaner.cpp"
