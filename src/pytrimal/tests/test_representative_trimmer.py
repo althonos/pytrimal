@@ -51,17 +51,14 @@ class TestRepresentativeTrimmer(unittest.TestCase):
             self.assertEqual(len(trimmed.sequences), clusters)
         self.assertTrimmedAlignmentEqual(trimmed, expected)
 
-    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(importlib_resources, "importlib.resources not available")
     def test_clusters5(self):
         self._test_representative(clusters=5)
 
-    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(importlib_resources, "importlib.resources not available")
     def test_clusters10(self):
         self._test_representative(clusters=10)
 
-    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(importlib_resources, "importlib.resources not available")
     def test_identity75(self):
         self._test_representative(identity_threshold=0.75)

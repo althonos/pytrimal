@@ -29,13 +29,11 @@ class TestManualTrimmer(TrimmerTestCase, unittest.TestCase):
         )
         self.assertRaises(ValueError, ManualTrimmer, window=5, gap_window=5)
 
-    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(files, "importlib.resources.files not available")
     def test_gap_threshold(self):
         self._test_parameters(gt=0.9, cons=60)
         self._test_parameters(gt=0.4, cons=40)
 
-    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(files, "importlib.resources.files not available")
     def test_window(self):
         ali = self._load_alignment("example.001.AA.clw", "clustal")

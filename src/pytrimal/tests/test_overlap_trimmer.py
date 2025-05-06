@@ -20,12 +20,10 @@ class TestOverlapTrimmer(TrimmerTestCase, unittest.TestCase):
         trimmed = trimmer.trim(ali)
         self.assertTrimmedAlignmentEqual(trimmed, expected)
 
-    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(files, "importlib.resources.files not available")
     def test_seqoverlap80_resoverlap80(self):
         self._test_overlap(80, 80)
 
-    @unittest.skipIf(sys.version_info < (3, 6), "No pathlib support in Python 3.5")
     @unittest.skipUnless(files, "importlib.resources.files not available")
     def test_seqoverlap40_resoverlap60(self):
         self._test_overlap(40, 60)
