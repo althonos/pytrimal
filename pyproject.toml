@@ -50,7 +50,11 @@ test = ["importlib-resources ; python_version < '3.9'"]
 
 [tool.scikit-build]
 build-dir = "build/{build_type}"
-sdist.exclude = ["backup"]
+sdist.exclude = ["backup", "vendor/trimal/dataset"]
+sdist.include = [
+  "vendor/trimal/dataset/example.091.AA.strNOG.ENOG411BWBU.fasta",
+  "vendor/trimal/dataset/example.001.AA.clw",
+]
 
 [tool.scikit-build.editable]
 rebuild = true
