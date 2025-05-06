@@ -24,6 +24,7 @@ AUTOMATIC_TRIMMER_METHODS = Literal[
     "nogaps",
     "noallgaps",
     "automated1",
+    "automated2",
     "noduplicateseqs",
 ]
 

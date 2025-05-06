@@ -21,6 +21,7 @@ cdef extern from "trimalManager.h" nogil:
         bool strict
         bool strictplus
         bool automated1
+        bool automated2
         bool sgc
         bool sgt
         bool ssc

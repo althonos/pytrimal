@@ -101,7 +101,7 @@ _AVX2_RUNTIME_SUPPORT = False
 _NEON_BUILD_SUPPORT   = False
 _NEON_RUNTIME_SUPPORT = False
 
-if TARGET_CPU == "x86": 
+if TARGET_CPU == "x86":
     cimport cpu_features.x86
     _info = cpu_features.x86.GetX86Info()
     _SSE2_BUILD_SUPPORT   = SSE2_BUILD_SUPPORT
@@ -1121,8 +1121,8 @@ cdef class BaseTrimmer:
         Keyword Arguments:
             platform (`str`, *optional*): The compute platform to use
                 to accelerate computation of pairwise similarity statistics.
-                If `None` given, use the original code from trimAl. By default, 
-                attempt to auto-detect the best available platform for the host 
+                If `None` given, use the original code from trimAl. By default,
+                attempt to auto-detect the best available platform for the host
                 CPU.
 
         .. versionchanged:: 0.8.0
@@ -1305,6 +1305,8 @@ cdef class AutomaticTrimmer(BaseTrimmer):
     - ``automated1``: A meta-method that chooses between ``strict`` and
       ``gappyout``, optimized for Maximum Likelihood phylogenetic tree
       reconstruction.
+    - ``automated2``: A meta-method that use automated selection on
+      ``gappyout`` mode and keeps a minimum amount of columns.
     - ``nogaps``: A naive method that removes every column containing at
       least one gap.
     - ``noallgaps``: A naive method that removes every column containing
@@ -1324,6 +1326,9 @@ cdef class AutomaticTrimmer(BaseTrimmer):
     .. versionadded:: 0.5.0
        Support for `pickle` protocol.
 
+    .. versionadded:: 0.9.0
+       The ``automated2`` method.
+
     """
 
     METHODS = frozenset({
@@ -1333,6 +1338,7 @@ cdef class AutomaticTrimmer(BaseTrimmer):
         "nogaps",
         "noallgaps",
         "automated1",
+        "automated2",
         "noduplicateseqs",
     })
 
@@ -1351,8 +1357,8 @@ cdef class AutomaticTrimmer(BaseTrimmer):
         Keyword Arguments:
             platform (`str`, *optional*): The compute platform to use
                 to accelerate computation of pairwise similarity statistics.
-                If `None` given, use the original code from trimAl. By default, 
-                attempt to auto-detect the best available platform for the host 
+                If `None` given, use the original code from trimAl. By default,
+                attempt to auto-detect the best available platform for the host
                 CPU.
 
         Raises:
@@ -1409,6 +1415,8 @@ cdef class AutomaticTrimmer(BaseTrimmer):
             manager.noallgaps = True
         elif self.method == "automated1":
             manager.automated1 = True
+        elif self.method == "automated2":
+            manager.automated2 = True
         elif self.method == "noduplicateseqs":
             manager.removeDuplicates = True
 
@@ -1480,8 +1488,8 @@ cdef class ManualTrimmer(BaseTrimmer):
                 for an alignment. Incompatible with ``window``.
             platform (`str`, *optional*): The compute platform to use
                 to accelerate computation of pairwise similarity statistics.
-                If `None` given, use the original code from trimAl. By default, 
-                attempt to auto-detect the best available platform for the host 
+                If `None` given, use the original code from trimAl. By default,
+                attempt to auto-detect the best available platform for the host
                 CPU.
 
         .. versionadded:: 0.2.2
@@ -1646,8 +1654,8 @@ cdef class OverlapTrimmer(BaseTrimmer):
         Keyword Arguments:
             platform (`str`, *optional*): The compute platform to use
                 to accelerate computation of pairwise similarity statistics.
-                If `None` given, use the original code from trimAl. By default, 
-                attempt to auto-detect the best available platform for the host 
+                If `None` given, use the original code from trimAl. By default,
+                attempt to auto-detect the best available platform for the host
                 CPU.
 
         """
@@ -1726,8 +1734,8 @@ cdef class RepresentativeTrimmer(BaseTrimmer):
         Keyword Arguments:
             platform (`str`, *optional*): The compute platform to use
                 to accelerate computation of pairwise similarity statistics.
-                If `None` given, use the original code from trimAl. By default, 
-                attempt to auto-detect the best available platform for the host 
+                If `None` given, use the original code from trimAl. By default,
+                attempt to auto-detect the best available platform for the host
                 CPU.
 
         Raises:
