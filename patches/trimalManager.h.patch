@@ -1,4 +1,12 @@
-@@ -236,7 +236,7 @@
+@@ -39,6 +39,7 @@
+ #include <iostream>
+ #include <fstream>
+ #include <cstring>
++#include <cstdint>
+ #include <iosfwd>
+ #include <string>
+ #include <functional>
+@@ -236,7 +237,7 @@ private: // Parse Arguments Methods
  
  public:
      bool processArguments(char* argv[]);
@@ -7,7 +15,7 @@
      bool check_arguments_incompatibilities();
          bool check_inFile_incompatibilities();
          bool check_select_cols_and_seqs_incompatibilities();
-@@ -277,7 +277,7 @@
+@@ -277,7 +278,7 @@ public:
      int perform();
      void delete_variables();
  

@@ -1,7 +1,7 @@
 import argparse
 import re
 
-_HEADER_PATTERN = re.compile(r"^@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@$")
+_HEADER_PATTERN = re.compile(r"^@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@")
 
 def _apply_patch(s, patch, revert=False):
     # see https://stackoverflow.com/a/40967337
