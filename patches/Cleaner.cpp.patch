@@ -1,6 +1,6 @@
 --- a/source/Cleaner.cpp
 +++ b/source/Cleaner.cpp
-@@ -1495,7 +1495,10 @@ void Cleaner::removeDuplicates() {
+@@ -1496,7 +1496,10 @@ void Cleaner::removeDuplicates() {
          {
              if (alig->sequences[i] == alig->sequences[x])
              {
