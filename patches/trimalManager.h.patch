@@ -1,12 +1,4 @@
-@@ -39,6 +39,7 @@
- #include <iostream>
- #include <fstream>
- #include <cstring>
-+#include <cstdint>
- #include <iosfwd>
- #include <string>
- #include <functional>
-@@ -184,7 +185,7 @@ public:
+@@ -185,7 +185,7 @@ public:
          Final           = 3
      };
  
@@ -15,7 +7,7 @@
          void verbosity_argument             (const int* argc, char* argv[]);
          
          argumentReport help_arguments(const int *argc, char **argv, int *currentArg);
-@@ -238,7 +239,7 @@ private: // Parse Arguments Methods
+@@ -239,7 +239,7 @@ private: // Parse Arguments Methods
  
  public:
      bool processArguments(char* argv[]);
@@ -24,7 +16,7 @@
      bool check_arguments_incompatibilities();
          bool check_inFile_incompatibilities();
          bool check_select_cols_and_seqs_incompatibilities();
-@@ -279,7 +280,7 @@ public:
+@@ -280,7 +280,7 @@ public:
      int perform();
      void delete_variables();
  
@@ -33,7 +25,7 @@
      int innerPerform();
      bool performCompareset();
  
-@@ -304,7 +305,7 @@ private: // General, private, methods
+@@ -305,7 +305,7 @@ private: // General, private, methods
      void CleanResiduesNonAuto();
  
  
