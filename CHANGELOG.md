@@ -6,7 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.8.1...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.8.2...HEAD
+
+
+## [v0.8.2] - 2025-08-18
+[v0.8.2]: https://github.com/althonos/pytrimal/compare/v0.8.1...v0.8.2
+
+### Fixed
+- `RepresentativeTrimmer` not working as intended ([#5](https://github.com/althonos/pytrimal/issues/5)) because of `trimAl` code issues ([inab/trimal#117](https://github.com/inab/trimal/pull/117), [inab/trimal#118](https://github.com/inab/trimal/pull/118)).
 
 
 ## [v0.8.1] - 2025-05-06

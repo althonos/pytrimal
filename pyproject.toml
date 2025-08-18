@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "pytrimal"
-version = "0.8.1"
+version = "0.8.2"
 description = "Cython bindings and Python interface to trimAl, a tool for automated alignment trimming."
 readme = "README.md"
 requires-python = ">=3.7"
@@ -89,11 +89,12 @@ free-threaded-support = false
 
 [[tool.cibuildwheel.overrides]]
 select = "*-macosx_x86_64"
-config-settings = { cmake.define.CMAKE_HOST_SYSTEM_NAME = "Darwin", cmake.define.CMAKE_HOST_SYSTEM_PROCESSOR = "x86_64", cmake.define.CMAKE_APPLE_SILICON_PROCESSOR = "x86_64" }
+config-settings = { cmake.define.CMAKE_HOST_SYSTEM_NAME = "Darwin", cmake.define.CMAKE_HOST_SYSTEM_PROCESSOR = "x86_64", cmake.define.CMAKE_APPLE_SILICON_PROCESSOR = "x86_64", cmake.define.CMAKE_OSX_ARCHITECTURES = "x86_64" }
 
 [[tool.cibuildwheel.overrides]]
 select = "*-macosx_arm64"
-config-settings = { cmake.define.CMAKE_HOST_SYSTEM_NAME = "Darwin", cmake.define.CMAKE_HOST_SYSTEM_PROCESSOR = "arm64", cmake.define.CMAKE_APPLE_SILICON_PROCESSOR = "arm64" }
+environment = { CMAKE_APPLE_SILICON_PROCESSOR = "arm64" }
+config-settings = { cmake.define.CMAKE_HOST_SYSTEM_NAME = "Darwin", cmake.define.CMAKE_HOST_SYSTEM_PROCESSOR = "arm64", cmake.define.CMAKE_APPLE_SILICON_PROCESSOR = "arm64", cmake.define.CMAKE_OSX_ARCHITECTURES = "arm64" }
 
 [tool.coverage.run]
 plugins = ["Cython.Coverage"]
