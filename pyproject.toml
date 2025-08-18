@@ -52,8 +52,14 @@ test = ["importlib-resources ; python_version < '3.9'"]
 build-dir = "build/{build_type}"
 sdist.exclude = ["backup", "build", "vendor/trimal/dataset"]
 sdist.include = [
-  "vendor/trimal/dataset/example.091.AA.strNOG.ENOG411BWBU.fasta",
   "vendor/trimal/dataset/example.001.AA.clw",
+  "vendor/trimal/dataset/example.091.AA.strNOG.ENOG411BWBU.fasta",
+  "vendor/trimal/dataset/trimmed_msas/strict/example.091.AA.strNOG.ENOG411BWBU.fasta",
+  "vendor/trimal/dataset/trimmed_msas/strictplus/example.091.AA.strNOG.ENOG411BWBU.fasta",
+  "vendor/trimal/dataset/trimmed_msas/noallgaps/example.091.AA.strNOG.ENOG411BWBU.fasta",
+  "vendor/trimal/dataset/trimmed_msas/gappyout/example.091.AA.strNOG.ENOG411BWBU.fasta",
+  "vendor/trimal/dataset/trimmed_msas/automated2/example.091.AA.strNOG.ENOG411BWBU.fasta",
+  "vendor/trimal/dataset/trimmed_msas/automated1/example.091.AA.strNOG.ENOG411BWBU.fasta",
 ]
 
 [tool.scikit-build.editable]
