@@ -52,6 +52,14 @@ class TestRepresentativeTrimmer(unittest.TestCase):
         self.assertTrimmedAlignmentEqual(trimmed, expected)
 
     @unittest.skipUnless(importlib_resources, "importlib.resources not available")
+    def test_clusters_bounds(self):
+        ali = self._load_alignment("ENOG411BWBU.fasta")
+        for clusters in range(1, len(ali)):
+            trimmer = RepresentativeTrimmer(clusters=clusters)
+            trimmed = trimmer.trim(ali)
+            self.assertLessEqual(len(trimmed.sequences), clusters)
+
+    @unittest.skipUnless(importlib_resources, "importlib.resources not available")
     def test_clusters5(self):
         self._test_representative(clusters=5)
 
