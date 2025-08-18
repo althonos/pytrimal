@@ -88,7 +88,7 @@ internals, which has the following advantages:
 
    .. grid-item-card:: :fas:`toolbox` Feature-complete
 
-      Access all the features of the :doc:`original CLI <guide/examples/basic>` 
+      Access all the features of the :doc:`original CLI <examples/basic>` 
       through the :doc:`Python API <api/index>`.
 
    .. grid-item-card:: :fas:`circle-exclamation` Fault-tolerant
@@ -112,6 +112,7 @@ Library
    :maxdepth: 2
 
    User Guide <guide/index>
+   Examples <examples/index>
    API Reference <api/index>
 
 
