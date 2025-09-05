@@ -87,6 +87,7 @@ from pystreambuf cimport pyreadbuf, pyreadintobuf, pywritebuf
 import os
 import threading
 from scoring_matrices.lib import ScoringMatrix
+from string import ascii_uppercase
 
 __version__ = PROJECT_VERSION
 
@@ -1906,6 +1907,12 @@ cdef class SimilarityMatrix(ScoringMatrix):
                 matrix[i][j] = sm.simMat[i][j]
 
         return cls(matrix, alphabet=alphabet)
+
+    @classmethod
+    def from_name(cls, name: str = "BLOSUM62"):
+        matrix = ScoringMatrix.from_name(name)
+        alphabet = ''.join(sorted(set(matrix.alphabet) & set(ascii_uppercase)))
+        return cls(list(matrix.shuffle(alphabet)), alphabet=alphabet, name=name)
 
     # --- Magic methods ------------------------------------------------------
 
