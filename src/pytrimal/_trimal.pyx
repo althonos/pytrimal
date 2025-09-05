@@ -1245,8 +1245,9 @@ cdef class BaseTrimmer:
 
         """
         # use a local manager object so that this method is re-entrant
-        cdef Alignment                    copy
-        cdef trimal.manager.trimAlManager manager
+        cdef Alignment                                 copy
+        cdef trimal.manager.trimAlManager              manager
+        cdef trimal.similarity_matrix.similarityMatrix smx
 
         # copy the alignment to the manager object so that the original
         # alignment is left untouched; for trimmed alignments, we must
@@ -1273,8 +1274,16 @@ cdef class BaseTrimmer:
             # set similarity matrix from argument or load a default one
             if matrix is not None:
                 manager.origAlig.Statistics.setSimilarityMatrix(&matrix._smx)
-            else:
+            elif manager.origAlig.getAlignmentType() != trimal.SequenceTypes.NotDefined :
                 manager.create_or_use_similarity_matrix()
+            else:
+                # NOTE: we don't use `manager.create_or_use_similarity_matrix`
+                #       here because in the case where the content of the
+                #       alignment is not detected, `create_or_use_similarity_matrix`
+                #       actually does create the matrix without initializing it.
+                smx.defaultAASimMatrix()
+                manager.origAlig.Statistics.setSimilarityMatrix(&smx)
+
             # clean alignment
             manager.clean_alignment()
             # use original alignment as single alignment if needed
