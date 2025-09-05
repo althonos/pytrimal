@@ -1,0 +1,10 @@
+--- a/include/Alignment/Alignment.h
++++ b/include/Alignment/Alignment.h
+@@ -48,6 +48,7 @@ namespace statistics {
+ 
+ class Alignment {
+ 
++public:
+     mutable int dataType = SequenceTypes::NotDefined;
+ 
+ public:

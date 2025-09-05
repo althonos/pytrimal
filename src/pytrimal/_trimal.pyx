@@ -480,7 +480,10 @@ cdef class Alignment:
         .. versionadded:: 0.5.0
 
         """
-        return cls(names=alignment.names, sequences=alignment.alignment)
+        return cls(
+            names=alignment.names, 
+            sequences=alignment.alignment
+        )
 
     def to_pyhmmer(self):
         """Create a new `~pyhmmer.easel.TextMSA` from this `Alignment`.
@@ -739,7 +742,7 @@ cdef class Alignment:
         if self._residues_mapping is not NULL:
             PyMem_Free(self._residues_mapping)
 
-    def __init__(self, object names not None, object sequences not None):
+    def __init__(self, object names not None, object sequences not None, str sequence_type = None):
         """__init__(self, names, sequences)\n--\n
 
         Create a new alignment with the given names and sequences.
@@ -749,6 +752,12 @@ cdef class Alignment:
                 the sequences in the alignment.
             sequences (`~collections.abc.Sequence` of `bytes` or `str`): The
                 actual sequences in the alignment.
+            sequence_type (`str` or `None`): The type of sequences stored 
+                in the alignment, one of ``protein``, ``dna`` or ``rna``.
+                If `None` given, use the trimAl strategy to auto-detect
+                the type. This is used in some trimmer statistics to 
+                correctly identify indetermintation symbols (``X`` for 
+                protein sequences, ``N`` for DNA and RNA sequences). 
 
         Examples:
             Create a new alignment with a list of sequences and a list of
@@ -786,16 +795,35 @@ cdef class Alignment:
                 ...
                 ValueError: The sequence "Sp10" has an unknown (49) character
 
+        .. versionadded :: 0.9.0
+            The ``sequence_type`` argument.
+
         """
         cdef bytes  name
         cdef object sequence
+        cdef int    datatype
         cdef int    nresidues     = -1
         cdef bool   validate_seqs = not isinstance(sequences, AlignmentSequences)
+
+        # FIXME: Potential memory leak if `Alignment.__init__` is called more
+        #        than once?
 
         if len(names) != len(sequences):
             raise ValueError(f"`Alignment` given {len(names)!r} names but {len(sequences)!r} sequences")
 
+        if sequence_type is None:
+            datatype = trimal.SequenceTypes.NotDefined
+        elif sequence_type == "protein":
+            datatype = trimal.SequenceTypes.AA
+        elif sequence_type == "dna":
+            datatype = trimal.SequenceTypes.DNA
+        elif sequence_type == "rna":
+            datatype = trimal.SequenceTypes.RNA
+        else:
+            raise ValueError(f"invalid `sequence_type`: {sequence_type!r} (expected one of 'protein', 'rna', 'dna' or None)")
+
         self._ali = new trimal.alignment.Alignment()
+        self._ali.dataType = datatype
         self._ali.numberOfSequences = len(sequences)
         self._ali.seqsName  = new_array[string](self._ali.numberOfSequences)
         self._ali.sequences = new_array[string](self._ali.numberOfSequences)
@@ -807,7 +835,7 @@ cdef class Alignment:
             if len(sequence) != self._ali.numberOfResidues:
                 raise ValueError(f"Sequence length mismatch in sequence {i}: {len(sequence)} != {self._ali.numberOfResidues)}")
 
-            self._ali.seqsName[i]  = name
+            self._ali.seqsName[i] = name
             if isinstance(sequence, bytes):
                 self._ali.sequences[i] = sequence
             else:
@@ -829,6 +857,42 @@ cdef class Alignment:
         return self.copy()
 
     # --- Properties ---------------------------------------------------------
+
+    @property
+    def sequence_type(self):
+        """`str` or `None`: The type of sequences in the alignment.
+
+        Usually one of ``protein``, ``dna`` or ``rna``; in the case where
+        the trimAl auto-detection failed, this will be `None`. This 
+        field is used in some trimmer statistics to correctly identify 
+        indetermintation symbols (``X`` for protein sequences, ``N`` 
+        for DNA and RNA sequences). 
+
+        Example:
+            >>> alignment = Alignment(
+            ...     names=[b"Sp8", b"Sp10", b"Sp26"],
+            ...     sequences=[
+            ...         "-----GLGKVIV-YGIVLGTKSDQFSNWVVWLFPWNGLQIHMMGII",
+            ...         "-------DPAVL-FVIMLGTIT-KFS--SEWFFAWLGLEINMMVII",
+            ...         "AAAAAAAAALLTYLGLFLGTDYENFA--AAAANAWLGLEINMMAQI",
+            ...     ]
+            ... )
+            >>> alignment.sequence_type
+            'protein'
+
+        .. versionadded :: 0.9.0
+
+        """
+        assert self._ali is not NULL
+        
+        cdef int ty = self._ali.getAlignmentType()
+        if ty & trimal.SequenceTypes.DNA:
+            return "dna"
+        elif ty & trimal.SequenceTypes.RNA:
+            return "rna"
+        elif ty & trimal.SequenceTypes.AA:
+            return "protein"
+        return None
 
     @property
     def names(self):

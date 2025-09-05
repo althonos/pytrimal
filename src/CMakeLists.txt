@@ -6,6 +6,7 @@ set(TRIMAL_SOURCES
     "source/Cleaner.cpp"
     "include/Statistics/similarityMatrix.h"
     "include/trimalManager.h"
+    "include/Alignment/Alignment.h"
 )
 
 foreach(_file IN ITEMS ${TRIMAL_SOURCES})
