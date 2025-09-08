@@ -1218,7 +1218,7 @@ cdef class BaseTrimmer:
                 self._platform = ComputePlatform.NONE
             else:
                 raise ValueError(f"Unsupported platform on this architecture: {platform!r}")
-        elif TARGET_CPU == "arm" or TARGET_CPU == "aarch64":
+        elif TARGET_CPU == "arm" or TARGET_CPU == "arm64" or TARGET_CPU == "aarch64":
             if platform == "detect":
                 self._platform = ComputePlatform.NONE
                 if NEON_BUILD_SUPPORT and _NEON_RUNTIME_SUPPORT:
