@@ -6,7 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.8.2...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.8.3...HEAD
+
+
+## [v0.8.3] - 2025-09-08
+[v0.8.3]: https://github.com/althonos/pytrimal/compare/v0.8.2...v0.8.3
+
+### Added
+- `sequence_type` property to `Alignment` objects.
+- `sequence_type` argument to `Alignment` constructor.
+
+### Fixed
+- Potential segault in `AutomatedTrimmer` (or any trimmer requiring a similarity matrix) when trimAl would incorrectly detect the `Alignment` alphabet.
+- `SimilarityMatrix.from_name` raising an error when trying to load a matrix with non-alphabetic alphabet (e.g. BLOSUM42 with `*`).
 
 
 ## [v0.8.2] - 2025-08-18
