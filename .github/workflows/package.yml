@@ -67,25 +67,25 @@ jobs:
         name: wheels-macosx_x86_64
         path: dist/*
 
-  # wheel-macos-aarch64:
-  #   name: Build MacOS wheels (Aarch64)
-  #   runs-on: macOS-13
-  #   steps:
-  #   - uses: actions/checkout@v4
-  #     with:
-  #       submodules: recursive
-  #   - name: Build manylinux wheels
-  #     uses: pypa/cibuildwheel@v2.23.3
-  #     env:
-  #       CIBW_ARCHS_MACOS: arm64
-  #       CIBW_BUILD: 'cp*-macosx_arm64'
-  #       CIBW_BUILD_VERBOSITY: 2
-  #     with:
-  #       output-dir: dist
-  #   - uses: actions/upload-artifact@v4
-  #     with:
-  #       name: wheels-macosx_arm64
-  #       path: dist/*
+  wheel-macos-aarch64:
+    name: Build MacOS wheels (Aarch64)
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build manylinux wheels
+      uses: pypa/cibuildwheel@v2.23.3
+      env:
+        CIBW_ARCHS_MACOS: arm64
+        CIBW_BUILD: 'cp*-macosx_arm64'
+        CIBW_BUILD_VERBOSITY: 2
+      with:
+        output-dir: dist
+    - uses: actions/upload-artifact@v4
+      with:
+        name: wheels-macosx_arm64
+        path: dist/*
 
   # wheel-win32-x86_64:
   #   name: Build Windows wheels (x86-64)
@@ -181,7 +181,7 @@ jobs:
     - test-sdist
     - wheel-linux-aarch64
     - wheel-linux-x86_64
-    # - wheel-macos-aarch64
+    - wheel-macos-aarch64
     - wheel-macos-x86_64
     # - wheel-win32-x86_64
     steps:
