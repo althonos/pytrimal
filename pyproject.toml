@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "pytrimal"
-version = "0.8.3"
+version = "0.8.4"
 description = "Cython bindings and Python interface to trimAl, a tool for automated alignment trimming."
 readme = "README.md"
 requires-python = ">=3.7"

@@ -6,7 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.8.3...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.8.4...HEAD
+
+
+## [v0.8.4] - 2025-09-08
+[v0.8.4]: https://github.com/althonos/pytrimal/compare/v0.8.3...v0.8.4
+
+### Fixed
+- Portability issues caused by C++ `std::streampos` in file-object `streambuf` wrapper.
+- Incorrect detection of `armv7` CPUs in platform-acceleration initialization.
 
 
 ## [v0.8.3] - 2025-09-08
