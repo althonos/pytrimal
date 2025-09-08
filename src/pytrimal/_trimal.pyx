@@ -116,14 +116,14 @@ elif TARGET_CPU == "x86_64" or TARGET_CPU == "amd64":
     _AVX2_BUILD_SUPPORT   = AVX2_BUILD_SUPPORT
     _SSE2_RUNTIME_SUPPORT = SSE2_BUILD_SUPPORT  # always runtime support on x86-64
     _AVX2_RUNTIME_SUPPORT = AVX2_BUILD_SUPPORT and _info["features"]["avx2"] != 0
-elif TARGET_CPU == "arm":
+elif TARGET_CPU == "aarch64" or TARGET_CPU == "arm64":
+    _NEON_BUILD_SUPPORT   = NEON_BUILD_SUPPORT
+    _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT  # always runtime support on Aarch64
+elif TARGET_CPU.startswith("arm"):
     cimport cpu_features.arm
     _info = cpu_features.arm.GetArmInfo()
     _NEON_BUILD_SUPPORT   = NEON_BUILD_SUPPORT
     _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT and _info["features"]["neon"] != 0
-elif TARGET_CPU == "aarch64" or TARGET_CPU == "arm64":
-    _NEON_BUILD_SUPPORT   = NEON_BUILD_SUPPORT
-    _NEON_RUNTIME_SUPPORT = NEON_BUILD_SUPPORT  # always runtime support on Aarch64
 
 if _AVX2_RUNTIME_SUPPORT:
     _BEST_PLATFORM = ComputePlatform.AVX2
@@ -1218,7 +1218,7 @@ cdef class BaseTrimmer:
                 self._platform = ComputePlatform.NONE
             else:
                 raise ValueError(f"Unsupported platform on this architecture: {platform!r}")
-        elif TARGET_CPU == "arm" or TARGET_CPU == "arm64" or TARGET_CPU == "aarch64":
+        elif TARGET_CPU.startswith("arm") or TARGET_CPU == "aarch64":
             if platform == "detect":
                 self._platform = ComputePlatform.NONE
                 if NEON_BUILD_SUPPORT and _NEON_RUNTIME_SUPPORT:
