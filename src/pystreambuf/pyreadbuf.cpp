@@ -19,9 +19,17 @@ pyreadbuf::~pyreadbuf() {
 
 std::streampos pyreadbuf::seekpos(std::streampos sp,
                                   std::ios_base::openmode which) {
-  PyObject *n = PyObject_CallMethod(handle, "seek", "i", sp);
+
+  std::streamoff offset = sp;
+  PyObject *n = PyObject_CallMethod(handle, "seek", "L", offset);
   if (n == nullptr)
     return std::streampos(std::streamoff(-1));
+
+  if(!PyLong_CheckExact(n)) {
+    Py_DECREF(n);
+    PyErr_SetString(PyExc_TypeError, "`seek` did not return an integer");
+    return std::streampos(std::streamoff(-1));
+  }
 
   long l = PyLong_AsLong(n);
   Py_DECREF(n);
