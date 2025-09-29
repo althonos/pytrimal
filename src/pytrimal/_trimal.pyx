@@ -54,7 +54,8 @@ from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
 from cpython.list cimport PyList_New, PyList_SET_ITEM
 from cpython.mem cimport PyMem_Free, PyMem_Malloc
 from cpython.memoryview cimport PyMemoryView_FromMemory, PyMemoryView_GET_BUFFER
-from cpython.ref cimport Py_INCREF
+from cpython.object cimport PyObject
+from cpython.ref cimport Py_INCREF, Py_DECREF, Py_XDECREF
 from cpython.unicode cimport (
     PyUnicode_New,
     PyUnicode_KIND,
@@ -68,6 +69,7 @@ from libc.stdio cimport printf
 from libc.string cimport memset, memcpy
 from libcpp cimport bool
 from libcpp.string cimport string
+from posix.stat cimport struct_stat, stat, S_ISDIR
 from iostream cimport istream, ostream, stringbuf, filebuf, ios_base
 
 cimport trimal
@@ -84,8 +86,6 @@ from pystreambuf cimport pyreadbuf, pyreadintobuf, pywritebuf
 
 # --- Python imports ---------------------------------------------------------
 
-import os
-import threading
 from scoring_matrices.lib import ScoringMatrix
 from string import ascii_uppercase
 
@@ -185,6 +185,9 @@ cdef extern from "<ios>":
     """
     const ios_base.openmode READMODE
     const ios_base.openmode WRITEMODE
+
+cdef extern from *:
+    int PyUnicode_FSConverter(PyObject* obj, void* result) except 0
 
 
 # --- Alignment classes ------------------------------------------------------
@@ -539,28 +542,26 @@ cdef class Alignment:
         cdef trimal.format_handling.FormatManager      manager
         cdef trimal.format_handling.BaseFormatHandler* handler
 
-        cdef string         path_
         cdef char           cbuffer[DEFAULT_BUFFER_SIZE]
         cdef filebuf        fbuffer
+        cdef struct_stat    stat_buf
         cdef pyreadbuf*     rbuffer   = NULL
         cdef pyreadintobuf* r2buffer  = NULL
         cdef istream*       stream    = NULL
+        cdef PyObject*      path_     = NULL
         cdef Alignment      alignment = Alignment.__new__(Alignment)
 
-        if SYS_VERSION_INFO_MAJOR == 3 and SYS_VERSION_INFO_MINOR < 6:
-            TYPES = (str, bytes)
-        else:
-            TYPES = (str, bytes, os.PathLike)
-        if isinstance(file, TYPES):
+        try:
+            # try getting path from given file
+            PyUnicode_FSConverter(<PyObject*> file, <void*> &path_)
             # check that file exists and is not a directory
-            if not os.path.exists(file):
-                raise FileNotFoundError(file)
-            elif os.path.isdir(file):
+            if stat(PyBytes_AsString(<object> path_), &stat_buf):
+                raise OSError(errno, file)
+            if S_ISDIR(stat_buf.st_mode):
                 raise IsADirectoryError(file)
             # load the alignment from the given path
-            path_ = os.fsencode(file)
-            alignment._ali = manager.loadAlignment(path_)
-        else:
+            alignment._ali = manager.loadAlignment(PyBytes_AsString(<object> path_))
+        except TypeError:
             # check the file-like object has all the required features
             _check_fileobj_read(file)
             # clear buffer (crash on PyPI otherwise)
@@ -592,6 +593,9 @@ cdef class Alignment:
                 del stream
                 del rbuffer
                 del r2buffer
+        finally:
+            Py_XDECREF(path_)
+
 
         if alignment._ali is NULL:
             raise RuntimeError(f"Failed to load alignment from {file!r}.")
@@ -661,29 +665,27 @@ cdef class Alignment:
         assert self._ali != NULL
 
         cdef bool                                      is_fileobj
-        cdef bytes                                     path_
         cdef trimal.format_handling.FormatManager      manager
         cdef trimal.format_handling.BaseFormatHandler* handler
         cdef filebuf                                   fbuffer
         cdef pywritebuf*                               pbuffer    = NULL
         cdef ostream*                                  stream     = NULL
+        cdef PyObject*                                 path_      = NULL
 
         handler = manager.getFormatFromToken(format.lower().encode('ascii'))
         if handler is NULL:
             raise ValueError(f"Could not recognize alignment format: {format!r}")
 
-        if SYS_VERSION_INFO_MAJOR == 3 and SYS_VERSION_INFO_MINOR < 6:
-            TYPES = (str, bytes)
-        else:
-            TYPES = (str, bytes, os.PathLike)
-        if isinstance(file, TYPES):
-            path_ = os.fsencode(file)
-            if fbuffer.open(<const char*> path_, WRITEMODE) is NULL:
+        try:
+            PyUnicode_FSConverter(<PyObject*> file, <void*> &path_)
+            if fbuffer.open(PyBytes_AsString(<object> path_), WRITEMODE) is NULL:
                 raise OSError(errno, f"Failed to open {file!r}")
             stream = new ostream(&fbuffer)
-        else:
+        except TypeError:
             pbuffer = new pywritebuf(file)
             stream = new ostream(pbuffer)
+        finally:
+            Py_XDECREF(path_)
 
         try:
             handler.SaveAlignment(self._ali[0], stream)
