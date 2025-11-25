@@ -836,7 +836,7 @@ cdef class Alignment:
             if not self._ali.numberOfResidues:
                 self._ali.numberOfResidues = len(sequence)
             if len(sequence) != self._ali.numberOfResidues:
-                raise ValueError(f"Sequence length mismatch in sequence {i}: {len(sequence)} != {self._ali.numberOfResidues)}")
+                raise ValueError(f"Sequence length mismatch in sequence {i}: {len(sequence)} != {self._ali.numberOfResidues}")
 
             self._ali.seqsName[i] = name
             if isinstance(sequence, bytes):
