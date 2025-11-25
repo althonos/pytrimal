@@ -1,0 +1,2044 @@
+{
+    "results": [
+        {
+            "backend": null,
+            "max": 0.0016543865203857422,
+            "mean": 0.001441637674967448,
+            "median": 0.0013918876647949219,
+            "min": 0.0012786388397216797,
+            "residues": 7287,
+            "sequences": 10,
+            "statistic": "Gaps",
+            "stddev": 0.0001927508171583986,
+            "times": [
+                0.0012786388397216797,
+                0.0013918876647949219,
+                0.0016543865203857422
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 0.054744720458984375,
+            "mean": 0.05360078811645508,
+            "median": 0.05372810363769531,
+            "min": 0.05232954025268555,
+            "residues": 7287,
+            "sequences": 407,
+            "statistic": "Gaps",
+            "stddev": 0.0012126132065444105,
+            "times": [
+                0.054744720458984375,
+                0.05232954025268555,
+                0.05372810363769531
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 0.13413500785827637,
+            "mean": 0.11696402231852214,
+            "median": 0.10870528221130371,
+            "min": 0.10805177688598633,
+            "residues": 7287,
+            "sequences": 804,
+            "statistic": "Gaps",
+            "stddev": 0.014874099152802203,
+            "times": [
+                0.13413500785827637,
+                0.10870528221130371,
+                0.10805177688598633
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 0.17819476127624512,
+            "mean": 0.16073107719421387,
+            "median": 0.15723609924316406,
+            "min": 0.14676237106323242,
+            "residues": 7287,
+            "sequences": 1201,
+            "statistic": "Gaps",
+            "stddev": 0.01600499740032835,
+            "times": [
+                0.14676237106323242,
+                0.17819476127624512,
+                0.15723609924316406
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 0.28403687477111816,
+            "mean": 0.2328349749247233,
+            "median": 0.22515606880187988,
+            "min": 0.18931198120117188,
+            "residues": 7287,
+            "sequences": 1598,
+            "statistic": "Gaps",
+            "stddev": 0.04782703801085736,
+            "times": [
+                0.18931198120117188,
+                0.22515606880187988,
+                0.28403687477111816
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 0.2969636917114258,
+            "mean": 0.2576304276784261,
+            "median": 0.26337289810180664,
+            "min": 0.2125546932220459,
+            "residues": 7287,
+            "sequences": 1995,
+            "statistic": "Gaps",
+            "stddev": 0.04249649081297871,
+            "times": [
+                0.2125546932220459,
+                0.2969636917114258,
+                0.26337289810180664
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 0.404829740524292,
+            "mean": 0.39409605662027997,
+            "median": 0.3999485969543457,
+            "min": 0.37750983238220215,
+            "residues": 7287,
+            "sequences": 2392,
+            "statistic": "Gaps",
+            "stddev": 0.014569952522038519,
+            "times": [
+                0.37750983238220215,
+                0.3999485969543457,
+                0.404829740524292
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 0.4975864887237549,
+            "mean": 0.42396966616312665,
+            "median": 0.46648550033569336,
+            "min": 0.30783700942993164,
+            "residues": 7287,
+            "sequences": 2789,
+            "statistic": "Gaps",
+            "stddev": 0.10176892128548459,
+            "times": [
+                0.30783700942993164,
+                0.4975864887237549,
+                0.46648550033569336
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 0.5886857509613037,
+            "mean": 0.5032325585683187,
+            "median": 0.5104308128356934,
+            "min": 0.410581111907959,
+            "residues": 7287,
+            "sequences": 3186,
+            "statistic": "Gaps",
+            "stddev": 0.08927024566704118,
+            "times": [
+                0.410581111907959,
+                0.5886857509613037,
+                0.5104308128356934
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 0.5636498928070068,
+            "mean": 0.5222860972086588,
+            "median": 0.5630431175231934,
+            "min": 0.44016528129577637,
+            "residues": 7287,
+            "sequences": 3583,
+            "statistic": "Gaps",
+            "stddev": 0.07111935987274781,
+            "times": [
+                0.44016528129577637,
+                0.5630431175231934,
+                0.5636498928070068
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.0012142658233642578,
+            "mean": 0.0011216799418131511,
+            "median": 0.0012025833129882812,
+            "min": 0.0009481906890869141,
+            "residues": 7287,
+            "sequences": 10,
+            "statistic": "Gaps",
+            "stddev": 0.00015035960518304872,
+            "times": [
+                0.0012025833129882812,
+                0.0009481906890869141,
+                0.0012142658233642578
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.059534311294555664,
+            "mean": 0.05348356564839681,
+            "median": 0.05094337463378906,
+            "min": 0.0499730110168457,
+            "residues": 7287,
+            "sequences": 407,
+            "statistic": "Gaps",
+            "stddev": 0.00526251304446408,
+            "times": [
+                0.0499730110168457,
+                0.059534311294555664,
+                0.05094337463378906
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.1409463882446289,
+            "mean": 0.11820745468139648,
+            "median": 0.11659669876098633,
+            "min": 0.09707927703857422,
+            "residues": 7287,
+            "sequences": 804,
+            "statistic": "Gaps",
+            "stddev": 0.021977869832343726,
+            "times": [
+                0.09707927703857422,
+                0.11659669876098633,
+                0.1409463882446289
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.17240095138549805,
+            "mean": 0.153763214747111,
+            "median": 0.14915132522583008,
+            "min": 0.13973736763000488,
+            "residues": 7287,
+            "sequences": 1201,
+            "statistic": "Gaps",
+            "stddev": 0.01681307734043369,
+            "times": [
+                0.14915132522583008,
+                0.17240095138549805,
+                0.13973736763000488
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.20929431915283203,
+            "mean": 0.19536606470743814,
+            "median": 0.19806313514709473,
+            "min": 0.1787407398223877,
+            "residues": 7287,
+            "sequences": 1598,
+            "statistic": "Gaps",
+            "stddev": 0.015454317978894792,
+            "times": [
+                0.1787407398223877,
+                0.20929431915283203,
+                0.19806313514709473
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.243743896484375,
+            "mean": 0.2381452719370524,
+            "median": 0.2404646873474121,
+            "min": 0.23022723197937012,
+            "residues": 7287,
+            "sequences": 1995,
+            "statistic": "Gaps",
+            "stddev": 0.007050519180852944,
+            "times": [
+                0.2404646873474121,
+                0.23022723197937012,
+                0.243743896484375
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.3026998043060303,
+            "mean": 0.2843652566274007,
+            "median": 0.2809162139892578,
+            "min": 0.26947975158691406,
+            "residues": 7287,
+            "sequences": 2392,
+            "statistic": "Gaps",
+            "stddev": 0.016876459848114204,
+            "times": [
+                0.2809162139892578,
+                0.3026998043060303,
+                0.26947975158691406
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.3589334487915039,
+            "mean": 0.3434847990671794,
+            "median": 0.34711408615112305,
+            "min": 0.32440686225891113,
+            "residues": 7287,
+            "sequences": 2789,
+            "statistic": "Gaps",
+            "stddev": 0.017547082035239206,
+            "times": [
+                0.32440686225891113,
+                0.34711408615112305,
+                0.3589334487915039
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.5415892601013184,
+            "mean": 0.5019965171813965,
+            "median": 0.49409031867980957,
+            "min": 0.4703099727630615,
+            "residues": 7287,
+            "sequences": 3186,
+            "statistic": "Gaps",
+            "stddev": 0.03629139266991991,
+            "times": [
+                0.5415892601013184,
+                0.49409031867980957,
+                0.4703099727630615
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.5853207111358643,
+            "mean": 0.4962143103281657,
+            "median": 0.46498966217041016,
+            "min": 0.43833255767822266,
+            "residues": 7287,
+            "sequences": 3583,
+            "statistic": "Gaps",
+            "stddev": 0.07831100372012556,
+            "times": [
+                0.43833255767822266,
+                0.5853207111358643,
+                0.46498966217041016
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.0028727054595947266,
+            "mean": 0.0019632180531819663,
+            "median": 0.0019137859344482422,
+            "min": 0.0011031627655029297,
+            "residues": 7287,
+            "sequences": 10,
+            "statistic": "Gaps",
+            "stddev": 0.0008858064051051406,
+            "times": [
+                0.0028727054595947266,
+                0.0019137859344482422,
+                0.0011031627655029297
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.05701017379760742,
+            "mean": 0.051173766454060875,
+            "median": 0.050647735595703125,
+            "min": 0.04586338996887207,
+            "residues": 7287,
+            "sequences": 407,
+            "statistic": "Gaps",
+            "stddev": 0.005591978968048559,
+            "times": [
+                0.05701017379760742,
+                0.050647735595703125,
+                0.04586338996887207
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.11599421501159668,
+            "mean": 0.10136302312215169,
+            "median": 0.09638285636901855,
+            "min": 0.09171199798583984,
+            "residues": 7287,
+            "sequences": 804,
+            "statistic": "Gaps",
+            "stddev": 0.012884411573224766,
+            "times": [
+                0.11599421501159668,
+                0.09638285636901855,
+                0.09171199798583984
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.15172600746154785,
+            "mean": 0.13857563336690268,
+            "median": 0.13405799865722656,
+            "min": 0.1299428939819336,
+            "residues": 7287,
+            "sequences": 1201,
+            "statistic": "Gaps",
+            "stddev": 0.011572932892918322,
+            "times": [
+                0.13405799865722656,
+                0.15172600746154785,
+                0.1299428939819336
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.20197224617004395,
+            "mean": 0.1889484723409017,
+            "median": 0.18510913848876953,
+            "min": 0.1797640323638916,
+            "residues": 7287,
+            "sequences": 1598,
+            "statistic": "Gaps",
+            "stddev": 0.011591227434402272,
+            "times": [
+                0.1797640323638916,
+                0.20197224617004395,
+                0.18510913848876953
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.28845834732055664,
+            "mean": 0.254485289255778,
+            "median": 0.25159788131713867,
+            "min": 0.22339963912963867,
+            "residues": 7287,
+            "sequences": 1995,
+            "statistic": "Gaps",
+            "stddev": 0.03262532331365993,
+            "times": [
+                0.28845834732055664,
+                0.22339963912963867,
+                0.25159788131713867
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.4046058654785156,
+            "mean": 0.330689271291097,
+            "median": 0.3233048915863037,
+            "min": 0.2641570568084717,
+            "residues": 7287,
+            "sequences": 2392,
+            "statistic": "Gaps",
+            "stddev": 0.07051498962580278,
+            "times": [
+                0.2641570568084717,
+                0.3233048915863037,
+                0.4046058654785156
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.4215881824493408,
+            "mean": 0.3843284447987874,
+            "median": 0.374967098236084,
+            "min": 0.3564300537109375,
+            "residues": 7287,
+            "sequences": 2789,
+            "statistic": "Gaps",
+            "stddev": 0.03357263085122858,
+            "times": [
+                0.374967098236084,
+                0.3564300537109375,
+                0.4215881824493408
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.5067148208618164,
+            "mean": 0.4657894770304362,
+            "median": 0.49326610565185547,
+            "min": 0.3973875045776367,
+            "residues": 7287,
+            "sequences": 3186,
+            "statistic": "Gaps",
+            "stddev": 0.05961828043289082,
+            "times": [
+                0.3973875045776367,
+                0.5067148208618164,
+                0.49326610565185547
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.6288104057312012,
+            "mean": 0.5505255858103434,
+            "median": 0.5623455047607422,
+            "min": 0.4604208469390869,
+            "residues": 7287,
+            "sequences": 3583,
+            "statistic": "Gaps",
+            "stddev": 0.08481476133637483,
+            "times": [
+                0.5623455047607422,
+                0.6288104057312012,
+                0.4604208469390869
+            ],
+            "trimmer": "ManualTrimmer(gap_threshold=0.5)"
+        },
+        {
+            "backend": null,
+            "max": 0.0037217140197753906,
+            "mean": 0.002934535344441732,
+            "median": 0.0032699108123779297,
+            "min": 0.001811981201171875,
+            "residues": 7287,
+            "sequences": 10,
+            "statistic": "Similarity",
+            "stddev": 0.0009980618157122833,
+            "times": [
+                0.001811981201171875,
+                0.0032699108123779297,
+                0.0037217140197753906
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 2.013829469680786,
+            "mean": 1.366440773010254,
+            "median": 1.8608858585357666,
+            "min": 0.22460699081420898,
+            "residues": 7287,
+            "sequences": 407,
+            "statistic": "Similarity",
+            "stddev": 0.9918095717780775,
+            "times": [
+                0.22460699081420898,
+                1.8608858585357666,
+                2.013829469680786
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 9.64605975151062,
+            "mean": 6.24071470896403,
+            "median": 7.994173288345337,
+            "min": 1.0819110870361328,
+            "residues": 7287,
+            "sequences": 804,
+            "statistic": "Similarity",
+            "stddev": 4.543360356499303,
+            "times": [
+                1.0819110870361328,
+                9.64605975151062,
+                7.994173288345337
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 17.116148471832275,
+            "mean": 11.811191161473593,
+            "median": 16.487922191619873,
+            "min": 1.829502820968628,
+            "residues": 7287,
+            "sequences": 1201,
+            "statistic": "Similarity",
+            "stddev": 8.650100789009162,
+            "times": [
+                1.829502820968628,
+                17.116148471832275,
+                16.487922191619873
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 29.882515907287598,
+            "mean": 20.954308032989502,
+            "median": 29.4814612865448,
+            "min": 3.4989469051361084,
+            "residues": 7287,
+            "sequences": 1598,
+            "statistic": "Similarity",
+            "stddev": 15.118116128672787,
+            "times": [
+                3.4989469051361084,
+                29.882515907287598,
+                29.4814612865448
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 45.73696041107178,
+            "mean": 32.299863974253334,
+            "median": 45.481878995895386,
+            "min": 5.680752515792847,
+            "residues": 7287,
+            "sequences": 1995,
+            "statistic": "Similarity",
+            "stddev": 23.053179558589072,
+            "times": [
+                5.680752515792847,
+                45.481878995895386,
+                45.73696041107178
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 67.55108284950256,
+            "mean": 47.02060755093893,
+            "median": 65.67267680168152,
+            "min": 7.83806300163269,
+            "residues": 7287,
+            "sequences": 2392,
+            "statistic": "Similarity",
+            "stddev": 33.946074152085664,
+            "times": [
+                7.83806300163269,
+                65.67267680168152,
+                67.55108284950256
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 98.64609098434448,
+            "mean": 67.82882650693257,
+            "median": 93.19993042945862,
+            "min": 11.640458106994629,
+            "residues": 7287,
+            "sequences": 2789,
+            "statistic": "Similarity",
+            "stddev": 48.736687657069574,
+            "times": [
+                11.640458106994629,
+                93.19993042945862,
+                98.64609098434448
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 121.74518966674805,
+            "mean": 78.75735863049825,
+            "median": 99.43533301353455,
+            "min": 15.091553211212158,
+            "residues": 7287,
+            "sequences": 3186,
+            "statistic": "Similarity",
+            "stddev": 56.253297776544024,
+            "times": [
+                15.091553211212158,
+                121.74518966674805,
+                99.43533301353455
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 135.7112078666687,
+            "mean": 93.51049661636353,
+            "median": 129.42595553398132,
+            "min": 15.394326448440552,
+            "residues": 7287,
+            "sequences": 3583,
+            "statistic": "Similarity",
+            "stddev": 67.72354192228366,
+            "times": [
+                15.394326448440552,
+                129.42595553398132,
+                135.7112078666687
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.0035545825958251953,
+            "mean": 0.003306786219278971,
+            "median": 0.0033469200134277344,
+            "min": 0.0030188560485839844,
+            "residues": 7287,
+            "sequences": 10,
+            "statistic": "Similarity",
+            "stddev": 0.00027010881960670745,
+            "times": [
+                0.0030188560485839844,
+                0.0033469200134277344,
+                0.0035545825958251953
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.23995757102966309,
+            "mean": 0.22634275754292807,
+            "median": 0.22170352935791016,
+            "min": 0.21736717224121094,
+            "residues": 7287,
+            "sequences": 407,
+            "statistic": "Similarity",
+            "stddev": 0.011988467707335389,
+            "times": [
+                0.23995757102966309,
+                0.21736717224121094,
+                0.22170352935791016
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.7405188083648682,
+            "mean": 0.7269141674041748,
+            "median": 0.7353670597076416,
+            "min": 0.7048566341400146,
+            "residues": 7287,
+            "sequences": 804,
+            "statistic": "Similarity",
+            "stddev": 0.01927527454620187,
+            "times": [
+                0.7048566341400146,
+                0.7353670597076416,
+                0.7405188083648682
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 1.5874216556549072,
+            "mean": 1.5693338712056477,
+            "median": 1.568464994430542,
+            "min": 1.5521149635314941,
+            "residues": 7287,
+            "sequences": 1201,
+            "statistic": "Similarity",
+            "stddev": 0.01766937569106811,
+            "times": [
+                1.5521149635314941,
+                1.568464994430542,
+                1.5874216556549072
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 2.928252935409546,
+            "mean": 2.7724859714508057,
+            "median": 2.710733413696289,
+            "min": 2.678471565246582,
+            "residues": 7287,
+            "sequences": 1598,
+            "statistic": "Similarity",
+            "stddev": 0.13585918081616927,
+            "times": [
+                2.928252935409546,
+                2.710733413696289,
+                2.678471565246582
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 5.065004348754883,
+            "mean": 4.668500582377116,
+            "median": 4.655817985534668,
+            "min": 4.284679412841797,
+            "residues": 7287,
+            "sequences": 1995,
+            "statistic": "Similarity",
+            "stddev": 0.39031703472810597,
+            "times": [
+                4.655817985534668,
+                4.284679412841797,
+                5.065004348754883
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 6.947350025177002,
+            "mean": 6.386944055557251,
+            "median": 6.120604515075684,
+            "min": 6.092877626419067,
+            "residues": 7287,
+            "sequences": 2392,
+            "statistic": "Similarity",
+            "stddev": 0.4855237720006447,
+            "times": [
+                6.947350025177002,
+                6.120604515075684,
+                6.092877626419067
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 11.854280710220337,
+            "mean": 11.033004522323608,
+            "median": 10.672165393829346,
+            "min": 10.572567462921143,
+            "residues": 7287,
+            "sequences": 2789,
+            "statistic": "Similarity",
+            "stddev": 0.7129872856965513,
+            "times": [
+                10.672165393829346,
+                10.572567462921143,
+                11.854280710220337
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 15.955282926559448,
+            "mean": 14.420777320861816,
+            "median": 13.750309228897095,
+            "min": 13.556739807128906,
+            "residues": 7287,
+            "sequences": 3186,
+            "statistic": "Similarity",
+            "stddev": 1.3324405692934338,
+            "times": [
+                15.955282926559448,
+                13.556739807128906,
+                13.750309228897095
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 19.774880409240723,
+            "mean": 18.787919680277508,
+            "median": 18.303404808044434,
+            "min": 18.285473823547363,
+            "residues": 7287,
+            "sequences": 3583,
+            "statistic": "Similarity",
+            "stddev": 0.8547800830845094,
+            "times": [
+                19.774880409240723,
+                18.285473823547363,
+                18.303404808044434
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.006254434585571289,
+            "mean": 0.004047075907389323,
+            "median": 0.003052949905395508,
+            "min": 0.002833843231201172,
+            "residues": 7287,
+            "sequences": 10,
+            "statistic": "Similarity",
+            "stddev": 0.0019147653078845077,
+            "times": [
+                0.006254434585571289,
+                0.003052949905395508,
+                0.002833843231201172
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.26929235458374023,
+            "mean": 0.25128960609436035,
+            "median": 0.24486136436462402,
+            "min": 0.2397150993347168,
+            "residues": 7287,
+            "sequences": 407,
+            "statistic": "Similarity",
+            "stddev": 0.015801747555837416,
+            "times": [
+                0.24486136436462402,
+                0.2397150993347168,
+                0.26929235458374023
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.9299812316894531,
+            "mean": 0.897151788075765,
+            "median": 0.8982069492340088,
+            "min": 0.863267183303833,
+            "residues": 7287,
+            "sequences": 804,
+            "statistic": "Similarity",
+            "stddev": 0.03336953830669695,
+            "times": [
+                0.9299812316894531,
+                0.8982069492340088,
+                0.863267183303833
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 2.332247495651245,
+            "mean": 2.0863707860310874,
+            "median": 1.977771282196045,
+            "min": 1.9490935802459717,
+            "residues": 7287,
+            "sequences": 1201,
+            "statistic": "Similarity",
+            "stddev": 0.21341771223942704,
+            "times": [
+                1.977771282196045,
+                1.9490935802459717,
+                2.332247495651245
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 4.134548187255859,
+            "mean": 3.913799603780111,
+            "median": 3.8435044288635254,
+            "min": 3.7633461952209473,
+            "residues": 7287,
+            "sequences": 1598,
+            "statistic": "Similarity",
+            "stddev": 0.19532994761450875,
+            "times": [
+                3.8435044288635254,
+                4.134548187255859,
+                3.7633461952209473
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 6.502807140350342,
+            "mean": 6.282872200012207,
+            "median": 6.200983762741089,
+            "min": 6.14482569694519,
+            "residues": 7287,
+            "sequences": 1995,
+            "statistic": "Similarity",
+            "stddev": 0.1925278306495928,
+            "times": [
+                6.14482569694519,
+                6.502807140350342,
+                6.200983762741089
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 9.25842022895813,
+            "mean": 9.035981257756552,
+            "median": 8.965474605560303,
+            "min": 8.88404893875122,
+            "residues": 7287,
+            "sequences": 2392,
+            "statistic": "Similarity",
+            "stddev": 0.1968930083465091,
+            "times": [
+                8.88404893875122,
+                8.965474605560303,
+                9.25842022895813
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 13.666802883148193,
+            "mean": 13.04955506324768,
+            "median": 12.812613725662231,
+            "min": 12.669248580932617,
+            "residues": 7287,
+            "sequences": 2789,
+            "statistic": "Similarity",
+            "stddev": 0.5393371344157453,
+            "times": [
+                12.812613725662231,
+                12.669248580932617,
+                13.666802883148193
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 17.469558477401733,
+            "mean": 16.632309595743816,
+            "median": 16.712539196014404,
+            "min": 15.714831113815308,
+            "residues": 7287,
+            "sequences": 3186,
+            "statistic": "Similarity",
+            "stddev": 0.8801105735641551,
+            "times": [
+                17.469558477401733,
+                15.714831113815308,
+                16.712539196014404
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 23.075140714645386,
+            "mean": 22.930578152338665,
+            "median": 23.00012445449829,
+            "min": 22.716469287872314,
+            "residues": 7287,
+            "sequences": 3583,
+            "statistic": "Similarity",
+            "stddev": 0.18917931759025958,
+            "times": [
+                22.716469287872314,
+                23.00012445449829,
+                23.075140714645386
+            ],
+            "trimmer": "ManualTrimmer(similarity_threshold=0.5)"
+        },
+        {
+            "backend": null,
+            "max": 0.01171422004699707,
+            "mean": 0.00863194465637207,
+            "median": 0.008069038391113281,
+            "min": 0.006112575531005859,
+            "residues": 7287,
+            "sequences": 10,
+            "statistic": "Overlap",
+            "stddev": 0.0028429303400689054,
+            "times": [
+                0.01171422004699707,
+                0.008069038391113281,
+                0.006112575531005859
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 4.738511085510254,
+            "mean": 3.273960590362549,
+            "median": 4.64030647277832,
+            "min": 0.44306421279907227,
+            "residues": 7287,
+            "sequences": 407,
+            "statistic": "Overlap",
+            "stddev": 2.4521198506327067,
+            "times": [
+                0.44306421279907227,
+                4.64030647277832,
+                4.738511085510254
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 20.500450134277344,
+            "mean": 13.177300850550333,
+            "median": 18.197316884994507,
+            "min": 0.8341355323791504,
+            "residues": 7287,
+            "sequences": 804,
+            "statistic": "Overlap",
+            "stddev": 10.751344252918608,
+            "times": [
+                0.8341355323791504,
+                18.197316884994507,
+                20.500450134277344
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 50.26390337944031,
+            "mean": 31.71150279045105,
+            "median": 43.047274589538574,
+            "min": 1.8233304023742676,
+            "residues": 7287,
+            "sequences": 1201,
+            "statistic": "Overlap",
+            "stddev": 26.13421262057375,
+            "times": [
+                1.8233304023742676,
+                43.047274589538574,
+                50.26390337944031
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 73.78364777565002,
+            "mean": 48.43643283843994,
+            "median": 67.88818335533142,
+            "min": 3.637467384338379,
+            "residues": 7287,
+            "sequences": 1598,
+            "statistic": "Overlap",
+            "stddev": 38.9088628014383,
+            "times": [
+                3.637467384338379,
+                73.78364777565002,
+                67.88818335533142
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 117.74851751327515,
+            "mean": 73.4935971101125,
+            "median": 98.12570595741272,
+            "min": 4.606567859649658,
+            "residues": 7287,
+            "sequences": 1995,
+            "statistic": "Overlap",
+            "stddev": 60.4593316416483,
+            "times": [
+                4.606567859649658,
+                117.74851751327515,
+                98.12570595741272
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 180.98240423202515,
+            "mean": 111.95798261960347,
+            "median": 149.66587781906128,
+            "min": 5.225665807723999,
+            "residues": 7287,
+            "sequences": 2392,
+            "statistic": "Overlap",
+            "stddev": 93.74978290997278,
+            "times": [
+                5.225665807723999,
+                149.66587781906128,
+                180.98240423202515
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 316.7190113067627,
+            "mean": 196.42786963780722,
+            "median": 262.49938344955444,
+            "min": 10.065214157104492,
+            "residues": 7287,
+            "sequences": 2789,
+            "statistic": "Overlap",
+            "stddev": 163.65580200410818,
+            "times": [
+                10.065214157104492,
+                262.49938344955444,
+                316.7190113067627
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 392.26578426361084,
+            "mean": 252.76356609662375,
+            "median": 347.3085174560547,
+            "min": 18.71639657020569,
+            "residues": 7287,
+            "sequences": 3186,
+            "statistic": "Overlap",
+            "stddev": 203.9334379943548,
+            "times": [
+                18.71639657020569,
+                392.26578426361084,
+                347.3085174560547
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 316.33628368377686,
+            "mean": 207.56155109405518,
+            "median": 288.66029119491577,
+            "min": 17.6880784034729,
+            "residues": 7287,
+            "sequences": 3583,
+            "statistic": "Overlap",
+            "stddev": 165.016489672235,
+            "times": [
+                17.6880784034729,
+                316.33628368377686,
+                288.66029119491577
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform=None)"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.0021190643310546875,
+            "mean": 0.001807848612467448,
+            "median": 0.0016984939575195312,
+            "min": 0.001605987548828125,
+            "residues": 7287,
+            "sequences": 10,
+            "statistic": "Overlap",
+            "stddev": 0.0002734607403889529,
+            "times": [
+                0.001605987548828125,
+                0.0016984939575195312,
+                0.0021190643310546875
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.2346789836883545,
+            "mean": 0.19496615727742514,
+            "median": 0.19716572761535645,
+            "min": 0.15305376052856445,
+            "residues": 7287,
+            "sequences": 407,
+            "statistic": "Overlap",
+            "stddev": 0.04085704157455617,
+            "times": [
+                0.15305376052856445,
+                0.2346789836883545,
+                0.19716572761535645
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 1.0085270404815674,
+            "mean": 0.7713971138000488,
+            "median": 0.7225568294525146,
+            "min": 0.5831074714660645,
+            "residues": 7287,
+            "sequences": 804,
+            "statistic": "Overlap",
+            "stddev": 0.21687434716142676,
+            "times": [
+                0.5831074714660645,
+                0.7225568294525146,
+                1.0085270404815674
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 1.738370656967163,
+            "mean": 1.6494311491648357,
+            "median": 1.7065036296844482,
+            "min": 1.5034191608428955,
+            "residues": 7287,
+            "sequences": 1201,
+            "statistic": "Overlap",
+            "stddev": 0.12744999963614792,
+            "times": [
+                1.5034191608428955,
+                1.7065036296844482,
+                1.738370656967163
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 3.1512041091918945,
+            "mean": 2.828378756841024,
+            "median": 3.061040163040161,
+            "min": 2.2728919982910156,
+            "residues": 7287,
+            "sequences": 1598,
+            "statistic": "Overlap",
+            "stddev": 0.4831734041622215,
+            "times": [
+                2.2728919982910156,
+                3.061040163040161,
+                3.1512041091918945
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 4.970902919769287,
+            "mean": 4.527743419011434,
+            "median": 4.819316148757935,
+            "min": 3.79301118850708,
+            "residues": 7287,
+            "sequences": 1995,
+            "statistic": "Overlap",
+            "stddev": 0.6407949946689965,
+            "times": [
+                3.79301118850708,
+                4.819316148757935,
+                4.970902919769287
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 7.190035104751587,
+            "mean": 6.557801961898804,
+            "median": 7.015861988067627,
+            "min": 5.467508792877197,
+            "residues": 7287,
+            "sequences": 2392,
+            "statistic": "Overlap",
+            "stddev": 0.9482291202316211,
+            "times": [
+                5.467508792877197,
+                7.015861988067627,
+                7.190035104751587
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 13.284431219100952,
+            "mean": 11.211930672327677,
+            "median": 12.842041492462158,
+            "min": 7.509319305419922,
+            "residues": 7287,
+            "sequences": 2789,
+            "statistic": "Overlap",
+            "stddev": 3.214175690332558,
+            "times": [
+                7.509319305419922,
+                13.284431219100952,
+                12.842041492462158
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 15.186407804489136,
+            "mean": 13.216424703598022,
+            "median": 14.036988973617554,
+            "min": 10.425877332687378,
+            "residues": 7287,
+            "sequences": 3186,
+            "statistic": "Overlap",
+            "stddev": 2.4840806919588543,
+            "times": [
+                10.425877332687378,
+                14.036988973617554,
+                15.186407804489136
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 18.792916536331177,
+            "mean": 16.85438934961955,
+            "median": 16.824987411499023,
+            "min": 14.945264101028442,
+            "residues": 7287,
+            "sequences": 3583,
+            "statistic": "Overlap",
+            "stddev": 1.9239947170397058,
+            "times": [
+                14.945264101028442,
+                18.792916536331177,
+                16.824987411499023
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5, platform='sse2')"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.003139495849609375,
+            "mean": 0.0021790663401285806,
+            "median": 0.0017926692962646484,
+            "min": 0.0016050338745117188,
+            "residues": 7287,
+            "sequences": 10,
+            "statistic": "Overlap",
+            "stddev": 0.0008370307012799705,
+            "times": [
+                0.0016050338745117188,
+                0.003139495849609375,
+                0.0017926692962646484
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.18641328811645508,
+            "mean": 0.18012007077534994,
+            "median": 0.17726516723632812,
+            "min": 0.1766817569732666,
+            "residues": 7287,
+            "sequences": 407,
+            "statistic": "Overlap",
+            "stddev": 0.005457886977627079,
+            "times": [
+                0.17726516723632812,
+                0.18641328811645508,
+                0.1766817569732666
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.7269015312194824,
+            "mean": 0.6302937666575114,
+            "median": 0.5869100093841553,
+            "min": 0.5770697593688965,
+            "residues": 7287,
+            "sequences": 804,
+            "statistic": "Overlap",
+            "stddev": 0.0838093238269861,
+            "times": [
+                0.7269015312194824,
+                0.5770697593688965,
+                0.5869100093841553
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 1.7519962787628174,
+            "mean": 1.6068193912506104,
+            "median": 1.56886625289917,
+            "min": 1.4995956420898438,
+            "residues": 7287,
+            "sequences": 1201,
+            "statistic": "Overlap",
+            "stddev": 0.13041031738813189,
+            "times": [
+                1.56886625289917,
+                1.4995956420898438,
+                1.7519962787628174
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 3.3076746463775635,
+            "mean": 3.1796703338623047,
+            "median": 3.1753005981445312,
+            "min": 3.0560357570648193,
+            "residues": 7287,
+            "sequences": 1598,
+            "statistic": "Overlap",
+            "stddev": 0.1258763424807071,
+            "times": [
+                3.3076746463775635,
+                3.1753005981445312,
+                3.0560357570648193
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 4.2866175174713135,
+            "mean": 4.11748480796814,
+            "median": 4.082757472991943,
+            "min": 3.983079433441162,
+            "residues": 7287,
+            "sequences": 1995,
+            "statistic": "Overlap",
+            "stddev": 0.15472017631868676,
+            "times": [
+                4.082757472991943,
+                3.983079433441162,
+                4.2866175174713135
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 7.243767261505127,
+            "mean": 7.044542709986369,
+            "median": 7.093287706375122,
+            "min": 6.796573162078857,
+            "residues": 7287,
+            "sequences": 2392,
+            "statistic": "Overlap",
+            "stddev": 0.22754713060182222,
+            "times": [
+                6.796573162078857,
+                7.093287706375122,
+                7.243767261505127
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 9.347585201263428,
+            "mean": 9.170727809270224,
+            "median": 9.210783958435059,
+            "min": 8.953814268112183,
+            "residues": 7287,
+            "sequences": 2789,
+            "statistic": "Overlap",
+            "stddev": 0.1999181289006509,
+            "times": [
+                9.347585201263428,
+                9.210783958435059,
+                8.953814268112183
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 11.788275957107544,
+            "mean": 10.925734678904215,
+            "median": 11.25696349143982,
+            "min": 9.731964588165283,
+            "residues": 7287,
+            "sequences": 3186,
+            "statistic": "Overlap",
+            "stddev": 1.067421428584141,
+            "times": [
+                11.788275957107544,
+                11.25696349143982,
+                9.731964588165283
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 12.813687801361084,
+            "mean": 12.70065450668335,
+            "median": 12.784133195877075,
+            "min": 12.50414252281189,
+            "residues": 7287,
+            "sequences": 3583,
+            "statistic": "Overlap",
+            "stddev": 0.1708247304407402,
+            "times": [
+                12.784133195877075,
+                12.813687801361084,
+                12.50414252281189
+            ],
+            "trimmer": "OverlapTrimmer(60.0, 0.5)"
+        },
+        {
+            "backend": null,
+            "max": 0.0035452842712402344,
+            "mean": 0.0032409032185872397,
+            "median": 0.003262042999267578,
+            "min": 0.0029153823852539062,
+            "residues": 7287,
+            "sequences": 10,
+            "statistic": "Identity",
+            "stddev": 0.00031548258943671185,
+            "times": [
+                0.003262042999267578,
+                0.0035452842712402344,
+                0.0029153823852539062
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 1.5052218437194824,
+            "mean": 1.0358442465464275,
+            "median": 1.424178123474121,
+            "min": 0.1781327724456787,
+            "residues": 7287,
+            "sequences": 407,
+            "statistic": "Identity",
+            "stddev": 0.743904396243806,
+            "times": [
+                0.1781327724456787,
+                1.5052218437194824,
+                1.424178123474121
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 5.767592906951904,
+            "mean": 3.9566361904144287,
+            "median": 5.680457353591919,
+            "min": 0.4218583106994629,
+            "residues": 7287,
+            "sequences": 804,
+            "statistic": "Identity",
+            "stddev": 3.0615174579539,
+            "times": [
+                0.4218583106994629,
+                5.767592906951904,
+                5.680457353591919
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 13.122695922851562,
+            "mean": 8.742220083872477,
+            "median": 12.365871667861938,
+            "min": 0.7380926609039307,
+            "residues": 7287,
+            "sequences": 1201,
+            "statistic": "Identity",
+            "stddev": 6.942098932640832,
+            "times": [
+                0.7380926609039307,
+                13.122695922851562,
+                12.365871667861938
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 21.819099187850952,
+            "mean": 14.916905641555786,
+            "median": 21.60448145866394,
+            "min": 1.3271362781524658,
+            "residues": 7287,
+            "sequences": 1598,
+            "statistic": "Identity",
+            "stddev": 11.769574703670985,
+            "times": [
+                1.3271362781524658,
+                21.819099187850952,
+                21.60448145866394
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 33.24251365661621,
+            "mean": 22.39820392926534,
+            "median": 31.717535257339478,
+            "min": 2.234562873840332,
+            "residues": 7287,
+            "sequences": 1995,
+            "statistic": "Identity",
+            "stddev": 17.47886452944186,
+            "times": [
+                2.234562873840332,
+                33.24251365661621,
+                31.717535257339478
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 56.822511196136475,
+            "mean": 35.34029801686605,
+            "median": 46.33715033531189,
+            "min": 2.8612325191497803,
+            "residues": 7287,
+            "sequences": 2392,
+            "statistic": "Identity",
+            "stddev": 28.612112291809837,
+            "times": [
+                2.8612325191497803,
+                46.33715033531189,
+                56.822511196136475
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 87.84623622894287,
+            "mean": 55.36976639429728,
+            "median": 70.73497748374939,
+            "min": 7.528085470199585,
+            "residues": 7287,
+            "sequences": 2789,
+            "statistic": "Identity",
+            "stddev": 42.306247992390205,
+            "times": [
+                7.528085470199585,
+                70.73497748374939,
+                87.84623622894287
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 113.31076526641846,
+            "mean": 77.31757561365764,
+            "median": 112.11084294319153,
+            "min": 6.531118631362915,
+            "residues": 7287,
+            "sequences": 3186,
+            "statistic": "Identity",
+            "stddev": 61.3058057811423,
+            "times": [
+                6.531118631362915,
+                112.11084294319153,
+                113.31076526641846
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": null,
+            "max": 132.67309308052063,
+            "mean": 90.97888843218486,
+            "median": 131.9341299533844,
+            "min": 8.329442262649536,
+            "residues": 7287,
+            "sequences": 3583,
+            "statistic": "Identity",
+            "stddev": 71.57747362630232,
+            "times": [
+                8.329442262649536,
+                132.67309308052063,
+                131.9341299533844
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform=None)"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.003439188003540039,
+            "mean": 0.002660353978474935,
+            "median": 0.0023958683013916016,
+            "min": 0.002146005630493164,
+            "residues": 7287,
+            "sequences": 10,
+            "statistic": "Identity",
+            "stddev": 0.0006859625846403422,
+            "times": [
+                0.0023958683013916016,
+                0.002146005630493164,
+                0.003439188003540039
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.24536490440368652,
+            "mean": 0.2094124952952067,
+            "median": 0.20070648193359375,
+            "min": 0.18216609954833984,
+            "residues": 7287,
+            "sequences": 407,
+            "statistic": "Identity",
+            "stddev": 0.03248643155650502,
+            "times": [
+                0.18216609954833984,
+                0.20070648193359375,
+                0.24536490440368652
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 0.7385294437408447,
+            "mean": 0.6174459457397461,
+            "median": 0.6257917881011963,
+            "min": 0.48801660537719727,
+            "residues": 7287,
+            "sequences": 804,
+            "statistic": "Identity",
+            "stddev": 0.12546477736717335,
+            "times": [
+                0.48801660537719727,
+                0.6257917881011963,
+                0.7385294437408447
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 1.395561933517456,
+            "mean": 1.232678731282552,
+            "median": 1.3349082469940186,
+            "min": 0.9675660133361816,
+            "residues": 7287,
+            "sequences": 1201,
+            "statistic": "Identity",
+            "stddev": 0.23158860579679796,
+            "times": [
+                0.9675660133361816,
+                1.3349082469940186,
+                1.395561933517456
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 2.4843316078186035,
+            "mean": 2.3637802600860596,
+            "median": 2.4431536197662354,
+            "min": 2.16385555267334,
+            "residues": 7287,
+            "sequences": 1598,
+            "statistic": "Identity",
+            "stddev": 0.17435975209478946,
+            "times": [
+                2.16385555267334,
+                2.4431536197662354,
+                2.4843316078186035
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 3.7862789630889893,
+            "mean": 3.379054546356201,
+            "median": 3.7557709217071533,
+            "min": 2.595113754272461,
+            "residues": 7287,
+            "sequences": 1995,
+            "statistic": "Identity",
+            "stddev": 0.6790839854295642,
+            "times": [
+                2.595113754272461,
+                3.7862789630889893,
+                3.7557709217071533
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 4.889725208282471,
+            "mean": 4.520327726999919,
+            "median": 4.8467185497283936,
+            "min": 3.8245394229888916,
+            "residues": 7287,
+            "sequences": 2392,
+            "statistic": "Identity",
+            "stddev": 0.6029539088262906,
+            "times": [
+                3.8245394229888916,
+                4.889725208282471,
+                4.8467185497283936
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 6.728940010070801,
+            "mean": 6.222479581832886,
+            "median": 6.659357786178589,
+            "min": 5.279140949249268,
+            "residues": 7287,
+            "sequences": 2789,
+            "statistic": "Identity",
+            "stddev": 0.817695697227272,
+            "times": [
+                5.279140949249268,
+                6.728940010070801,
+                6.659357786178589
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 9.094624996185303,
+            "mean": 8.617385864257812,
+            "median": 8.950397491455078,
+            "min": 7.807135105133057,
+            "residues": 7287,
+            "sequences": 3186,
+            "statistic": "Identity",
+            "stddev": 0.7053935871390234,
+            "times": [
+                7.807135105133057,
+                9.094624996185303,
+                8.950397491455078
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "sse2",
+            "max": 11.480897665023804,
+            "mean": 10.15920082728068,
+            "median": 11.341992855072021,
+            "min": 7.654711961746216,
+            "residues": 7287,
+            "sequences": 3583,
+            "statistic": "Identity",
+            "stddev": 2.170062670695599,
+            "times": [
+                7.654711961746216,
+                11.341992855072021,
+                11.480897665023804
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5, platform='sse2')"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.004276275634765625,
+            "mean": 0.003502925237019857,
+            "median": 0.0034508705139160156,
+            "min": 0.0027816295623779297,
+            "residues": 7287,
+            "sequences": 10,
+            "statistic": "Identity",
+            "stddev": 0.000748681501757626,
+            "times": [
+                0.004276275634765625,
+                0.0027816295623779297,
+                0.0034508705139160156
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.16611862182617188,
+            "mean": 0.15943336486816406,
+            "median": 0.1593163013458252,
+            "min": 0.15286517143249512,
+            "residues": 7287,
+            "sequences": 407,
+            "statistic": "Identity",
+            "stddev": 0.006627500640181745,
+            "times": [
+                0.1593163013458252,
+                0.16611862182617188,
+                0.15286517143249512
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 0.48622918128967285,
+            "mean": 0.4538141091664632,
+            "median": 0.44809961318969727,
+            "min": 0.42711353302001953,
+            "residues": 7287,
+            "sequences": 804,
+            "statistic": "Identity",
+            "stddev": 0.029969260347674533,
+            "times": [
+                0.44809961318969727,
+                0.42711353302001953,
+                0.48622918128967285
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 1.285874843597412,
+            "mean": 1.0622812112172444,
+            "median": 1.0256354808807373,
+            "min": 0.875333309173584,
+            "residues": 7287,
+            "sequences": 1201,
+            "statistic": "Identity",
+            "stddev": 0.20770958099156095,
+            "times": [
+                1.0256354808807373,
+                1.285874843597412,
+                0.875333309173584
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 1.6314961910247803,
+            "mean": 1.6308273474375408,
+            "median": 1.631079912185669,
+            "min": 1.6299059391021729,
+            "residues": 7287,
+            "sequences": 1598,
+            "statistic": "Identity",
+            "stddev": 0.0008246617538948725,
+            "times": [
+                1.6314961910247803,
+                1.631079912185669,
+                1.6299059391021729
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 2.6853525638580322,
+            "mean": 2.5678181648254395,
+            "median": 2.547208070755005,
+            "min": 2.4708938598632812,
+            "residues": 7287,
+            "sequences": 1995,
+            "statistic": "Identity",
+            "stddev": 0.10870471890847783,
+            "times": [
+                2.4708938598632812,
+                2.547208070755005,
+                2.6853525638580322
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 4.153756856918335,
+            "mean": 3.8397589524586997,
+            "median": 3.7173545360565186,
+            "min": 3.648165464401245,
+            "residues": 7287,
+            "sequences": 2392,
+            "statistic": "Identity",
+            "stddev": 0.27412186142829137,
+            "times": [
+                3.648165464401245,
+                3.7173545360565186,
+                4.153756856918335
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 5.089581251144409,
+            "mean": 4.97635277112325,
+            "median": 5.012190580368042,
+            "min": 4.8272864818573,
+            "residues": 7287,
+            "sequences": 2789,
+            "statistic": "Identity",
+            "stddev": 0.134769796050317,
+            "times": [
+                4.8272864818573,
+                5.012190580368042,
+                5.089581251144409
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 6.511640310287476,
+            "mean": 6.383352756500244,
+            "median": 6.467566728591919,
+            "min": 6.170851230621338,
+            "residues": 7287,
+            "sequences": 3186,
+            "statistic": "Identity",
+            "stddev": 0.18534641627643175,
+            "times": [
+                6.511640310287476,
+                6.170851230621338,
+                6.467566728591919
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5)"
+        },
+        {
+            "backend": "avx2",
+            "max": 8.664992809295654,
+            "mean": 8.487918774286905,
+            "median": 8.56995177268982,
+            "min": 8.228811740875244,
+            "residues": 7287,
+            "sequences": 3583,
+            "statistic": "Identity",
+            "stddev": 0.22936987756094288,
+            "times": [
+                8.56995177268982,
+                8.664992809295654,
+                8.228811740875244
+            ],
+            "trimmer": "RepresentativeTrimmer(identity_threshold=0.5)"
+        }
+    ]
+}

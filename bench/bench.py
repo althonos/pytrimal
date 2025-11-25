@@ -24,6 +24,7 @@ from pytrimal import (
     AutomaticTrimmer,
     ManualTrimmer,
     OverlapTrimmer,
+    RepresentativeTrimmer,
 )
 
 if typing.TYPE_CHECKING:
@@ -52,6 +53,7 @@ STATISTIC: Dict[str, Callable[["COMPUTE_PLATFORM"], BaseTrimmer]] = {
     "Overlap": lambda platform: OverlapTrimmer(
         sequence_overlap=60, residue_overlap=0.5, platform=platform
     ),
+    "Identity": lambda platform: RepresentativeTrimmer(platform=platform, identity_threshold=0.5),
 }
 
 with rich.progress.Progress(transient=True) as progress:

@@ -34,13 +34,13 @@ for result in data["results"]:
     else:
         result["backend"] = result["backend"].upper()
 
-plt.figure(1, figsize=(18, 6))
+plt.figure(1, figsize=(12, 12))
 
 data["results"].sort(key=lambda r: r["statistic"])
 for i, (statistic, statistic_group) in enumerate(
     itertools.groupby(data["results"], key=lambda r: r["statistic"])
 ):
-    plt.subplot(1, 3, i + 1)
+    plt.subplot(2, 2, i + 1)
     plt.title(statistic)
 
     statistic_group = sorted(
