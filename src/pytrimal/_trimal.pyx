@@ -187,7 +187,7 @@ cdef extern from "<ios>":
     const ios_base.openmode WRITEMODE
 
 cdef extern from *:
-    int PyUnicode_FSConverter(PyObject* obj, void* result) except 0
+    int PyUnicode_FSConverter(PyObject* obj, PyObject** result) except 0
 
 
 # --- Alignment classes ------------------------------------------------------
@@ -553,7 +553,7 @@ cdef class Alignment:
 
         try:
             # try getting path from given file
-            PyUnicode_FSConverter(<PyObject*> file, <void*> &path_)
+            PyUnicode_FSConverter(<PyObject*> file, &path_)
             # check that file exists and is not a directory
             if stat(PyBytes_AsString(<object> path_), &stat_buf):
                 raise OSError(errno, file)
@@ -677,7 +677,7 @@ cdef class Alignment:
             raise ValueError(f"Could not recognize alignment format: {format!r}")
 
         try:
-            PyUnicode_FSConverter(<PyObject*> file, <void*> &path_)
+            PyUnicode_FSConverter(<PyObject*> file, &path_)
             if fbuffer.open(PyBytes_AsString(<object> path_), WRITEMODE) is NULL:
                 raise OSError(errno, f"Failed to open {file!r}")
             stream = new ostream(&fbuffer)
