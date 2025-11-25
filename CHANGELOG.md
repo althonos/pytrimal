@@ -6,7 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.8.4...HEAD
+[Unreleased]: https://github.com/althonos/pytrimal/compare/v0.8.5...HEAD
+
+
+## [v0.8.5] - 2025-11-25
+[v0.8.5]: https://github.com/althonos/pytrimal/compare/v0.8.4...v0.8.5
+
+### Added
+- Support for Python 3.14.
+
+### Fixed
+- Compilation failing on Python 3.14 due to syntax error in f-string ([#7](https://github.com/althonos/pytrimal/issues/7)).
+- Compilation failing on PyPy due to an invalid cast in `PyUnicode_FSConverter`.
 
 
 ## [v0.8.4] - 2025-09-08
