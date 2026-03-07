@@ -1,5 +1,5 @@
 # distutils: language = c++
-# cython: language_level=3, linetrace=True, embedsignature=False, binding=False
+# cython: language_level=3, embedsignature=False, binding=False
 """Bindings to trimAl, a tool for automated alignment trimming.
 
 Example:
